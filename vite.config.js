@@ -4,10 +4,15 @@ import { resolve } from "path";
 
 export default defineConfig({
   plugins: [react()],
-  root: resolve(__dirname, "."), // le dossier où se trouve index.html et package.json
+  root: resolve(__dirname, "src"), // dossier frontend contenant index.html et package.json
   build: {
-    outDir: "dist", // dossier de sortie pour le build
+    outDir: "../dist", // dossier de sortie final (à la racine)
     emptyOutDir: true,
+  },
+  resolve: {
+    alias: {
+      "@": resolve(__dirname, "src"), // alias @ pour pointer vers src/
+    },
   },
   server: {
     port: 5173,
