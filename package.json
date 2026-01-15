@@ -3,16 +3,13 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-
     "start": "node serveur.js"
   },
-
   "dependencies": {
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
@@ -26,6 +23,7 @@
     "morgan": "^1.10.1",
     "multer": "^2.0.2",
     "multer-storage-cloudinary": "^4.0.0",
+    "node-cron": "^4.2.1",
     "paydunya": "^1.0.12",
     "prop-types": "^15.8.1",
     "react": "^19.2.0",
@@ -35,7 +33,6 @@
     "recharts": "^3.6.0",
     "twilio": "^5.10.7"
   },
-
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@tailwindcss/postcss": "^4.1.18",
