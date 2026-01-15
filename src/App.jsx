@@ -5,8 +5,7 @@ import { useState } from "react";
 import HomeLayout from "./layouts/HomeLayout";
 import MainLayout from "./layouts/MainLayout";
 
-// Footer
-import Footer from "./components/layout/Footer";
+import Footer from "./components/Layout/Footer";
 
 // Pages
 import Home from "./pages/Home";
