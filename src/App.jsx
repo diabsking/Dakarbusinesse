@@ -7,6 +7,7 @@ import MainLayout from "./layouts/MainLayout";
 
 import Footer from "./components/Layout/Footer";
 
+
 // Pages
 import Home from "./pages/Home";
 import Produit from "./pages/Produit";
