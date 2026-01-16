@@ -17,6 +17,8 @@ import certificationRoutes from "./routes/certification.routes.js";
 import vendeurPublicRoutes from "./routes/vendeur.public.routes.js";
 import adminRoutes from "./src/admin/routes/index.js";
 
+
+
 const app = express();
 
 /* =====================================================
@@ -32,13 +34,33 @@ console.log("🗄️ Mongo URI :", process.env.MONGO_URI ? "OK" : "❌ MANQUANT"
 app.use(express.json({ limit: "10mb" }));
 
 // ✅ CORS compatible Render
+
+const allowedOrigins = [
+  "https://dakarbusinesse-1.onrender.com",
+  "https://dakarbusinesse.onrender.com",
+];
+
 app.use(
   cors({
-    origin: "*",
+    origin: (origin, callback) => {
+      // autorise les appels serveur → serveur (cron, render, etc.)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(
+        new Error("CORS policy: Origin non autorisée : " + origin),
+        false
+      );
+    },
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: false, // 🔥 TRÈS IMPORTANT
   })
 );
+
 
 /* =====================================================
    🔍 LOG REQUÊTES
