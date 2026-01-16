@@ -4,9 +4,9 @@ import { resolve } from "path";
 
 export default defineConfig({
   plugins: [react()],
-  root: resolve(__dirname, "src"), // dossier frontend contenant index.html et package.json
+  root: resolve(__dirname, "src"), // dossier frontend contenant index.html
   build: {
-    outDir: "../dist", // dossier de sortie final (à la racine)
+    outDir: resolve(__dirname, "dist"), // sortie finale à la racine
     emptyOutDir: true,
   },
   resolve: {
