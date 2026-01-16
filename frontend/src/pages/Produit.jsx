@@ -3,7 +3,6 @@ import { useParams, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import ProductCard from "../components/Produit/ProductCard";
 import useProduitFilter from "../components/Produit/useProduitFilter";
-import api from "../services/api"; // utilise ton api.js
 
 
 export default function Produit() {
@@ -21,62 +20,50 @@ export default function Produit() {
   /* =====================================================
      📥 FETCH + TRI FRONTEND (UNE SEULE FOIS)
   ===================================================== */
-useEffect(() => {
-  let isMounted = true; // évite setState après unmount
+  useEffect(() => {
+    const fetchProduits = async () => {
+      try {
+        const res = await axios.get(
+          "http://localhost:5000/api/produits"
+        );
 
-  const fetchProduits = async () => {
-    try {
-      const res = await api.get("/produits");
+        const produitsActifs = (res.data.produits || []).filter(
+          (p) => p.actif === true
+        );
 
-      // 🔒 Sécurité : structure de réponse
-      if (!res?.data?.produits || !Array.isArray(res.data.produits)) {
-        console.error("❌ Réponse API invalide :", res.data);
-        if (isMounted) setProduits([]);
-        return;
+        // 🔥 TRI MÉTIER FRONTEND
+        const produitsTries = [...produitsActifs].sort((a, b) => {
+          // 1️⃣ Produits boostés
+          if (a.estBooster && !b.estBooster) return -1;
+          if (!a.estBooster && b.estBooster) return 1;
+
+          // 2️⃣ Vendeur certifié
+          const certA = a.vendeur?.certifie ? 1 : 0;
+          const certB = b.vendeur?.certifie ? 1 : 0;
+          if (certA !== certB) return certB - certA;
+
+          // 3️⃣ Date de boost (récent → ancien)
+          const dateA = a.dateDebutBoost
+            ? new Date(a.dateDebutBoost).getTime()
+            : 0;
+          const dateB = b.dateDebutBoost
+            ? new Date(b.dateDebutBoost).getTime()
+            : 0;
+
+          return dateB - dateA;
+        });
+
+        setProduits(produitsTries);
+      } catch (err) {
+        console.error("❌ Erreur récupération produits :", err);
+        setProduits([]);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      // ✅ Produits visibles uniquement
-      const produitsActifs = res.data.produits.filter(
-        (p) => p.actif === true && p.publie === true
-      );
-
-      // 🔥 TRI MÉTIER FRONTEND
-      const produitsTries = produitsActifs.sort((a, b) => {
-        // 1️⃣ Produits boostés
-        if (a.estBooster && !b.estBooster) return -1;
-        if (!a.estBooster && b.estBooster) return 1;
-
-        // 2️⃣ Vendeur certifié
-        const certA = a.vendeur?.certifie ? 1 : 0;
-        const certB = b.vendeur?.certifie ? 1 : 0;
-        if (certA !== certB) return certB - certA;
-
-        // 3️⃣ Date de boost (récent → ancien)
-        const dateA = a.dateDebutBoost
-          ? new Date(a.dateDebutBoost).getTime()
-          : 0;
-        const dateB = b.dateDebutBoost
-          ? new Date(b.dateDebutBoost).getTime()
-          : 0;
-
-        return dateB - dateA;
-      });
-
-      if (isMounted) setProduits(produitsTries);
-    } catch (err) {
-      console.error("❌ Erreur récupération produits :", err);
-      if (isMounted) setProduits([]);
-    } finally {
-      if (isMounted) setLoading(false);
-    }
-  };
-
-  fetchProduits();
-
-  return () => {
-    isMounted = false;
-  };
-}, []);
+    fetchProduits();
+  }, []);
 
   /* =====================================================
      🔍 FILTRES (catégorie, recherche, prix, etc.)
