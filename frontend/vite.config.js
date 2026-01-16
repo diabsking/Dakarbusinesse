@@ -1,14 +1,26 @@
 // vite.config.js
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react' // ou ce que tu utilises
+import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
   server: {
-    host: true,
+    host: true, // écoute tous les hôtes pour dev
   },
   preview: {
-    // autoriser le domaine Render
-    allowedHosts: ['dakarbusinesse-1.onrender.com'],
+    allowedHosts: ['dakarbusinesse-1.onrender.com'], // autorise Render
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          // Sépare les libs node_modules dans un chunk 'vendor'
+          if (id.includes('node_modules')) {
+            return 'vendor'
+          }
+        },
+      },
+    },
+    chunkSizeWarningLimit: 1000, // augmente limite pour éviter l'avertissement
   },
 })
