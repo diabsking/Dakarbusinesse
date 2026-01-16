@@ -24,7 +24,10 @@ export default function Produit() {
   useEffect(() => {
     const fetchProduits = async () => {
       try {
-        const res = await api.get("/produits");
+        const res = await axios.get(
+          "http://localhost:5000/api/produits"
+        );
+
         const produitsActifs = (res.data.produits || []).filter(
           (p) => p.actif === true
         );
