@@ -4,14 +4,14 @@ import { resolve } from "path";
 
 export default defineConfig({
   plugins: [react()],
-  root: resolve(__dirname, "src"), // dossier frontend contenant index.html
+  // root: resolve(__dirname, "src"), // retiré pour éviter src/src
   build: {
     outDir: resolve(__dirname, "dist"), // sortie finale à la racine
     emptyOutDir: true,
   },
   resolve: {
     alias: {
-      "@": resolve(__dirname, "src"), // alias @ pour pointer vers src/
+      "@": resolve(__dirname, "src"), // @ pointe vers src/
     },
   },
   server: {
