@@ -3,6 +3,8 @@ import { useParams, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import ProductCard from "../components/Produit/ProductCard";
 import useProduitFilter from "../components/Produit/useProduitFilter";
+import api from "../services/api"; // utilise ton api.js
+
 
 export default function Produit() {
   const { nom } = useParams();
@@ -22,10 +24,7 @@ export default function Produit() {
   useEffect(() => {
     const fetchProduits = async () => {
       try {
-        const res = await axios.get(
-          "http://localhost:5000/api/produits"
-        );
-
+        const res = await api.get("/produits");
         const produitsActifs = (res.data.produits || []).filter(
           (p) => p.actif === true
         );
