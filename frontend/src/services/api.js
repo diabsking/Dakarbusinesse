@@ -1,25 +1,19 @@
 // frontend/src/services/api.js
 import axios from "axios";
 
-/**
- * =========================
- * Création instance Axios
- * Utilise VITE_API_URL si défini, sinon localhost
- * =========================
- */
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  baseURL: import.meta.env.VITE_API_URL ?? "http://localhost:5000/api",
   timeout: 15000,
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true, // nécessaire si backend utilise cookies/JWT
+  // ❌ PAS de cookies (JWT dans Authorization)
+  withCredentials: false,
 });
 
 /**
  * =========================
  * Intercepteur REQUEST
- * Ajoute automatiquement le JWT si présent
  * =========================
  */
 api.interceptors.request.use(
@@ -36,17 +30,18 @@ api.interceptors.request.use(
 /**
  * =========================
  * Intercepteur RESPONSE
- * Gestion globale des erreurs
  * =========================
  */
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Token expiré ou invalide
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      window.location.href = "/login";
+      // ne pas forcer la redirection si on est déjà sur login
+      if (!window.location.pathname.includes("login")) {
+        window.location.href = "/login";
+      }
     }
     return Promise.reject(error);
   }
