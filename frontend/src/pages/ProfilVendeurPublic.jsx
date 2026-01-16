@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import api from "../services/api";
 import ProfilVendeurPublic from "../components/Vendeur/ProfilVendeurPublicComp";
 
 export default function ProfilVendeurPublicPage() {
@@ -18,7 +19,7 @@ export default function ProfilVendeurPublicPage() {
       try {
         console.log(`🌍 GET http://localhost:5000/api/vendeur/${id}`);
 
-        const res = await axios.get(`http://localhost:5000/api/vendeur/${id}`);
+        const res = await api.get(`/api/vendeur/${id}`);
 
         console.log("✅ Vendeur reçu :", res.data);
         setVendeur(res.data);

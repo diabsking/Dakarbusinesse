@@ -1,5 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
+import api from "../services/api";
+
 
 export default function MotDePasseOublie() {
   const [email, setEmail] = useState("");
@@ -26,10 +28,7 @@ export default function MotDePasseOublie() {
 
     try {
       setLoading(true);
-      await axios.post(
-        "http://localhost:5000/api/vendeur/auth/forgot-password",
-        { email }
-      );
+     await api.post("/api/vendeur/auth/forgot-password", { email });
       setMessage("OTP envoyé par email !");
     } catch (err) {
       setError(err.response?.data?.message || "Erreur lors de l’envoi de l’OTP");
@@ -58,10 +57,13 @@ export default function MotDePasseOublie() {
 
     try {
       setLoading(true);
-      await axios.post(
-        "http://localhost:5000/api/vendeur/auth/reset-password",
-        { email, code, nouveauPassword }
-      );
+
+await api.post("/api/vendeur/auth/reset-password", {
+  email,
+  code,
+  nouveauPassword,
+});
+
       setMessage("Mot de passe réinitialisé avec succès !");
       setCode("");
       setNouveauPassword("");

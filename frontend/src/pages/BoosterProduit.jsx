@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import api from "../services/api";
 import { payerBoostProduit } from "../services/paiement.service";
 
 export default function BoosterProduit() {
@@ -25,9 +26,8 @@ export default function BoosterProduit() {
   useEffect(() => {
     const fetchProduit = async () => {
       try {
-        const res = await axios.get(
-          `http://localhost:5000/api/produits/${id}`
-        );
+       const res = await api.get(`/api/produits/${id}`);
+
         setProduit(res.data.produit);
       } catch (error) {
         alert("Produit introuvable");

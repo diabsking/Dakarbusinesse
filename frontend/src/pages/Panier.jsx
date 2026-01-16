@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import api from "../services/api";
 import { usePanier } from "../context/PanierContext";
 
 export default function Panier() {
@@ -65,7 +66,10 @@ export default function Panier() {
         vendeurs,
       };
 
-      await axios.post("http://localhost:5000/api/commandes", payload, { headers: { "Content-Type": "application/json" } });
+      await api.post("/api/commandes", payload, {
+  headers: { "Content-Type": "application/json" },
+});
+
       alert("✅ Commande envoyée avec succès");
       viderPanier();
       setForm({ nom: "", telephone: "", adresse: "", email: "" });

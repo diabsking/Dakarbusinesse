@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import api from "../services/api";
 import {
   FiTrendingUp,
   FiShoppingBag,
@@ -42,13 +43,10 @@ function Statistiques() {
       setError(null);
 
       const token = localStorage.getItem("token");
-      const res = await axios.get(
-        "http://localhost:5000/api/statistiques/vendeur",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { periode },
-        }
-      );
+      const res = await api.get("/api/statistiques/vendeur", {
+  params: { periode },
+});
+
 
       setStats(res.data?.data || statsVides);
     } catch (err) {

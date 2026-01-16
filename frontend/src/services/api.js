@@ -2,20 +2,13 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? "http://localhost:5000/api",
+  baseURL: import.meta.env.VITE_API_URL ?? "http://localhost:5000",
   timeout: 15000,
-  headers: {
-    "Content-Type": "application/json",
-  },
-  // ❌ PAS de cookies (JWT dans Authorization)
+  // ❌ Ne PAS forcer Content-Type globalement
+  // headers: { "Content-Type": "application/json" },
   withCredentials: false,
 });
 
-/**
- * =========================
- * Intercepteur REQUEST
- * =========================
- */
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -27,18 +20,12 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-/**
- * =========================
- * Intercepteur RESPONSE
- * =========================
- */
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      // ne pas forcer la redirection si on est déjà sur login
       if (!window.location.pathname.includes("login")) {
         window.location.href = "/login";
       }

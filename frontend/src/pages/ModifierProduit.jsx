@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import api from "../services/api";
+
 
 function ModifierProduit() {
   const { id } = useParams();
@@ -30,7 +32,7 @@ function ModifierProduit() {
     const fetchProduit = async () => {
       try {
         setLoadingProduit(true);
-        const res = await axios.get(`http://localhost:5000/api/produits/${id}`);
+       await api.put(`/api/produits/${id}`, formData);
         const p = res.data.produit;
 
         setForm({
@@ -105,15 +107,7 @@ function ModifierProduit() {
       // Nouvelles images seulement
       images.forEach((img) => formData.append("images", img));
 
-      await axios.put(
-        `http://localhost:5000/api/produits/${id}`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+     await api.put(`/api/produits/${id}`, formData);
 
       alert("Produit modifié avec succès");
       navigate("/tableau-de-bord");

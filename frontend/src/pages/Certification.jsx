@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { BsPatchCheckFill } from "react-icons/bs";
+import api from "../services/api";
 
 export default function Certification() {
   const [loading, setLoading] = useState(false);
@@ -29,16 +30,7 @@ export default function Certification() {
       setLoading(true);
       const token = localStorage.getItem("token");
 
-      const res = await axios.post(
-        "http://localhost:5000/api/certification/payer",
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
+     const res = await api.post("/api/certification/payer", {});
       window.location.href = res.data.payment_url;
     } catch (error) {
       alert(

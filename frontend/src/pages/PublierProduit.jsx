@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import api from "../services/api";
 
 function PublierProduit() {
   const [form, setForm] = useState({
@@ -51,15 +52,9 @@ function PublierProduit() {
       Object.keys(form).forEach((key) => formData.append(key, form[key]));
       images.forEach((img) => formData.append("images", img));
 
-      await axios.post(
-        "http://localhost:5000/api/produits",
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      await api.post("/api/produits", formData, {
+  headers: { "Content-Type": "multipart/form-data" },
+});
 
       alert("Produit publié avec succès");
       setForm({

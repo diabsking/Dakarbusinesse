@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import VerificationEmail from "./VerificationEmail";
+import api from "../services/api";
 
 /* =============================
    PAGE PRINCIPALE
@@ -139,13 +140,11 @@ function LoginForm() {
     try {
       setLoading(true);
 
-      const res = await axios.post(
-        "http://localhost:5000/api/vendeur/auth/login",
-        {
-          telephone: data.telephone,
-          password: data.password,
-        }
-      );
+      const res = await api.post("/api/vendeur/auth/login", {
+  telephone: data.telephone,
+  password: data.password,
+});
+
 
       localStorage.setItem("token", res.data.token);
       localStorage.removeItem("login_pwd");
@@ -247,10 +246,7 @@ function RegisterForm({ setEmail, setVerificationPending }) {
     try {
       setLoading(true);
 
-      await axios.post(
-        "http://localhost:5000/api/vendeur/auth/register",
-        data
-      );
+     await api.post("/api/vendeur/auth/register", data);
 
       setEmail(data.email);
       setVerificationPending(true);

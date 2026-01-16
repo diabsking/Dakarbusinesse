@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import api from "../services/api";
 
 function ProductStats({ produitId }) {
   const [eventsData, setEventsData] = useState([]);
@@ -14,7 +15,7 @@ function ProductStats({ produitId }) {
         setLoading(true);
         setError(null);
 
-        const res = await axios.get(`/api/stat/produit/${produitId}/events`);
+        const res = await api.get(`/api/stat/produit/${produitId}/events`);
 
         // ⚡ forcer un tableau même si backend renvoie { produit: ..., events: [...] }
         let eventsArray = [];

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import api from "../services/api";
 
 /* =====================================================
    SUIVI COMMANDE (VENDEUR)
@@ -25,12 +26,7 @@ function SuiviCommande({ setNotifCommandes }) {
     }
 
     try {
-      const res = await axios.get(
-        "http://localhost:5000/api/commandes/vendeur",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+        const res = await api.get("/api/commandes/vendeur");
 
       if (Array.isArray(res.data)) {
         setCommandes(res.data);

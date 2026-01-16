@@ -4,6 +4,8 @@ import SectionDashboard from "../components/TableauDebord/SectionDashboard";
 import ProductGrid from "../components/TableauDebord/ProductGrid";
 import UserProfile from "../components/TableauDebord/UserProfile";
 import { FiBox, FiShoppingCart, FiBarChart2 } from "react-icons/fi";
+import api from "../services/api"
+
 
 function TableauDebord() {
   const [loading, setLoading] = useState(true);
@@ -17,14 +19,11 @@ function TableauDebord() {
     if (!token) return;
 
     try {
-      const res = await axios.get(
-        "http://localhost:5000/api/commandes/vendeur",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await api.get("/api/commandes/vendeur", {
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+});
 
       if (Array.isArray(res.data)) {
         const nonLivrees = res.data.filter(

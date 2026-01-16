@@ -3,6 +3,8 @@ import { useParams, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import ProductCard from "../components/Produit/ProductCard";
 import useProduitFilter from "../components/Produit/useProduitFilter";
+import api from "../services/api";
+
 
 
 export default function Produit() {
@@ -20,50 +22,44 @@ export default function Produit() {
   /* =====================================================
      📥 FETCH + TRI FRONTEND (UNE SEULE FOIS)
   ===================================================== */
-  useEffect(() => {
-    const fetchProduits = async () => {
-      try {
-        const res = await axios.get(
-          "http://localhost:5000/api/produits"
-        );
+ useEffect(() => {
+  const fetchProduits = async () => {
+    try {
+     const res = await api.get("/api/produits");
 
-        const produitsActifs = (res.data.produits || []).filter(
-          (p) => p.actif === true
-        );
+      const produitsActifs = (res.data.produits || []).filter(
+        (p) => p.actif === true
+      );
 
-        // 🔥 TRI MÉTIER FRONTEND
-        const produitsTries = [...produitsActifs].sort((a, b) => {
-          // 1️⃣ Produits boostés
-          if (a.estBooster && !b.estBooster) return -1;
-          if (!a.estBooster && b.estBooster) return 1;
+      const produitsTries = [...produitsActifs].sort((a, b) => {
+        if (a.estBooster && !b.estBooster) return -1;
+        if (!a.estBooster && b.estBooster) return 1;
 
-          // 2️⃣ Vendeur certifié
-          const certA = a.vendeur?.certifie ? 1 : 0;
-          const certB = b.vendeur?.certifie ? 1 : 0;
-          if (certA !== certB) return certB - certA;
+        const certA = a.vendeur?.certifie ? 1 : 0;
+        const certB = b.vendeur?.certifie ? 1 : 0;
+        if (certA !== certB) return certB - certA;
 
-          // 3️⃣ Date de boost (récent → ancien)
-          const dateA = a.dateDebutBoost
-            ? new Date(a.dateDebutBoost).getTime()
-            : 0;
-          const dateB = b.dateDebutBoost
-            ? new Date(b.dateDebutBoost).getTime()
-            : 0;
+        const dateA = a.dateDebutBoost
+          ? new Date(a.dateDebutBoost).getTime()
+          : 0;
+        const dateB = b.dateDebutBoost
+          ? new Date(b.dateDebutBoost).getTime()
+          : 0;
 
-          return dateB - dateA;
-        });
+        return dateB - dateA;
+      });
 
-        setProduits(produitsTries);
-      } catch (err) {
-        console.error("❌ Erreur récupération produits :", err);
-        setProduits([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+      setProduits(produitsTries);
+    } catch (err) {
+      console.error("❌ Erreur récupération produits :", err);
+      setProduits([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchProduits();
-  }, []);
+  fetchProduits();
+}, []);
 
   /* =====================================================
      🔍 FILTRES (catégorie, recherche, prix, etc.)

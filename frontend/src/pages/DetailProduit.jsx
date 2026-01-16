@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import api from "../services/api";
 import { usePanier } from "../context/PanierContext";
 
 // Composants
@@ -25,9 +26,7 @@ export default function DetailProduit() {
   useEffect(() => {
     const fetchProduit = async () => {
       try {
-        const res = await axios.get(
-          `http://localhost:5000/api/produits/${id}`
-        );
+        const res = await api.get(`/api/produits/${id}`);
         setProduit(res.data?.produit || res.data);
       } catch (err) {
         console.error("Erreur produit :", err);
@@ -52,9 +51,7 @@ export default function DetailProduit() {
 
     const fetchVendeur = async () => {
       try {
-        const res = await axios.get(
-          `http://localhost:5000/api/vendeur/${produit.vendeur}`
-        );
+       const res = await api.get(`/api/vendeur/${produit.vendeur}`);
         setVendeur(res.data);
       } catch (err) {
         console.error("Erreur vendeur :", err);
@@ -69,9 +66,7 @@ export default function DetailProduit() {
   useEffect(() => {
     const fetchSimilaires = async () => {
       try {
-        const res = await axios.get(
-          `http://localhost:5000/api/produits/similaires/${id}`
-        );
+       const res = await api.get(`/api/produits/similaires/${id}`);
         setSimilaires(res.data?.produits || []);
       } catch (err) {
         console.error("Erreur similaires :", err);
@@ -86,9 +81,7 @@ export default function DetailProduit() {
   useEffect(() => {
     const fetchAvis = async () => {
       try {
-        const res = await axios.get(
-          `http://localhost:5000/api/avis/produit/${id}`
-        );
+       const res = await api.get(`/api/avis/produit/${id}`);
         setAvis(res.data || []);
       } catch (err) {
         console.error("Erreur avis :", err);
