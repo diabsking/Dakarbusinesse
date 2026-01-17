@@ -1,25 +1,14 @@
-import nodemailer from "nodemailer";
+import SibApiV3Sdk from "sib-api-v3-sdk";
 
 /* =====================================================
-   CONFIG SMTP MAILO (SSL 465)
+   CONFIG SENDINBLUE (API)
 ===================================================== */
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,          // ex: smtp.mailo.com
-  port: Number(process.env.SMTP_PORT),  // ex: 465
-  secure: true,                         // SSL
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  tls: { rejectUnauthorized: false },
-  logger: true,
-  debug: true,
-});
+console.log("📦 Initialisation du service mail (Sendinblue API)...");
 
-transporter.verify((err, success) => {
-  if (err) console.error("❌ SMTP MAILO non prêt :", err);
-  else console.log("✅ SMTP MAILO prêt à envoyer des emails");
-});
+const client = SibApiV3Sdk.ApiClient.instance;
+client.authentications["api-key"].apiKey = process.env.SENDINBLUE_API_KEY;
+
+const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
 /* =====================================================
    TEMPLATES EMAIL
@@ -57,13 +46,17 @@ export const notifierClientCommande = async (clientEmail, commande) => {
   if (!clientEmail) return;
 
   try {
-    await transporter.sendMail({
-      from: process.env.MAIL_FROM,
-      to: clientEmail,
-      subject: `Confirmation de votre commande ${commande._id}`,
-      html: templateClientCommande(commande),
-    });
-    console.log(`✅ Email client envoyé à ${clientEmail}`);
+    const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+    sendSmtpEmail.to = [{ email: clientEmail }];
+    sendSmtpEmail.sender = {
+      email: process.env.MAIL_FROM,
+      name: process.env.MAIL_FROM_NAME || "Kolwaz",
+    };
+    sendSmtpEmail.subject = `Confirmation de votre commande ${commande._id}`;
+    sendSmtpEmail.htmlContent = templateClientCommande(commande);
+
+    const response = await apiInstance.sendTransacEmail(sendSmtpEmail);
+    console.log("📤 Email client envoyé :", response);
   } catch (err) {
     console.error("❌ Erreur envoi email client :", err);
   }
@@ -73,13 +66,17 @@ export const notifierVendeurCommande = async (emailVendeur, commande, vendeurNom
   if (!emailVendeur) return;
 
   try {
-    await transporter.sendMail({
-      from: process.env.MAIL_FROM,
-      to: emailVendeur,
-      subject: `Nouvelle commande n°${commande._id}`,
-      html: templateVendeurCommande(commande, vendeurNom, vendeurId),
-    });
-    console.log(`✅ Email vendeur envoyé à ${emailVendeur}`);
+    const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+    sendSmtpEmail.to = [{ email: emailVendeur }];
+    sendSmtpEmail.sender = {
+      email: process.env.MAIL_FROM,
+      name: process.env.MAIL_FROM_NAME || "Kolwaz",
+    };
+    sendSmtpEmail.subject = `Nouvelle commande n°${commande._id}`;
+    sendSmtpEmail.htmlContent = templateVendeurCommande(commande, vendeurNom, vendeurId);
+
+    const response = await apiInstance.sendTransacEmail(sendSmtpEmail);
+    console.log("📤 Email vendeur envoyé :", response);
   } catch (err) {
     console.error("❌ Erreur envoi email vendeur :", err);
   }

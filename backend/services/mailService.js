@@ -1,63 +1,14 @@
-import nodemailer from "nodemailer";
-import net from "net";
+import SibApiV3Sdk from "sib-api-v3-sdk";
 
 /* =====================================================
-   CONFIG MAILO SMTP (SSL 465)
+   Initialisation Sendinblue API
 ==================================================== */
-console.log("📦 Initialisation du service mail (MAILO SSL 465)...");
+console.log("📦 Initialisation du service mail (Sendinblue API)...");
 
-console.log("🔐 SMTP CONFIG :", {
-  host: process.env.SMTP_HOST,
-  port: process.env.SMTP_PORT,
-  user: process.env.SMTP_USER,
-  from: process.env.MAIL_FROM,
-});
+const client = SibApiV3Sdk.ApiClient.instance;
+client.authentications["api-key"].apiKey = process.env.SENDINBLUE_API_KEY;
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT),
-  secure: true,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  tls: { rejectUnauthorized: false },
-  logger: true,
-  debug: true,
-});
-
-/* =====================================================
-   TEST DE CONNECTIVITE SMTP (TCP)
-==================================================== */
-const testSmtpConnection = () => {
-  return new Promise((resolve, reject) => {
-    const socket = net.createConnection({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT),
-      timeout: 5000,
-    });
-
-    socket.on("connect", () => {
-      socket.end();
-      resolve(true);
-    });
-
-    socket.on("error", (err) => {
-      reject(err);
-    });
-
-    socket.on("timeout", () => {
-      socket.destroy();
-      reject(new Error("Timeout SMTP connection"));
-    });
-  });
-};
-
-testSmtpConnection()
-  .then(() => console.log("✅ SMTP reachable (port ouvert)"))
-  .catch((err) =>
-    console.error("❌ SMTP non joignable (réseau) :", err.message)
-  );
+const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
 /* =====================================================
    TEMPLATES EMAIL OTP
@@ -104,7 +55,7 @@ export const verifierOTP = (email, otp) => {
 };
 
 /* =====================================================
-   ENVOI OTP PAR EMAIL
+   ENVOI OTP PAR EMAIL (Sendinblue API)
 ==================================================== */
 export const envoyerOTPMail = async ({
   email,
@@ -128,20 +79,18 @@ export const envoyerOTPMail = async ({
         ? templateResetPasswordOTP({ otp })
         : templateInscriptionOTP({ nomVendeur, otp });
 
-    const info = await transporter.sendMail({
-      from: process.env.MAIL_FROM,
-      to: email,
-      subject,
-      html,
-    });
+    const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+    sendSmtpEmail.to = [{ email }];
+    sendSmtpEmail.sender = {
+      email: process.env.MAIL_FROM,
+      name: process.env.MAIL_FROM_NAME || "Kolwaz",
+    };
+    sendSmtpEmail.subject = subject;
+    sendSmtpEmail.htmlContent = html;
 
-    console.log("📤 MAIL SENT INFO :", {
-      messageId: info.messageId,
-      accepted: info.accepted,
-      rejected: info.rejected,
-      response: info.response,
-    });
+    const response = await apiInstance.sendTransacEmail(sendSmtpEmail);
 
+    console.log("📤 MAIL SENT INFO :", response);
     console.log(`✅ Email OTP envoyé à ${email}`);
   } catch (error) {
     console.error("❌ ERREUR ENVOI EMAIL OTP :", error);
