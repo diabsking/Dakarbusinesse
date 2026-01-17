@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import {
   FiMapPin,
   FiPhone,
@@ -8,6 +7,7 @@ import {
   FiInfo,
 } from "react-icons/fi";
 import ProductCard from "../Produit/ProductCard";
+import api from "../../services/api"; // ✅ IMPORT CORRECT
 
 export default function ProfilVendeurPublicComp({
   vendeur,
@@ -24,9 +24,16 @@ export default function ProfilVendeurPublicComp({
     const fetchProduits = async () => {
       setLoadingProduits(true);
       try {
-       const res = await api.get(`/produits?vendeur=${vendeur._id}`);
+        const res = await api.get(`/produits?vendeur=${vendeur._id}`);
 
-        setProduits(res.data?.produits || res.data || []);
+        const produitsRecus = res.data?.produits || res.data || [];
+
+        // ✅ OPTIONNEL : afficher seulement les produits actifs
+        const produitsActifs = produitsRecus.filter(
+          (p) => p.actif !== false
+        );
+
+        setProduits(produitsActifs);
       } catch (err) {
         console.error("❌ Erreur produits vendeur", err);
         setProduits([]);
@@ -36,7 +43,7 @@ export default function ProfilVendeurPublicComp({
     };
 
     fetchProduits();
-  }, [vendeur]);
+  }, [vendeur?._id]);
 
   /* ================= RENDUS ================= */
   if (loading) {
@@ -88,7 +95,6 @@ export default function ProfilVendeurPublicComp({
           </div>
         </div>
 
-        {/* DESCRIPTION BOUTIQUE */}
         {(vendeur.descriptionBoutique || vendeur.description) && (
           <div className="flex gap-2 text-gray-700 text-sm leading-relaxed">
             <FiInfo className="mt-1 text-gray-400" />
@@ -98,7 +104,6 @@ export default function ProfilVendeurPublicComp({
           </div>
         )}
 
-        {/* INFOS */}
         <div className="space-y-2 text-gray-700 text-sm">
           {vendeur.telephone && (
             <div className="flex items-center gap-2">

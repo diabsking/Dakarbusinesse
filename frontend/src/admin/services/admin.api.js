@@ -4,21 +4,27 @@ import axios from "axios";
    CONFIG ADMIN
 ========================= */
 const API = axios.create({
-  baseURL: `${import.meta.env.VITE_API_URL}/admin` || "http://localhost:5000/api/admin",
+  baseURL: `${import.meta.env.VITE_API_URL}/api/admin`,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
 /* =========================
-   INTERCEPTORS (LOG UNIQUEMENT)
+   INTERCEPTORS
 ========================= */
 API.interceptors.request.use(
   (config) => {
+    // ✅ AJOUT DU TOKEN ADMIN
+    const token = localStorage.getItem("adminToken");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
     console.log(
       "➡️ ADMIN API:",
       config.method?.toUpperCase(),
-      config.url
+      config.baseURL + config.url
     );
     return config;
   },
@@ -40,24 +46,35 @@ API.interceptors.response.use(
    VENDEURS
 ========================= */
 export const listerVendeurs = () => API.get("/vendeurs");
-export const changerStatutVendeur = (id, actif) => API.put(`/vendeurs/${id}/statut`, { actif });
-export const changerCertificationVendeur = (id, certifie) => API.put(`/vendeurs/${id}/certification`, { certifie });
+export const changerStatutVendeur = (id, actif) =>
+  API.put(`/vendeurs/${id}/statut`, { actif });
+
+export const changerCertificationVendeur = (id, certifie) =>
+  API.put(`/vendeurs/${id}/certification`, { certifie });
 
 /* =========================
    PRODUITS
 ========================= */
 export const listerProduits = () => API.get("/produits");
-export const validerProduit = (id, valide) => API.put(`/produits/${id}/validation`, { valide });
-export const suspendreProduit = (id, actif) => API.put(`/produits/${id}/suspendre`, { actif });
-export const mettreProduitEnPromo = (id, prixPromo) => API.put(`/produits/${id}/promo`, { prixPromo });
+export const validerProduit = (id, valide) =>
+  API.put(`/produits/${id}/validation`, { valide });
+
+export const suspendreProduit = (id, actif) =>
+  API.put(`/produits/${id}/suspendre`, { actif });
+
+export const mettreProduitEnPromo = (id, prixPromo) =>
+  API.put(`/produits/${id}/promo`, { prixPromo });
 
 /* =========================
    COMMANDES
 ========================= */
 export const listerCommandes = () => API.get("/commandes");
-export const modifierCommande = (id, status) => API.put(`/commandes/${id}`, { status });
+export const modifierCommande = (id, status) =>
+  API.put(`/commandes/${id}`, { status });
 
 /* =========================
    STATS ADMIN
 ========================= */
 export const getStatsAdmin = () => API.get("/stats");
+
+export default API;

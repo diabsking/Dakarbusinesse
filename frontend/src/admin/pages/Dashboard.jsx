@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getStatsAdmin } from "../services/admin.api";
+import { getStatsAdmin, verifierAdmin } from "../services/admin.api";
 import AdminVendeurs from "./AdminVendeurs";
 import AdminProduits from "./AdminProduits";
 import AdminCommandes from "./AdminCommandes";
@@ -10,26 +10,15 @@ export default function Dashboard() {
   const [active, setActive] = useState("home");
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
-  const [isAuthorized, setIsAuthorized] = useState(null); // null = vérification, true = ok, false = refusé
+  const [isAuthorized, setIsAuthorized] = useState(null);
 
   const navigate = useNavigate();
 
-  // Vérification du token
+  /* =========================
+     VÉRIFICATION ADMIN
+  ========================= */
   useEffect(() => {
-    const token = localStorage.getItem("adminToken");
-    if (!token) {
-      navigate("/admin/login");
-      return;
-    }
-
-    fetch(`${import.meta.env.VITE_API_URL}/api/admin/dashboard`, {
-      method: "GET",
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Token invalide");
-        return res.json();
-      })
+    verifierAdmin()
       .then(() => setIsAuthorized(true))
       .catch(() => {
         localStorage.removeItem("adminToken");
@@ -38,7 +27,9 @@ export default function Dashboard() {
       });
   }, [navigate]);
 
-  // Chargement des stats
+  /* =========================
+     CHARGEMENT STATS
+  ========================= */
   useEffect(() => {
     if (!isAuthorized) return;
 
@@ -48,8 +39,11 @@ export default function Dashboard() {
       .finally(() => setLoading(false));
   }, [isAuthorized]);
 
-  if (isAuthorized === null) return <p>Vérification du token...</p>;
-  if (isAuthorized === false) return null; // pas autorisé
+  if (isAuthorized === null) {
+    return <p>Vérification du token...</p>;
+  }
+
+  if (isAuthorized === false) return null;
 
   const renderContent = () => {
     switch (active) {
@@ -67,11 +61,16 @@ export default function Dashboard() {
   return (
     <div className="flex min-h-screen bg-gray-100">
       <Sidebar active={active} setActive={setActive} />
-      <main className="flex-1 p-8 overflow-y-auto">{renderContent()}</main>
+      <main className="flex-1 p-8 overflow-y-auto">
+        {renderContent()}
+      </main>
     </div>
   );
 }
 
+/* =========================
+   COMPONENTS
+========================= */
 function DashboardHome({ stats, loading }) {
   if (loading) return <p>Chargement des statistiques...</p>;
 
