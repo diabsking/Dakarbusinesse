@@ -1,8 +1,9 @@
 import nodemailer from "nodemailer";
+import net from "net";
 
 /* =====================================================
    CONFIG MAILO SMTP (SSL 465)
-===================================================== */
+==================================================== */
 console.log("📦 Initialisation du service mail (MAILO SSL 465)...");
 
 console.log("🔐 SMTP CONFIG :", {
@@ -13,9 +14,9 @@ console.log("🔐 SMTP CONFIG :", {
 });
 
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,          // ex: smtp.mailo.com
-  port: Number(process.env.SMTP_PORT),  // ex: 465
-  secure: true,                         // SSL
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT),
+  secure: true,
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
@@ -25,17 +26,42 @@ const transporter = nodemailer.createTransport({
   debug: true,
 });
 
-transporter.verify((error, success) => {
-  if (error) {
-    console.error("❌ SMTP MAILO NON prêt :", error);
-  } else {
-    console.log("✅ SMTP MAILO prêt à envoyer des emails");
-  }
-});
+/* =====================================================
+   TEST DE CONNECTIVITE SMTP (TCP)
+==================================================== */
+const testSmtpConnection = () => {
+  return new Promise((resolve, reject) => {
+    const socket = net.createConnection({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT),
+      timeout: 5000,
+    });
+
+    socket.on("connect", () => {
+      socket.end();
+      resolve(true);
+    });
+
+    socket.on("error", (err) => {
+      reject(err);
+    });
+
+    socket.on("timeout", () => {
+      socket.destroy();
+      reject(new Error("Timeout SMTP connection"));
+    });
+  });
+};
+
+testSmtpConnection()
+  .then(() => console.log("✅ SMTP reachable (port ouvert)"))
+  .catch((err) =>
+    console.error("❌ SMTP non joignable (réseau) :", err.message)
+  );
 
 /* =====================================================
    TEMPLATES EMAIL OTP
-===================================================== */
+==================================================== */
 const templateInscriptionOTP = ({ nomVendeur, otp }) => `
   <div style="font-family:Arial;padding:20px">
     <h2>Vérification de votre compte</h2>
@@ -57,28 +83,21 @@ const templateResetPasswordOTP = ({ otp }) => `
 
 /* =====================================================
    STOCKAGE OTP EN MÉMOIRE
-===================================================== */
-const otpStore = {}; // Structure : { email: { otp: "123456", expireAt: timestamp } }
+==================================================== */
+const otpStore = {};
 
-/**
- * Génère un OTP 6 chiffres pour un email et le stocke avec expiration 24h
- */
 export const creerOTP = (email) => {
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const expireAt = Date.now() + 24 * 60 * 60 * 1000; // 24h en ms
+  const expireAt = Date.now() + 24 * 60 * 60 * 1000;
   otpStore[email] = { otp, expireAt };
   return otp;
 };
 
-/**
- * Vérifie un OTP pour un email.
- * Retourne true si correct et non expiré, sinon false.
- */
 export const verifierOTP = (email, otp) => {
   const record = otpStore[email];
   if (!record) return false;
   if (Date.now() > record.expireAt) {
-    delete otpStore[email]; // Supprime si expiré
+    delete otpStore[email];
     return false;
   }
   return record.otp === otp;
@@ -86,7 +105,7 @@ export const verifierOTP = (email, otp) => {
 
 /* =====================================================
    ENVOI OTP PAR EMAIL
-===================================================== */
+==================================================== */
 export const envoyerOTPMail = async ({
   email,
   otp,
@@ -97,7 +116,7 @@ export const envoyerOTPMail = async ({
     console.log("📨 Tentative envoi OTP");
     console.log("➡️ Destinataire :", email);
     console.log("➡️ Type :", type);
-    console.log("➡️ OTP :", otp); // ❗ debug temporaire
+    console.log("➡️ OTP :", otp);
 
     const subject =
       type === "RESET_PASSWORD"
@@ -129,4 +148,3 @@ export const envoyerOTPMail = async ({
     throw new Error("Impossible d'envoyer l'OTP par email");
   }
 };
-
