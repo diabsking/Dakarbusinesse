@@ -130,25 +130,48 @@ export default function ProfilVendeurPublicComp({
       </div>
 
       {/* ================= PRODUITS DU VENDEUR ================= */}
-      <section>
-        <h2 className="text-xl font-bold mb-4">
-          Produits du vendeur
-        </h2>
+     {/* ================= PRODUITS DU VENDEUR ================= */}
+<section>
+  <h2 className="text-xl font-bold mb-4">
+    Produits du vendeur
+  </h2>
 
-        {loadingProduits ? (
-          <p className="text-gray-400">Chargement des produits…</p>
-        ) : produits.length === 0 ? (
-          <p className="text-gray-500">
-            Aucun produit publié pour le moment
-          </p>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {produits.map((p) => (
-              <ProductCard key={p._id} produit={p} />
-            ))}
-          </div>
-        )}
-      </section>
+  {loadingProduits ? (
+    <p className="text-gray-400">Chargement des produits…</p>
+  ) : produits.length === 0 ? (
+    <p className="text-gray-500">
+      Aucun produit publié pour le moment
+    </p>
+  ) : (
+    <>
+      {/* ===== MOBILE : PHOTO ONLY (3 PAR LIGNE - STYLE TIKTOK) ===== */}
+      <div className="grid grid-cols-3 gap-1 md:hidden">
+        {produits.map((p) => (
+          <a
+            key={p._id}
+            href={`/produit/${p._id}`}
+            className="relative aspect-square bg-gray-100 overflow-hidden"
+          >
+            <img
+              src={p.images?.[0] || "/placeholder.png"}
+              alt={p.nom}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          </a>
+        ))}
+      </div>
+
+      {/* ===== DESKTOP : CARTE CLASSIQUE ===== */}
+      <div className="hidden md:grid md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {produits.map((p) => (
+          <ProductCard key={p._id} produit={p} />
+        ))}
+      </div>
+    </>
+  )}
+</section>
+
     </div>
   );
 }
