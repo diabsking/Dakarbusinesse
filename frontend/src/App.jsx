@@ -5,9 +5,6 @@ import { useState } from "react";
 import HomeLayout from "./layouts/HomeLayout";
 import MainLayout from "./layouts/MainLayout";
 
-import Footer from "./components/Layout/Footer";
-
-
 // Pages
 import Home from "./pages/Home";
 import Produit from "./pages/Produit";
@@ -30,26 +27,21 @@ import Dashboard from "./admin/pages/Dashboard";
 import ProductStats from "./pages/ProductStats";
 import Confidentialite from "./pages/Confidentialite";
 
-
-
-
 export default function App() {
   /* 🔍 RECHERCHE GLOBALE */
   const [recherche, setRecherche] = useState("");
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 text-gray-900">
-
-      {/* CONTENU */}
       <main className="flex-grow">
         <Routes>
 
-          {/* 🏠 HOME */}
+          {/* 🏠 HOME (AVEC FOOTER) */}
           <Route element={<HomeLayout />}>
             <Route path="/" element={<Home />} />
           </Route>
 
-          {/* 🌍 AUTRES PAGES */}
+          {/* 🌍 AUTRES PAGES (SANS FOOTER) */}
           <Route
             element={
               <MainLayout
@@ -58,25 +50,14 @@ export default function App() {
               />
             }
           >
-            {/* 📦 PRODUITS */}
-            <Route
-              path="/produits"
-              element={<Produit recherche={recherche} />}
-            />
-
-            <Route
-              path="/categorie/:nom"
-              element={<Produit recherche={recherche} />}
-            />
-
+            <Route path="/produits" element={<Produit />} />
+            <Route path="/categorie/:nom" element={<Produit />} />
             <Route path="/produit/:id" element={<DetailProduit />} />
             <Route path="/panier" element={<Panier />} />
-
             <Route
               path="/confirmation-commande"
               element={<ConfirmationCommande />}
             />
-
             <Route
               path="/suivi-commande/:id"
               element={<SuiviCommande />}
@@ -99,12 +80,12 @@ export default function App() {
               path="/mot-de-passe-oublie"
               element={<MotDePasseOublie />}
             />
-            <Route
-              path="/vendeur/:id"
-              element={<ProfilVendeurPublic />}
-            />
+            <Route path="/vendeur/:id" element={<ProfilVendeurPublic />} />
             <Route path="/admin/dashboard" element={<Dashboard />} />
-            <Route path="/statistiques-produit/:id" element={<ProductStats />} />
+            <Route
+              path="/statistiques-produit/:id"
+              element={<ProductStats />}
+            />
             <Route path="/confidentialite" element={<Confidentialite />} />
           </Route>
 
@@ -121,9 +102,6 @@ export default function App() {
           />
         </Routes>
       </main>
-
-      {/* FOOTER */}
-      <Footer />
     </div>
   );
 }

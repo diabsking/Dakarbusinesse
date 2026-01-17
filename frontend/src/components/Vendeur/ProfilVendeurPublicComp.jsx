@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import api from "../../services/api";
 import {
   FiMapPin,
   FiPhone,
@@ -24,9 +25,11 @@ export default function ProfilVendeurPublicComp({
     const fetchProduits = async () => {
       setLoadingProduits(true);
       try {
-        const res = await axios.get(
-          `http://localhost:5000/api/produits?vendeur=${vendeur._id}`
-        );
+
+const res = await api.get(
+  `/produits?vendeur=${vendeur._id}`
+);
+
         setProduits(res.data?.produits || res.data || []);
       } catch (err) {
         console.error("❌ Erreur produits vendeur", err);

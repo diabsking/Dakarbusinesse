@@ -1,11 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
-import axios from "axios";
 import ProductCard from "../components/Produit/ProductCard";
 import useProduitFilter from "../components/Produit/useProduitFilter";
 import api from "../services/api";
 
-
+const ITEMS_PER_BATCH = 10;
 
 export default function Produit() {
   const { nom } = useParams();
@@ -16,53 +15,58 @@ export default function Produit() {
 
   const [loading, setLoading] = useState(true);
   const [produits, setProduits] = useState([]);
+
+  // 🔹 infinite scroll
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_BATCH);
+  const observerRef = useRef(null);
+
   const [prixMax] = useState(1000000);
   const [filtreSpecial] = useState(null);
 
   /* =====================================================
      📥 FETCH + TRI FRONTEND (UNE SEULE FOIS)
   ===================================================== */
- useEffect(() => {
-  const fetchProduits = async () => {
-    try {
-     const res = await api.get("/api/produits");
+  useEffect(() => {
+    const fetchProduits = async () => {
+      try {
+        const res = await api.get("/api/produits");
 
-      const produitsActifs = (res.data.produits || []).filter(
-        (p) => p.actif === true
-      );
+        const produitsActifs = (res.data.produits || []).filter(
+          (p) => p.actif === true
+        );
 
-      const produitsTries = [...produitsActifs].sort((a, b) => {
-        if (a.estBooster && !b.estBooster) return -1;
-        if (!a.estBooster && b.estBooster) return 1;
+        const produitsTries = [...produitsActifs].sort((a, b) => {
+          if (a.estBooster && !b.estBooster) return -1;
+          if (!a.estBooster && b.estBooster) return 1;
 
-        const certA = a.vendeur?.certifie ? 1 : 0;
-        const certB = b.vendeur?.certifie ? 1 : 0;
-        if (certA !== certB) return certB - certA;
+          const certA = a.vendeur?.certifie ? 1 : 0;
+          const certB = b.vendeur?.certifie ? 1 : 0;
+          if (certA !== certB) return certB - certA;
 
-        const dateA = a.dateDebutBoost
-          ? new Date(a.dateDebutBoost).getTime()
-          : 0;
-        const dateB = b.dateDebutBoost
-          ? new Date(b.dateDebutBoost).getTime()
-          : 0;
+          const dateA = a.dateDebutBoost
+            ? new Date(a.dateDebutBoost).getTime()
+            : 0;
+          const dateB = b.dateDebutBoost
+            ? new Date(b.dateDebutBoost).getTime()
+            : 0;
 
-        return dateB - dateA;
-      });
+          return dateB - dateA;
+        });
 
-      setProduits(produitsTries);
-    } catch (err) {
-      console.error("❌ Erreur récupération produits :", err);
-      setProduits([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+        setProduits(produitsTries);
+      } catch (err) {
+        console.error("❌ Erreur récupération produits :", err);
+        setProduits([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  fetchProduits();
-}, []);
+    fetchProduits();
+  }, []);
 
   /* =====================================================
-     🔍 FILTRES (catégorie, recherche, prix, etc.)
+     🔍 FILTRES
   ===================================================== */
   const produitsFiltres = useProduitFilter({
     produits,
@@ -72,47 +76,59 @@ export default function Produit() {
     filtreSpecial,
   });
 
+  // 🔹 reset infinite scroll quand filtre change
+  useEffect(() => {
+    setVisibleCount(ITEMS_PER_BATCH);
+  }, [categorieActive, recherche]);
+
+  const produitsVisibles = produitsFiltres.slice(0, visibleCount);
+
+  /* =====================================================
+     ♾️ INTERSECTION OBSERVER
+  ===================================================== */
+  const lastProductRef = useCallback(
+    (node) => {
+      if (loading) return;
+      if (observerRef.current) observerRef.current.disconnect();
+
+      observerRef.current = new IntersectionObserver((entries) => {
+        if (
+          entries[0].isIntersecting &&
+          visibleCount < produitsFiltres.length
+        ) {
+          setVisibleCount((prev) => prev + ITEMS_PER_BATCH);
+        }
+      });
+
+      if (node) observerRef.current.observe(node);
+    },
+    [loading, visibleCount, produitsFiltres.length]
+  );
+
   /* =====================================================
      ⏳ SKELETON LOADER
   ===================================================== */
-  const renderSkeleton = () => (
-    <div className="min-h-screen bg-gray-100 p-4 sm:p-6 lg:p-10">
-      <div className="max-w-[1600px] mx-auto space-y-4">
-        <div className="h-8 w-1/3 bg-gray-300 rounded animate-pulse" />
-
-        {recherche && (
-          <div className="h-6 w-1/2 bg-gray-300 rounded animate-pulse" />
-        )}
-
-        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-200px)]">
-          <div
-            className="
-              grid
-              grid-cols-2
-              sm:grid-cols-2
-              md:grid-cols-3
-              lg:grid-cols-5
-              gap-2 md:gap-3
-              min-w-[400px] sm:min-w-[400px] md:min-w-[900px]
-            "
-          >
-            {Array.from({ length: 10 }).map((_, i) => (
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 p-4 sm:p-6 lg:p-10">
+        <div className="max-w-[1600px] mx-auto space-y-4">
+          <div className="h-8 w-1/3 bg-gray-300 rounded animate-pulse" />
+          <div className="flex flex-col gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className="bg-gray-300 h-48 rounded-md animate-pulse"
+                className="h-64 bg-gray-300 rounded-md animate-pulse"
               />
             ))}
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
 
   /* =====================================================
      🧠 RENDER
   ===================================================== */
-  if (loading) return renderSkeleton();
-
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-6 space-y-4">
@@ -134,25 +150,39 @@ export default function Produit() {
             Aucun produit trouvé.
           </div>
         ) : (
-          <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-200px)]">
+          <div className="overflow-y-auto">
             <div
               className="
-                grid
-                grid-cols-2
-                sm:grid-cols-2
+                flex flex-col gap-4
+                sm:grid sm:grid-cols-2
                 md:grid-cols-3
                 lg:grid-cols-5
-                gap-2 md:gap-3
-                min-w-[400px] sm:min-w-[400px] md:min-w-[900px]
+                sm:gap-3
               "
             >
-              {produitsFiltres.map((produit) => (
-                <ProductCard
-                  key={produit._id}
-                  produit={produit}
-                />
-              ))}
+              {produitsVisibles.map((produit, index) => {
+                if (index === produitsVisibles.length - 1) {
+                  return (
+                    <div ref={lastProductRef} key={produit._id}>
+                      <ProductCard produit={produit} />
+                    </div>
+                  );
+                }
+
+                return (
+                  <ProductCard
+                    key={produit._id}
+                    produit={produit}
+                  />
+                );
+              })}
             </div>
+
+            {visibleCount < produitsFiltres.length && (
+              <div className="text-center text-gray-500 py-6">
+                Chargement…
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
 import api from "../services/api";
 import { usePanier } from "../context/PanierContext";
 
@@ -22,6 +21,9 @@ export default function DetailProduit() {
   const [avis, setAvis] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // 🖼️ image active (galerie mobile)
+  const [imageActive, setImageActive] = useState(0);
+
   /* ================= FETCH PRODUIT ================= */
   useEffect(() => {
     const fetchProduit = async () => {
@@ -39,11 +41,15 @@ export default function DetailProduit() {
     fetchProduit();
   }, [id]);
 
+  // reset image active quand le produit change
+  useEffect(() => {
+    setImageActive(0);
+  }, [produit?._id]);
+
   /* ================= FETCH VENDEUR ================= */
   useEffect(() => {
     if (!produit?.vendeur) return;
 
-    // vendeur déjà populate
     if (typeof produit.vendeur === "object") {
       setVendeur(produit.vendeur);
       return;
@@ -51,7 +57,7 @@ export default function DetailProduit() {
 
     const fetchVendeur = async () => {
       try {
-       const res = await api.get(`/api/vendeur/${produit.vendeur}`);
+        const res = await api.get(`/api/vendeur/${produit.vendeur}`);
         setVendeur(res.data);
       } catch (err) {
         console.error("Erreur vendeur :", err);
@@ -66,7 +72,7 @@ export default function DetailProduit() {
   useEffect(() => {
     const fetchSimilaires = async () => {
       try {
-       const res = await api.get(`/api/produits/similaires/${id}`);
+        const res = await api.get(`/api/produits/similaires/${id}`);
         setSimilaires(res.data?.produits || []);
       } catch (err) {
         console.error("Erreur similaires :", err);
@@ -81,7 +87,7 @@ export default function DetailProduit() {
   useEffect(() => {
     const fetchAvis = async () => {
       try {
-       const res = await api.get(`/api/avis/produit/${id}`);
+        const res = await api.get(`/api/avis/produit/${id}`);
         setAvis(res.data || []);
       } catch (err) {
         console.error("Erreur avis :", err);
@@ -102,21 +108,28 @@ export default function DetailProduit() {
       id: produit._id,
       nom: produit.nom,
       prix: produit.prixActuel ?? produit.prix ?? 0,
-      image: produit.images?.[0] || PLACEHOLDER,
+      image: produit.images?.[imageActive] || PLACEHOLDER,
 
       idVendeur: v._id,
       nomVendeur: v.nomBoutique || "Vendeur",
       quantite: 1,
     });
 
-    navigate("/Panier");
+    navigate("/panier");
   };
 
   return (
     <DetailProduitLayout loading={loading} produit={produit}>
+      {/* ================= SECTION PRODUIT ================= */}
       <ProduitSection
         produit={produit}
         avis={avis}
+
+        /* 📱 galerie mobile */
+        imageActive={imageActive}
+        setImageActive={setImageActive}
+
+        /* actions */
         onAddPanier={handleAddPanier}
         onVoirVendeur={() =>
           vendeur?._id && navigate(`/vendeur/${vendeur._id}`)
@@ -124,9 +137,10 @@ export default function DetailProduit() {
         onAvisAjoute={(a) => setAvis([a, ...avis])}
       />
 
-      {/* ❌ PROFIL VENDEUR SUPPRIMÉ ICI */}
-
-      <SimilairesSection produits={similaires} />
+      {/* ================= PRODUITS SIMILAIRES ================= */}
+      <div className="mt-6 sm:mt-10 px-3 sm:px-0">
+        <SimilairesSection produits={similaires} />
+      </div>
     </DetailProduitLayout>
   );
 }
