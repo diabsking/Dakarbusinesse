@@ -10,8 +10,8 @@ const SHOP_PLACEHOLDER = "/shop-placeholder.png";
 ====================== */
 export function ProductCardSkeleton() {
   return (
-    <div className="w-full sm:w-64 bg-white border border-gray-200 rounded-lg overflow-hidden animate-pulse">
-      <div className="w-full h-56 bg-gray-200" />
+    <div className="w-full bg-white border border-gray-200 rounded-xl overflow-hidden animate-pulse">
+      <div className="w-full aspect-[4/3] bg-gray-200" />
       <div className="p-4 space-y-3">
         <div className="h-5 bg-gray-200 rounded w-3/4" />
         <div className="h-4 bg-gray-200 rounded w-full" />
@@ -51,7 +51,10 @@ export default function ProductCard({ produit }) {
   const isAvailable = produit.stock === undefined || produit.stock > 0;
 
   const vendeur =
-    produit.vendeur && typeof produit.vendeur === "object" ? produit.vendeur : null;
+    produit.vendeur && typeof produit.vendeur === "object"
+      ? produit.vendeur
+      : null;
+
   const vendeurId = vendeur?._id;
   const nomVendeur = vendeur?.nomBoutique || vendeur?.nomVendeur || "Vendeur";
   const avatarVendeur = vendeur?.avatar || SHOP_PLACEHOLDER;
@@ -62,8 +65,7 @@ export default function ProductCard({ produit }) {
   const vendeurCertifie = vendeur?.certifie === true;
 
   return (
-    <div className="w-full sm:w-64 bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition relative group">
-
+    <div className="w-full bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition relative group">
       {/* BADGE PROMO */}
       {hasReduction && (
         <span className="absolute top-3 left-3 z-10 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">
@@ -73,43 +75,35 @@ export default function ProductCard({ produit }) {
 
       {/* IMAGE PRODUIT */}
       <Link to={`/produit/${produit._id}`}>
-        <div className="w-full h-56 bg-gray-100 overflow-hidden border-b">
+        <div className="w-full aspect-[4/3] bg-gray-100 overflow-hidden border-b">
           <img
-  src={produit.images?.[0] || PLACEHOLDER}
-  alt={produit.nom}
-  className="
-    w-full
-    h-64     
-    sm:h-full 
-    object-cover
-    transition-transform duration-300
-    group-hover:scale-105
-  "
-  loading="lazy"
-/>
-
+            src={produit.images?.[0] || PLACEHOLDER}
+            alt={produit.nom}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            loading="lazy"
+          />
         </div>
       </Link>
 
       {/* CONTENU */}
-      <div className="px-4 py-3 flex flex-col justify-between h-60">
+      <div className="px-4 py-3 flex flex-col justify-between min-h-[220px]">
         <div>
           <Link to={`/produit/${produit._id}`}>
-            <h2 className="text-lg font-semibold text-black line-clamp-1">
+            <h2 className="text-base sm:text-lg font-semibold text-black line-clamp-1">
               {produit.nom}
             </h2>
-            <p className="text-sm text-gray-700 mt-1 line-clamp-2">
+            <p className="text-xs sm:text-sm text-gray-700 mt-1 line-clamp-2">
               {getShortDescription(produit.description)}
             </p>
           </Link>
 
           {/* PRIX */}
           <div className="mt-2 flex items-center gap-2 flex-wrap">
-            <span className="text-orange-500 font-bold text-lg">
+            <span className="text-orange-500 font-bold text-base sm:text-lg">
               {prixActuel.toLocaleString()} FCFA
             </span>
             {hasReduction && (
-              <span className="text-gray-400 line-through text-sm">
+              <span className="text-gray-400 line-through text-xs sm:text-sm">
                 {prixAncien.toLocaleString()} FCFA
               </span>
             )}
@@ -130,7 +124,7 @@ export default function ProductCard({ produit }) {
             </span>
           </div>
 
-          {/* VENDEUR CLICKABLE */}
+          {/* VENDEUR */}
           {vendeur && vendeurId && (
             <Link
               to={`/vendeur/${vendeurId}`}
@@ -143,7 +137,9 @@ export default function ProductCard({ produit }) {
                   className="w-8 h-8 rounded-full object-cover border"
                 />
                 <div className="flex items-center gap-1 truncate">
-                  <span className="text-xs font-semibold truncate">{nomVendeur}</span>
+                  <span className="text-xs font-semibold truncate">
+                    {nomVendeur}
+                  </span>
                   {vendeurCertifie && (
                     <BsPatchCheckFill
                       className="text-blue-600"
@@ -152,6 +148,7 @@ export default function ProductCard({ produit }) {
                   )}
                 </div>
               </div>
+
               {adresseVendeur !== "" && (
                 <div className="flex items-center gap-1 text-[11px] text-gray-500 truncate mt-0.5">
                   <FiMapPin className="text-gray-400" />
@@ -163,7 +160,7 @@ export default function ProductCard({ produit }) {
         </div>
 
         {/* DISPONIBILITÉ */}
-        <div className="pt-2 border-t text-sm font-semibold flex items-center gap-2 flex-wrap">
+        <div className="pt-2 border-t text-xs sm:text-sm font-semibold flex items-center gap-2 flex-wrap">
           <span className={isAvailable ? "text-green-600" : "text-red-600"}>
             {isAvailable ? "Disponible" : "Indisponible"}
           </span>
