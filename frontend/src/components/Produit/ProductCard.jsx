@@ -74,18 +74,10 @@ export default function ProductCard({ produit }) {
       {/* IMAGE PRODUIT */}
       <Link to={`/produit/${produit._id}`}>
         <div className="w-full h-56 bg-gray-100 overflow-hidden border-b">
-        <img
+         <img
   src={produit.images[0] || "/placeholder.png"}
   alt={produit.nom}
-- className="w-full h-40 object-cover rounded"
-+ className="
-+   w-full
-+   h-auto
-+   object-contain
-+   rounded
-+   sm:h-40
-+   sm:object-cover
-+ "
+  className="w-full h-auto max-h-56 object-contain rounded-lg bg-white"
 />
 
         </div>
