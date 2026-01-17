@@ -295,6 +295,7 @@ export const supprimerCompte = async (req, res) => {
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
+    console.log("[FORGOT PASSWORD] Requête reçue :", email);
 
     if (!email) {
       return res.status(400).json({ message: "Email requis" });
@@ -302,30 +303,37 @@ export const forgotPassword = async (req, res) => {
 
     const vendeur = await Vendeur.findOne({ email });
     if (!vendeur) {
+      console.log("[FORGOT PASSWORD] Email introuvable :", email);
       return res.status(404).json({ message: "Utilisateur non trouvé" });
     }
 
-    // 🔹 Génération code à 6 chiffres
     const resetCode = Math.floor(100000 + Math.random() * 900000);
-
-    // 🔹 Expiration dans 24 heures
     const resetCodeExpire = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     vendeur.resetCode = resetCode;
     vendeur.resetCodeExpire = resetCodeExpire;
     await vendeur.save();
 
-    // ⚠️ ici tu envoies le code par email
-    // sendResetEmail(vendeur.email, resetCode);
+    console.log("[FORGOT PASSWORD] Code généré :", resetCode);
+
+    // ✅ ENVOI EMAIL
+    await envoyerOTPMail({
+      email: vendeur.email,
+      otp: resetCode,
+      type: "RESET_PASSWORD",
+    });
+
+    console.log("[FORGOT PASSWORD] Email envoyé avec succès");
 
     res.status(200).json({
       message: "Code de réinitialisation envoyé",
     });
   } catch (error) {
-    console.error("Erreur forgot-password:", error);
+    console.error("[FORGOT PASSWORD ERROR]", error);
     res.status(500).json({ message: "Erreur interne du serveur" });
   }
 };
+
 
 // ======================
 // VERIFIER CODE OTP
