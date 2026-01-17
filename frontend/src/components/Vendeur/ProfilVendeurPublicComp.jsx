@@ -7,7 +7,7 @@ import {
   FiInfo,
 } from "react-icons/fi";
 import ProductCard from "../Produit/ProductCard";
-import api from "../../services/api"; // ✅ IMPORT CORRECT
+import api from "../../services/api";
 
 export default function ProfilVendeurPublicComp({
   vendeur,
@@ -24,11 +24,12 @@ export default function ProfilVendeurPublicComp({
     const fetchProduits = async () => {
       setLoadingProduits(true);
       try {
-        const res = await api.get(`/produits?vendeur=${vendeur._id}`);
+        const res = await api.get(
+          `/api/produits?vendeur=${encodeURIComponent(vendeur._id)}`
+        );
 
         const produitsRecus = res.data?.produits || res.data || [];
 
-        // ✅ OPTIONNEL : afficher seulement les produits actifs
         const produitsActifs = produitsRecus.filter(
           (p) => p.actif !== false
         );
