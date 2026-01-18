@@ -28,7 +28,6 @@ import ProductStats from "./pages/ProductStats";
 import Confidentialite from "./pages/Confidentialite";
 
 export default function App() {
-  /* 🔍 RECHERCHE GLOBALE */
   const [recherche, setRecherche] = useState("");
 
   return (
@@ -36,12 +35,12 @@ export default function App() {
       <main className="flex-grow">
         <Routes>
 
-          {/* 🏠 HOME (AVEC FOOTER) */}
+          {/* 🏠 ACCUEIL → AVEC FOOTER */}
           <Route element={<HomeLayout />}>
             <Route path="/" element={<Home />} />
           </Route>
 
-          {/* 🌍 AUTRES PAGES (SANS FOOTER) */}
+          {/* 🌍 AUTRES PAGES → SANS FOOTER */}
           <Route
             element={
               <MainLayout
@@ -54,14 +53,8 @@ export default function App() {
             <Route path="/categorie/:nom" element={<Produit />} />
             <Route path="/produit/:id" element={<DetailProduit />} />
             <Route path="/panier" element={<Panier />} />
-            <Route
-              path="/confirmation-commande"
-              element={<ConfirmationCommande />}
-            />
-            <Route
-              path="/suivi-commande/:id"
-              element={<SuiviCommande />}
-            />
+            <Route path="/confirmation-commande" element={<ConfirmationCommande />} />
+            <Route path="/suivi-commande/:id" element={<SuiviCommande />} />
 
             {/* 👤 VENDEUR */}
             <Route path="/espace-vendeur" element={<SpaceVendeur />} />
@@ -72,24 +65,15 @@ export default function App() {
             <Route path="/modifier-produit/:id" element={<ModifierProduit />} />
             <Route path="/booster-produit/:id" element={<BoosterProduit />} />
             <Route path="/certification" element={<Certification />} />
-            <Route
-              path="/certification/success"
-              element={<CertificationSuccess />}
-            />
-            <Route
-              path="/mot-de-passe-oublie"
-              element={<MotDePasseOublie />}
-            />
+            <Route path="/certification/success" element={<CertificationSuccess />} />
+            <Route path="/mot-de-passe-oublie" element={<MotDePasseOublie />} />
             <Route path="/vendeur/:id" element={<ProfilVendeurPublic />} />
             <Route path="/admin/dashboard" element={<Dashboard />} />
-            <Route
-              path="/statistiques-produit/:id"
-              element={<ProductStats />}
-            />
+            <Route path="/statistiques-produit/:id" element={<ProductStats />} />
             <Route path="/confidentialite" element={<Confidentialite />} />
           </Route>
 
-          {/* ❌ FALLBACK */}
+          {/* ❌ 404 */}
           <Route
             path="*"
             element={

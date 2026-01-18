@@ -4,8 +4,7 @@ import SectionDashboard from "../components/TableauDebord/SectionDashboard";
 import ProductGrid from "../components/TableauDebord/ProductGrid";
 import UserProfile from "../components/TableauDebord/UserProfile";
 import { FiBox, FiShoppingCart, FiBarChart2 } from "react-icons/fi";
-import api from "../services/api"
-
+import api from "../services/api";
 
 function TableauDebord() {
   const [loading, setLoading] = useState(true);
@@ -20,16 +19,15 @@ function TableauDebord() {
 
     try {
       const res = await api.get("/api/commandes/vendeur", {
-  headers: {
-    Authorization: `Bearer ${token}`,
-  },
-});
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (Array.isArray(res.data)) {
         const nonLivrees = res.data.filter(
           (c) => c.status?.toLowerCase() !== "livré"
         );
-
         setNotifCommandes(nonLivrees.length);
       }
     } catch (err) {
@@ -40,7 +38,6 @@ function TableauDebord() {
   useEffect(() => {
     fetchCommandes();
 
-    // Loader visuel
     const timer = setTimeout(() => setLoading(false), 1500);
     return () => clearTimeout(timer);
   }, []);
@@ -54,15 +51,20 @@ function TableauDebord() {
   }
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-4 md:p-8 space-y-8">
       {/* Profil vendeur */}
       <UserProfile />
 
-      {/* Sections */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Sections dashboard */}
+      <div
+        className="
+          flex gap-2 overflow-x-auto pb-2
+          md:grid md:grid-cols-3 md:gap-6
+        "
+      >
         <SectionDashboard
           icon={<FiBox />}
-          title="Publier une annonce"
+          title="Publier"
           description="Ajouter des produits"
           link="/produits/publier"
         />
@@ -77,7 +79,7 @@ function TableauDebord() {
 
         <SectionDashboard
           icon={<FiBarChart2 />}
-          title="Statistiques"
+          title="Stats"
           description="Suivre les performances"
           link="/statistiques"
         />

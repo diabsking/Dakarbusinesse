@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import api from "../services/api";
 
 /* =====================================================
@@ -11,7 +10,7 @@ function SuiviCommande({ setNotifCommandes }) {
   const [photoZoom, setPhotoZoom] = useState(null);
   const [clicsVerrouilles, setClicsVerrouilles] = useState({});
 
-  // ✅ Masquage persistant via localStorage
+  // 🔹 Masquage persistant via localStorage
   const [commandesMasquees, setCommandesMasquees] = useState(() => {
     const stored = localStorage.getItem("commandesMasquees");
     return stored ? JSON.parse(stored) : [];
@@ -19,14 +18,8 @@ function SuiviCommande({ setNotifCommandes }) {
 
   /* ================= FETCH COMMANDES ================= */
   const fetchCommandes = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-
     try {
-        const res = await api.get("/api/commandes/vendeur");
+      const res = await api.get("/api/commandes/vendeur");
 
       if (Array.isArray(res.data)) {
         setCommandes(res.data);
@@ -44,17 +37,12 @@ function SuiviCommande({ setNotifCommandes }) {
 
   /* ================= CONFIRMATION LIVRAISON ================= */
   const confirmerLivraison = async (commandeId) => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-
     setClicsVerrouilles((prev) => ({ ...prev, [commandeId]: true }));
 
     try {
-      const res = await axios.put(
-        `http://localhost:5000/api/commandes/${commandeId}/statut`,
-        { status: "Livrée" },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await api.put(`/api/commandes/${commandeId}/statut`, {
+        status: "Livrée",
+      });
 
       setCommandes((prev) =>
         prev.map((cmd) =>

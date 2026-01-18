@@ -4,7 +4,6 @@ import { BsPatchCheckFill } from "react-icons/bs";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 
-
 function ProfileSkeleton() {
   return (
     <div className="flex flex-col md:flex-row gap-6 p-6 bg-white rounded-2xl border shadow-sm animate-pulse">
@@ -60,7 +59,6 @@ function UserProfile() {
     const fetchUser = async () => {
       try {
         const res = await api.get("/api/vendeur/auth/me");
-
         const vendeur = res.data.vendeur || res.data;
         setUser(vendeur);
         setProfilIncomplet(isProfilIncomplet(vendeur));
@@ -99,7 +97,6 @@ function UserProfile() {
 
     try {
       await api.delete("/api/vendeur/auth/delete");
-
       localStorage.clear();
       navigate("/", { replace: true });
     } catch (error) {
@@ -119,7 +116,6 @@ function UserProfile() {
 
     try {
       const res = await api.delete("/api/vendeur/auth/avatar");
-
       setUser(res.data.vendeur);
       setAvatarPreview(null);
     } catch {
@@ -171,9 +167,9 @@ function UserProfile() {
   if (!user) return <ProfileSkeleton />;
 
   return (
-    <div className="relative bg-white rounded-2xl border shadow-sm p-6 flex flex-col md:flex-row gap-6">
+    <div className="relative bg-white rounded-2xl border shadow-sm p-4 md:p-6 flex flex-col md:flex-row gap-6">
       {/* Avatar */}
-      <div className="flex flex-col items-center gap-3">
+      <div className="flex flex-col items-center gap-3 w-full md:w-auto">
         <img
           src={avatarPreview || user.avatar || "/avatar-default.png"}
           alt="Avatar"
@@ -181,20 +177,20 @@ function UserProfile() {
         />
 
         {editMode && (
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 w-full justify-center">
             <button
               onClick={() => fileInputRef.current.click()}
-              className="text-sm bg-blue-600 text-white px-3 py-1 rounded"
+              className="text-sm bg-blue-600 text-white px-3 py-1 rounded flex items-center justify-center"
             >
-              <FiEdit /> Changer
+              <FiEdit className="mr-1" /> Changer
             </button>
 
             {user.avatar && (
               <button
                 onClick={handleDeleteAvatar}
-                className="text-sm bg-red-600 text-white px-3 py-1 rounded"
+                className="text-sm bg-red-600 text-white px-3 py-1 rounded flex items-center justify-center"
               >
-                <FiTrash2 /> Supprimer
+                <FiTrash2 className="mr-1" /> Supprimer
               </button>
             )}
 
@@ -210,15 +206,15 @@ function UserProfile() {
       </div>
 
       {/* Infos */}
-      <div className="flex-1">
+      <div className="flex-1 w-full">
         {profilIncomplet && !editMode && (
-          <div className="mb-4 flex justify-between items-center bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded">
+          <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded">
             <span className="text-sm text-yellow-700">
               ⚠️ Profil incomplet
             </span>
             <button
               onClick={() => setEditMode(true)}
-              className="bg-yellow-600 text-white px-4 py-1 rounded"
+              className="mt-2 sm:mt-0 bg-yellow-600 text-white px-4 py-1 rounded"
             >
               Compléter
             </button>
@@ -233,7 +229,7 @@ function UserProfile() {
 
         {!editMode ? (
           <>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
               <h3 className="text-xl font-semibold">
                 {user.nomVendeur}
               </h3>
@@ -290,18 +286,18 @@ function UserProfile() {
               }
             />
 
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <button
                 onClick={saveProfile}
                 disabled={loading}
-                className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+                className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50 flex-1 text-center"
               >
                 {loading ? "..." : "Enregistrer"}
               </button>
 
               <button
                 onClick={() => setEditMode(false)}
-                className="bg-gray-200 px-4 py-2 rounded"
+                className="bg-gray-200 px-4 py-2 rounded flex-1 text-center"
               >
                 Annuler
               </button>
@@ -312,12 +308,12 @@ function UserProfile() {
 
       {/* Menu */}
       <div className="relative" ref={menuRef}>
-        <button onClick={() => setMenuOpen(!menuOpen)}>
+        <button onClick={() => setMenuOpen(!menuOpen)} className="p-2 rounded hover:bg-gray-100">
           <FiSettings size={22} />
         </button>
 
         {menuOpen && (
-          <div className="absolute right-0 mt-2 w-56 bg-white border rounded shadow">
+          <div className="absolute right-0 mt-2 w-56 bg-white border rounded shadow z-50">
             <button
               onClick={() => {
                 setEditMode(true);
