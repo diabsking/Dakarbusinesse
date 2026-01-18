@@ -137,7 +137,6 @@ export default function DetailProduit() {
 
         /* 🖼️ galerie */
         images={images}
-        imagePrincipale={imagePrincipale}
         imageActive={imageActive}
         setImageActive={setImageActive}
 

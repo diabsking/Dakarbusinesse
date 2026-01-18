@@ -11,46 +11,53 @@ export default function ProduitSection({
   onAddPanier,
   onVoirVendeur,
   onAvisAjoute,
+
+  // 🎯 props nécessaires pour la galerie
+  images,
+  imageActive,
+  setImageActive,
 }) {
 
- const normalizePhone = (num, defaultCountryCode = "221") => {
-  if (!num) return null;
+  const normalizePhone = (num, defaultCountryCode = "221") => {
+    if (!num) return null;
 
-  // 1) enlever tout ce qui n'est pas chiffre
-  let clean = String(num).replace(/[^\d]/g, "");
+    // 1) enlever tout ce qui n'est pas chiffre
+    let clean = String(num).replace(/[^\d]/g, "");
 
-  // 2) gérer le cas "00" au début (ex: 00221...)
-  if (clean.startsWith("00")) {
-    clean = clean.slice(2);
-  }
+    // 2) gérer le cas "00" au début (ex: 00221...)
+    if (clean.startsWith("00")) {
+      clean = clean.slice(2);
+    }
 
-  // 3) si commence par "0" => enlever le 0 et ajouter l'indicatif
-  if (clean.startsWith("0")) {
-    clean = defaultCountryCode + clean.slice(1);
-  }
+    // 3) si commence par "0" => enlever le 0 et ajouter l'indicatif
+    if (clean.startsWith("0")) {
+      clean = defaultCountryCode + clean.slice(1);
+    }
 
-  // 4) si commence par l'indicatif avec + ou pas (ex: 221...)
-  //    on le garde tel quel.
-  //    Si le numéro est court, on le rejette (min 8 chiffres)
-  if (clean.length < 8) return null;
+    // 4) si commence par l'indicatif (ex: 221...) on le garde tel quel.
+    //    Si le numéro est court, on le rejette (min 8 chiffres)
+    if (clean.length < 8) return null;
 
-  return clean;
-};
+    return clean;
+  };
 
-const whatsappNumber = produit?.vendeur?.telephone;
-const whatsappClean = normalizePhone(whatsappNumber);
+  const whatsappNumber = produit?.vendeur?.telephone;
+  const whatsappClean = normalizePhone(whatsappNumber);
 
-const whatsappLink = whatsappClean
-  ? `https://wa.me/${whatsappClean}`
-  : null;
-
+  const whatsappLink = whatsappClean
+    ? `https://wa.me/${whatsappClean}`
+    : null;
 
   return (
     <section className="bg-white/90 backdrop-blur rounded-2xl shadow-sm p-4 sm:p-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
         {/* IMAGES PRODUIT */}
         <div className="w-full">
-          <ImageProduit images={produit?.images || [PLACEHOLDER]} />
+          <ImageProduit
+            images={images}
+            imageActive={imageActive}
+            setImageActive={setImageActive}
+          />
         </div>
 
         {/* INFOS + ACTIONS */}
