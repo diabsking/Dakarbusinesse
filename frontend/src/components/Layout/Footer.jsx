@@ -57,8 +57,9 @@ export default function Footer() {
 
   return (
     <footer className="bg-gray-900 text-gray-300 mt-12">
-      {/* 🔝 TOP */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
+
+      {/* 🔝 TOP (caché sur mobile) */}
+      <div className="hidden sm:grid max-w-7xl mx-auto px-4 sm:px-6 py-10 grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
 
         {/* BRAND */}
         <div className="text-center sm:text-left">
@@ -115,7 +116,11 @@ export default function Footer() {
       {/* 🔽 BOTTOM */}
       <div className="border-t border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-400 text-center sm:text-left">
-          <p>© {new Date().getFullYear()} Dakarbusinesse. Tous droits réservés.</p>
+          {/* Texte visible uniquement sur desktop */}
+          <p className="hidden sm:block">
+            © {new Date().getFullYear()} Dakarbusinesse. Tous droits réservés.
+          </p>
+
           <div className="flex gap-4">
             <FooterLink to="/conditions">Conditions</FooterLink>
             <FooterLink to="/confidentialite">Confidentialité</FooterLink>
@@ -124,14 +129,13 @@ export default function Footer() {
 
         {/* ADMIN */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-6 flex justify-center">
-         <button
-  onClick={() => setShowModal(true)}
-  className="opacity-0 hover:opacity-100 transition w-8 h-8 text-gray-400"
-  aria-label="Accès administrateur"
->
-  <FiShield size={14} />
-</button>
-
+          <button
+            onClick={() => setShowModal(true)}
+            className="opacity-0 hover:opacity-100 transition w-8 h-8 text-gray-400"
+            aria-label="Accès administrateur"
+          >
+            <FiShield size={14} />
+          </button>
         </div>
       </div>
 

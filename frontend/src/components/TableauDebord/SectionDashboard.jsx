@@ -12,12 +12,12 @@ function SectionDashboard({ icon, title, description, link, badge = 0 }) {
         border border-gray-300 rounded-lg cursor-pointer
         hover:shadow-lg transition bg-transparent
 
-        /* MOBILE */
+        /* MOBILE: transparent, sans bordures */
+        border-none bg-transparent p-0 min-w-[80px]
         flex flex-col items-center justify-center
-        p-2 min-w-[80px]
 
         /* DESKTOP (inchangé) */
-        sm:p-6 sm:items-start sm:block
+        sm:border border-gray-300 sm:p-6 sm:items-start sm:block
       "
     >
       {/* Badge */}

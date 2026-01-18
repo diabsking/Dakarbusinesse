@@ -5,6 +5,9 @@ import { useState } from "react";
 import HomeLayout from "./layouts/HomeLayout";
 import MainLayout from "./layouts/MainLayout";
 
+import Footer from "./components/Layout/Footer";
+
+
 // Pages
 import Home from "./pages/Home";
 import Produit from "./pages/Produit";
@@ -27,20 +30,26 @@ import Dashboard from "./admin/pages/Dashboard";
 import ProductStats from "./pages/ProductStats";
 import Confidentialite from "./pages/Confidentialite";
 
+
+
+
 export default function App() {
+  /* 🔍 RECHERCHE GLOBALE */
   const [recherche, setRecherche] = useState("");
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 text-gray-900">
+
+      {/* CONTENU */}
       <main className="flex-grow">
         <Routes>
 
-          {/* 🏠 ACCUEIL → AVEC FOOTER */}
+          {/* 🏠 HOME */}
           <Route element={<HomeLayout />}>
             <Route path="/" element={<Home />} />
           </Route>
 
-          {/* 🌍 AUTRES PAGES → SANS FOOTER */}
+          {/* 🌍 AUTRES PAGES */}
           <Route
             element={
               <MainLayout
@@ -49,12 +58,29 @@ export default function App() {
               />
             }
           >
-            <Route path="/produits" element={<Produit />} />
-            <Route path="/categorie/:nom" element={<Produit />} />
+            {/* 📦 PRODUITS */}
+            <Route
+              path="/produits"
+              element={<Produit recherche={recherche} />}
+            />
+
+            <Route
+              path="/categorie/:nom"
+              element={<Produit recherche={recherche} />}
+            />
+
             <Route path="/produit/:id" element={<DetailProduit />} />
             <Route path="/panier" element={<Panier />} />
-            <Route path="/confirmation-commande" element={<ConfirmationCommande />} />
-            <Route path="/suivi-commande/:id" element={<SuiviCommande />} />
+
+            <Route
+              path="/confirmation-commande"
+              element={<ConfirmationCommande />}
+            />
+
+            <Route
+              path="/suivi-commande/:id"
+              element={<SuiviCommande />}
+            />
 
             {/* 👤 VENDEUR */}
             <Route path="/espace-vendeur" element={<SpaceVendeur />} />
@@ -65,15 +91,24 @@ export default function App() {
             <Route path="/modifier-produit/:id" element={<ModifierProduit />} />
             <Route path="/booster-produit/:id" element={<BoosterProduit />} />
             <Route path="/certification" element={<Certification />} />
-            <Route path="/certification/success" element={<CertificationSuccess />} />
-            <Route path="/mot-de-passe-oublie" element={<MotDePasseOublie />} />
-            <Route path="/vendeur/:id" element={<ProfilVendeurPublic />} />
+            <Route
+              path="/certification/success"
+              element={<CertificationSuccess />}
+            />
+            <Route
+              path="/mot-de-passe-oublie"
+              element={<MotDePasseOublie />}
+            />
+            <Route
+              path="/vendeur/:id"
+              element={<ProfilVendeurPublic />}
+            />
             <Route path="/admin/dashboard" element={<Dashboard />} />
             <Route path="/statistiques-produit/:id" element={<ProductStats />} />
             <Route path="/confidentialite" element={<Confidentialite />} />
           </Route>
 
-          {/* ❌ 404 */}
+          {/* ❌ FALLBACK */}
           <Route
             path="*"
             element={
@@ -86,6 +121,9 @@ export default function App() {
           />
         </Routes>
       </main>
+
+      {/* FOOTER */}
+      <Footer />
     </div>
   );
 }
