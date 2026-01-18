@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../services/api"; // <-- IMPORTANT
 import ProductCard, { ProductCardSkeleton } from "./ProductCard";
 
 const ProductGrid = () => {
@@ -11,15 +11,7 @@ const ProductGrid = () => {
   useEffect(() => {
     const fetchProduits = async () => {
       try {
-        const token = localStorage.getItem("token");
-
-        const res = await axios.get(
-          "http://localhost:5000/api/produits/mes-produits",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-
+        const res = await api.get("/api/produits/mes-produits");
         setProduits(res.data.data || []);
       } catch (err) {
         console.error(err);
@@ -35,12 +27,7 @@ const ProductGrid = () => {
   // 🗑️ Supprimer un produit
   const supprimerProduit = async (id) => {
     try {
-      const token = localStorage.getItem("token");
-
-      await axios.delete(`http://localhost:5000/api/produits/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
+      await api.delete(`/api/produits/${id}`);
       setProduits((prev) => prev.filter((p) => p._id !== id));
     } catch (err) {
       console.error(err);

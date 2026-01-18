@@ -2,11 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { FiSettings, FiLogOut, FiTrash2, FiEdit } from "react-icons/fi";
 import { BsPatchCheckFill } from "react-icons/bs";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../../services/api";
 
-/* ======================
-   Skeleton Loader
-====================== */
+
 function ProfileSkeleton() {
   return (
     <div className="flex flex-col md:flex-row gap-6 p-6 bg-white rounded-2xl border shadow-sm animate-pulse">
@@ -32,9 +30,6 @@ function ProfileSkeleton() {
   );
 }
 
-/* ======================
-   Composant principal
-====================== */
 function UserProfile() {
   const [user, setUser] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
@@ -49,9 +44,6 @@ function UserProfile() {
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
-  /* ======================
-     Vérifier profil complet
-  ====================== */
   const isProfilIncomplet = (vendeur) => {
     const champs = [
       "nomVendeur",
@@ -64,17 +56,10 @@ function UserProfile() {
     return champs.some((c) => !vendeur?.[c]);
   };
 
-  /* ======================
-     Charger utilisateur
-  ====================== */
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const res = await axios.get(
-          "http://localhost:5000/api/vendeur/auth/me",
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const res = await api.get("/api/vendeur/auth/me");
 
         const vendeur = res.data.vendeur || res.data;
         setUser(vendeur);
@@ -87,9 +72,6 @@ function UserProfile() {
     fetchUser();
   }, []);
 
-  /* ======================
-     Fermer menu au clic externe
-  ====================== */
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -101,18 +83,12 @@ function UserProfile() {
       document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  /* ======================
-     Déconnexion
-  ====================== */
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     navigate("/", { replace: true });
   };
 
-  /* ======================
-     Suppression compte
-  ====================== */
   const handleDeleteAccount = async () => {
     if (
       !window.confirm(
@@ -122,11 +98,7 @@ function UserProfile() {
       return;
 
     try {
-      const token = localStorage.getItem("token");
-      await axios.delete(
-        "http://localhost:5000/api/vendeur/auth/delete",
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.delete("/api/vendeur/auth/delete");
 
       localStorage.clear();
       navigate("/", { replace: true });
@@ -135,9 +107,6 @@ function UserProfile() {
     }
   };
 
-  /* ======================
-     Avatar
-  ====================== */
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -149,11 +118,7 @@ function UserProfile() {
     if (!window.confirm("Supprimer votre avatar ?")) return;
 
     try {
-      const token = localStorage.getItem("token");
-      const res = await axios.delete(
-        "http://localhost:5000/api/vendeur/auth/avatar",
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await api.delete("/api/vendeur/auth/avatar");
 
       setUser(res.data.vendeur);
       setAvatarPreview(null);
@@ -162,13 +127,9 @@ function UserProfile() {
     }
   };
 
-  /* ======================
-     Sauvegarde
-  ====================== */
   const saveProfile = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("token");
 
       const formData = new FormData();
       [
@@ -178,19 +139,13 @@ function UserProfile() {
         "adresseBoutique",
         "description",
         "email",
-      ].forEach(
-        (key) => user[key] && formData.append(key, user[key])
-      );
+      ].forEach((key) => user[key] && formData.append(key, user[key]));
 
       if (user.avatarFile) {
         formData.append("avatar", user.avatarFile);
       }
 
-      const res = await axios.put(
-        "http://localhost:5000/api/vendeur/auth/profile",
-        formData,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await api.put("/api/vendeur/auth/profile", formData);
 
       setUser(res.data.vendeur);
       setAvatarPreview(null);
@@ -206,9 +161,6 @@ function UserProfile() {
     }
   };
 
-  /* ======================
-     États
-  ====================== */
   if (error)
     return (
       <div className="p-4 bg-red-50 text-red-600 rounded">
@@ -218,12 +170,8 @@ function UserProfile() {
 
   if (!user) return <ProfileSkeleton />;
 
-  /* ======================
-     RENDER
-  ====================== */
   return (
     <div className="relative bg-white rounded-2xl border shadow-sm p-6 flex flex-col md:flex-row gap-6">
-      
       {/* Avatar */}
       <div className="flex flex-col items-center gap-3">
         <img
@@ -297,7 +245,6 @@ function UserProfile() {
             <p className="font-medium mt-1">{user.nomBoutique}</p>
             <p className="text-gray-600 italic mt-2">{user.description}</p>
 
-            {/* Incitation vendeur certifié */}
             {!user.certifie && (
               <div className="mt-4 bg-blue-50 border-l-4 border-blue-600 p-4 rounded-lg text-sm shadow-sm">
                 <p className="font-semibold text-blue-700">🚀 Boostez votre visibilité</p>
