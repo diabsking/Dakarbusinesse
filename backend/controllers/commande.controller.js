@@ -9,9 +9,6 @@ import {
 /* ============================
    PASSER COMMANDE
 ============================ */
-/* ============================
-   PASSER COMMANDE
-============================ */
 export const passerCommande = async (req, res) => {
   try {
     const { clientNom, clientTelephone, clientEmail, clientAdresse, vendeurs } = req.body;
@@ -29,15 +26,12 @@ export const passerCommande = async (req, res) => {
     const commandesCreees = [];
 
     for (const vendeur of vendeurs) {
-      const { idVendeur, nomVendeur, emailVendeur, produits } = vendeur;
+      const { idVendeur, nomVendeur, produits } = vendeur;
 
-      // 🔴 Email vendeur obligatoire
-      if (!emailVendeur) {
-        return res.status(400).json({
-          message: `Email du vendeur manquant pour ${nomVendeur || "un vendeur"}`,
-        });
-      }
+      // ❌ Suppression de l'email envoyé depuis le frontend
+      // (on va le récupérer depuis la base)
 
+      if (!idVendeur) continue;
       if (!Array.isArray(produits) || produits.length === 0) continue;
 
       const produitsCommande = [];
@@ -89,10 +83,21 @@ export const passerCommande = async (req, res) => {
         );
       }
 
+      // ✅ Récupération email vendeur depuis la base (Vendeur.js)
+      const vendeurEnBase = await Vendeur.findById(idVendeur);
+
+      if (!vendeurEnBase?.email) {
+        console.error("❌ Email vendeur introuvable pour id:", idVendeur);
+        continue;
+      }
+
       // Envoi email vendeur (obligatoire)
-      notifierVendeurCommande(emailVendeur, commande, nomVendeur, idVendeur).catch(
-        (err) => console.error("❌ Erreur email vendeur :", err)
-      );
+      notifierVendeurCommande(
+        vendeurEnBase.email,
+        commande,
+        nomVendeur,
+        idVendeur
+      ).catch((err) => console.error("❌ Erreur email vendeur :", err));
     }
 
     // Réponse au frontend
@@ -105,6 +110,7 @@ export const passerCommande = async (req, res) => {
     res.status(500).json({ message: "Erreur serveur" });
   }
 };
+
 
 
 /* ============================
