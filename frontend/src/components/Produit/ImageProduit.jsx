@@ -18,9 +18,37 @@ export default function ImageProduit({
 
   return (
     <div className="w-full flex flex-col md:flex-row gap-4">
+      {/* IMAGE PRINCIPALE */}
+      <div className="order-1 md:order-2 flex-1 flex justify-center">
+        <div className="w-full max-w-md sm:max-w-lg">
+          <img
+            src={mainImage}
+            alt="Produit principal"
+            onError={(e) => (e.currentTarget.src = PLACEHOLDER)}
+            className="
+              w-full
+              h-[280px] sm:h-[360px] md:h-[450px]
+              object-cover
+              rounded-2xl
+              shadow-lg
+            "
+          />
+        </div>
+      </div>
+
       {/* MINIATURES */}
       {imagesSecondaires.length > 1 && (
-        <div className="flex md:flex-col gap-3 overflow-x-auto md:overflow-visible md:w-24">
+        <div
+          className="
+            order-2 md:order-1
+            flex md:flex-col
+            gap-3
+            overflow-x-auto md:overflow-visible
+            md:w-24
+            snap-x snap-mandatory
+            scrollbar-hide
+          "
+        >
           {imagesSecondaires.map((img, index) => {
             const safeImg = safeImage(img);
             const isActive = mainImage === safeImg;
@@ -31,38 +59,36 @@ export default function ImageProduit({
                 type="button"
                 onClick={() => setImagePrincipale(safeImg)}
                 className={`
-                  flex-none rounded-xl overflow-hidden border transition-all
-                  ${isActive
-                    ? "border-orange-600 ring-2 ring-orange-400"
-                    : "border-gray-200 hover:border-orange-400"}
+                  snap-start
+                  flex-none
+                  rounded-xl
+                  overflow-hidden
+                  border
+                  transition-all
+                  ${
+                    isActive
+                      ? "border-orange-600 ring-2 ring-orange-400"
+                      : "border-gray-200 hover:border-orange-400"
+                  }
                 `}
               >
                 <img
                   src={safeImg}
                   alt={`Produit ${index + 1}`}
-                  onError={(e) => (e.currentTarget.src = PLACEHOLDER)}
-                  className="w-20 h-20 sm:w-24 sm:h-24 object-cover"
+                  onError={(e) =>
+                    (e.currentTarget.src = PLACEHOLDER)
+                  }
+                  className="
+                    w-20 h-20
+                    sm:w-24 sm:h-24
+                    object-cover
+                  "
                 />
               </button>
             );
           })}
         </div>
       )}
-
-      {/* IMAGE PRINCIPALE */}
-      <div className="flex-1 flex justify-center items-center">
-        <div className="w-full max-w-lg">
-          <img
-            src={mainImage}
-            alt="Produit principal"
-            onError={(e) => (e.currentTarget.src = PLACEHOLDER)}
-            className="
-              w-full h-[300px] sm:h-[380px] md:h-[450px]
-              object-cover rounded-2xl shadow-lg
-            "
-          />
-        </div>
-      </div>
     </div>
   );
 }

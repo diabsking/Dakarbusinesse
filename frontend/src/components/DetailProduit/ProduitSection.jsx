@@ -18,35 +18,61 @@ export default function ProduitSection({
     : null;
 
   return (
-    <div className="rounded-2xl p-4 sm:p-6 bg-white/90 backdrop-blur shadow-sm">
+    <section className="bg-white/90 backdrop-blur rounded-2xl shadow-sm p-4 sm:p-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
         {/* IMAGES PRODUIT */}
         <div className="w-full">
-          <ImageProduit images={produit.images || [PLACEHOLDER]} />
+          <ImageProduit images={produit?.images || [PLACEHOLDER]} />
         </div>
 
-        <div className="flex flex-col gap-4 sm:gap-5">
+        {/* INFOS + ACTIONS */}
+        <div className="flex flex-col gap-5">
           {/* INFOS PRODUIT */}
           <InfoProduit produit={produit} />
 
-          {/* AJOUT PANIER */}
+          {/* CTA PANIER */}
           <button
             onClick={onAddPanier}
-            className="w-full py-4 bg-yellow-600 text-black text-base sm:text-xl font-bold rounded-full hover:bg-yellow-700 transition"
+            className="
+              w-full
+              py-4
+              bg-yellow-600
+              text-black
+              text-lg sm:text-xl
+              font-bold
+              rounded-full
+              hover:bg-yellow-700
+              active:scale-[0.98]
+              transition
+            "
           >
             <FiShoppingCart className="inline mr-2" />
             Ajouter au panier
           </button>
 
-          {/* ACTIONS VENDEUR (SANS AFFICHAGE INFO) */}
-          <div className="flex gap-3 flex-wrap">
+          {/* ACTIONS VENDEUR */}
+          <div className="flex flex-col sm:flex-row gap-3">
             {/* WHATSAPP */}
             {whatsappLink && (
               <a
                 href={whatsappLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-full hover:bg-green-700 transition"
+                className="
+                  inline-flex
+                  items-center
+                  justify-center
+                  gap-2
+                  px-5
+                  py-3
+                  bg-green-600
+                  text-white
+                  text-sm
+                  font-semibold
+                  rounded-full
+                  hover:bg-green-700
+                  transition
+                "
               >
                 <FiMessageCircle size={16} />
                 WhatsApp
@@ -56,7 +82,22 @@ export default function ProduitSection({
             {/* PROFIL VENDEUR */}
             <button
               onClick={onVoirVendeur}
-              className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 text-sm font-semibold rounded-full hover:bg-gray-100 transition"
+              className="
+                inline-flex
+                items-center
+                justify-center
+                gap-2
+                px-5
+                py-3
+                border
+                border-gray-300
+                text-gray-700
+                text-sm
+                font-semibold
+                rounded-full
+                hover:bg-gray-100
+                transition
+              "
             >
               <FiUser size={16} />
               Profil vendeur
@@ -64,7 +105,7 @@ export default function ProduitSection({
           </div>
 
           {/* AVIS */}
-          <div className="mt-2">
+          <div className="pt-2">
             <AvisProduit
               produitId={produit._id}
               avisInit={avis}
@@ -73,6 +114,6 @@ export default function ProduitSection({
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
