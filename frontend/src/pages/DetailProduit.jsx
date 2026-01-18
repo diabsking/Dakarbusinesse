@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { usePanier } from "../context/PanierContext";
@@ -21,7 +21,7 @@ export default function DetailProduit() {
   const [avis, setAvis] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 🖼️ image active (galerie mobile)
+  // 📱 index image principale
   const [imageActive, setImageActive] = useState(0);
 
   /* ================= FETCH PRODUIT ================= */
@@ -41,7 +41,7 @@ export default function DetailProduit() {
     fetchProduit();
   }, [id]);
 
-  // reset image active quand le produit change
+  // reset image active si produit change
   useEffect(() => {
     setImageActive(0);
   }, [produit?._id]);
@@ -98,6 +98,16 @@ export default function DetailProduit() {
     fetchAvis();
   }, [id]);
 
+  /* ================= IMAGES SAFE ================= */
+  const images = useMemo(() => {
+    if (!produit?.images || produit.images.length === 0) {
+      return [PLACEHOLDER];
+    }
+    return produit.images;
+  }, [produit]);
+
+  const imagePrincipale = images[imageActive] || PLACEHOLDER;
+
   /* ================= ACTION PANIER ================= */
   const handleAddPanier = () => {
     if (!produit) return;
@@ -108,7 +118,7 @@ export default function DetailProduit() {
       id: produit._id,
       nom: produit.nom,
       prix: produit.prixActuel ?? produit.prix ?? 0,
-      image: produit.images?.[imageActive] || PLACEHOLDER,
+      image: imagePrincipale,
 
       idVendeur: v._id,
       nomVendeur: v.nomBoutique || "Vendeur",
@@ -125,7 +135,9 @@ export default function DetailProduit() {
         produit={produit}
         avis={avis}
 
-        /* 📱 galerie mobile */
+        /* 🖼️ galerie */
+        images={images}
+        imagePrincipale={imagePrincipale}
         imageActive={imageActive}
         setImageActive={setImageActive}
 

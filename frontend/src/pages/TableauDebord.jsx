@@ -45,7 +45,7 @@ function TableauDebord() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
-        <h1 className="text-5xl font-extrabold animate-pulse">KOLWAZ</h1>
+        <h1 className="text-5xl font-extrabold animate-pulse">Dakarbusiness</h1>
       </div>
     );
   }

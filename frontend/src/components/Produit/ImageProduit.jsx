@@ -3,47 +3,66 @@ import PropTypes from "prop-types";
 
 const PLACEHOLDER = "/placeholder.png";
 
-export default function ImageProduit({ images = [], imagePrincipale, setImagePrincipale }) {
-  const safeImage = (img) => (img && typeof img === "string" ? img : PLACEHOLDER);
+export default function ImageProduit({
+  images = [],
+  imagePrincipale,
+  setImagePrincipale,
+}) {
+  const safeImage = (img) =>
+    img && typeof img === "string" ? img : PLACEHOLDER;
 
-  const imagesSecondaires = images?.slice(0, 5) || [];
-  const mainImage = safeImage(imagePrincipale || imagesSecondaires[0]);
+  const imagesSecondaires = images.slice(0, 6);
+  const mainImage = safeImage(
+    imagePrincipale || imagesSecondaires[0]
+  );
 
   return (
-    <div className="w-full flex flex-col gap-4 items-center">
-      {/* IMAGE PRINCIPALE */}
-      <div className="w-full max-w-md">
-        <img
-          src={mainImage}
-          onError={(e) => (e.target.src = PLACEHOLDER)}
-          alt="Produit"
-          className="w-full h-[320px] sm:h-[380px] object-cover rounded-2xl shadow-md"
-        />
-      </div>
+    <div className="w-full flex flex-col md:flex-row gap-4">
+      {/* MINIATURES */}
+      {imagesSecondaires.length > 1 && (
+        <div className="flex md:flex-col gap-3 overflow-x-auto md:overflow-visible md:w-24">
+          {imagesSecondaires.map((img, index) => {
+            const safeImg = safeImage(img);
+            const isActive = mainImage === safeImg;
 
-      {/* IMAGES SECONDAIRES */}
-      {imagesSecondaires.length > 0 && (
-        <div className="w-full">
-          <div className="flex gap-3 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
-            {imagesSecondaires.map((img, index) => (
+            return (
               <button
                 key={index}
-                onClick={() => setImagePrincipale(safeImage(img))}
-                className={`snap-start flex-none rounded-xl overflow-hidden border transition
-                  ${mainImage === safeImage(img) ? "border-orange-600" : "border-gray-200"}
-                  hover:scale-105`}
+                type="button"
+                onClick={() => setImagePrincipale(safeImg)}
+                className={`
+                  flex-none rounded-xl overflow-hidden border transition-all
+                  ${isActive
+                    ? "border-orange-600 ring-2 ring-orange-400"
+                    : "border-gray-200 hover:border-orange-400"}
+                `}
               >
                 <img
-                  src={safeImage(img)}
-                  alt={`Produit secondaire ${index + 1}`}
-                  onError={(e) => (e.target.src = PLACEHOLDER)}
+                  src={safeImg}
+                  alt={`Produit ${index + 1}`}
+                  onError={(e) => (e.currentTarget.src = PLACEHOLDER)}
                   className="w-20 h-20 sm:w-24 sm:h-24 object-cover"
                 />
               </button>
-            ))}
-          </div>
+            );
+          })}
         </div>
       )}
+
+      {/* IMAGE PRINCIPALE */}
+      <div className="flex-1 flex justify-center items-center">
+        <div className="w-full max-w-lg">
+          <img
+            src={mainImage}
+            alt="Produit principal"
+            onError={(e) => (e.currentTarget.src = PLACEHOLDER)}
+            className="
+              w-full h-[300px] sm:h-[380px] md:h-[450px]
+              object-cover rounded-2xl shadow-lg
+            "
+          />
+        </div>
+      </div>
     </div>
   );
 }
