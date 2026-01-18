@@ -9,6 +9,9 @@ import {
 /* ============================
    PASSER COMMANDE
 ============================ */
+/* ============================
+   PASSER COMMANDE
+============================ */
 export const passerCommande = async (req, res) => {
   try {
     const { clientNom, clientTelephone, clientEmail, clientAdresse, vendeurs } = req.body;
@@ -27,6 +30,13 @@ export const passerCommande = async (req, res) => {
 
     for (const vendeur of vendeurs) {
       const { idVendeur, nomVendeur, emailVendeur, produits } = vendeur;
+
+      // 🔴 Email vendeur obligatoire
+      if (!emailVendeur) {
+        return res.status(400).json({
+          message: `Email du vendeur manquant pour ${nomVendeur || "un vendeur"}`,
+        });
+      }
 
       if (!Array.isArray(produits) || produits.length === 0) continue;
 
@@ -59,8 +69,8 @@ export const passerCommande = async (req, res) => {
       const commande = await Commande.create({
         client: {
           nom: clientNom,
-          telephone: clientTelephone,   // obligatoire
-          email: clientEmail || "",     // optionnel
+          telephone: clientTelephone,
+          email: clientEmail || "",
           adresse: clientAdresse,
         },
         produits: produitsCommande,
@@ -72,18 +82,17 @@ export const passerCommande = async (req, res) => {
 
       commandesCreees.push(commande);
 
-      // Notifications par email si email fourni
+      // Envoi email client (optionnel)
       if (clientEmail) {
-        notifierClientCommande(clientEmail, commande).catch(err =>
+        notifierClientCommande(clientEmail, commande).catch((err) =>
           console.error("❌ Erreur email client :", err)
         );
       }
 
-      if (emailVendeur) {
-        notifierVendeurCommande(emailVendeur, commande, nomVendeur).catch(err =>
-          console.error("❌ Erreur email vendeur :", err)
-        );
-      }
+      // Envoi email vendeur (obligatoire)
+      notifierVendeurCommande(emailVendeur, commande, nomVendeur, idVendeur).catch(
+        (err) => console.error("❌ Erreur email vendeur :", err)
+      );
     }
 
     // Réponse au frontend
