@@ -1,0 +1,37 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dépendances
+node_modules
+
+# Build Vite / React
+dist
+dist-ssr
+.vite
+
+# Variables d'environnement
+.env
+.env.*
+
+# Fichiers locaux
+*.local
+
+# Cache OS
+.DS_Store
+Thumbs.db
+
+# Editeurs / IDE
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

@@ -27,7 +27,7 @@ const templateVendeurCommande = (commande, vendeurNom, vendeurId) => `
   <div style="font-family:Arial;padding:20px">
     <h2>Nouvelle commande reçue</h2>
     <p>Bonjour ${vendeurNom || "vendeur"},</p>
-    <p>Vous avez reçu une nouvelle commande n° <strong>${commande._id}</strong> :</p>
+    <p>Consultez votre tableau de bord Dakarbusinesse,Vous avez reçu une nouvelle commande n° <strong>${commande._id}</strong> :</p>
     <ul>
       ${commande.produits
         .filter((p) => p.vendeur?.toString() === String(vendeurId))
