@@ -14,3 +14,17 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     </BrowserRouter>
   </React.StrictMode>
 );
+
+// ======================
+// PWA : Service Worker
+// ======================
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("/sw.js")
+      .then(() => console.log("Service Worker Dakarbusinesse actif"))
+      .catch((err) =>
+        console.error("Erreur Service Worker Dakarbusinesse :", err)
+      );
+  });
+}
