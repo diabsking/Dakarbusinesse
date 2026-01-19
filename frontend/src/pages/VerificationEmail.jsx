@@ -1,13 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../services/api";
 
-const OTP_DURATION = 24 * 60 * 60 * 1000; // 24 heures
+// ⏱️ 10 minutes (doit matcher le backend)
+const OTP_DURATION = 10 * 60 * 1000;
+// ⏱️ Cooldown renvoi OTP (60s UX)
+const RESEND_COOLDOWN = 60 * 1000;
 
 export default function VerificationEmail({ email: initialEmail }) {
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState(() => {
+  const [email] = useState(() => {
     return (
       initialEmail ||
       localStorage.getItem("emailForOTP") ||
@@ -17,10 +20,12 @@ export default function VerificationEmail({ email: initialEmail }) {
 
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
   const [error, setError] = useState("");
+  const [cooldown, setCooldown] = useState(0);
 
   /* =============================
-     GESTION SESSION INSCRIPTION
+     GESTION SESSION OTP
   ============================= */
   useEffect(() => {
     if (!email) {
@@ -29,23 +34,39 @@ export default function VerificationEmail({ email: initialEmail }) {
     }
 
     const expireAt = localStorage.getItem("otpExpireAt");
+    const resendAt = localStorage.getItem("otpResendAt");
 
-    // ⏱️ première entrée → crée l’expiration
+    // 🆕 première entrée
     if (!expireAt) {
       localStorage.setItem(
         "otpExpireAt",
         Date.now() + OTP_DURATION
       );
       localStorage.setItem("emailForOTP", email);
-      return;
     }
 
-    // ❌ expiré
-    if (Date.now() > Number(expireAt)) {
-      localStorage.removeItem("emailForOTP");
-      localStorage.removeItem("otpExpireAt");
-      navigate("/");
+    // ⏳ cooldown renvoi
+    if (resendAt) {
+      const remaining = Number(resendAt) - Date.now();
+      if (remaining > 0) {
+        setCooldown(Math.ceil(remaining / 1000));
+      }
     }
+
+    const interval = setInterval(() => {
+      const resendAt = localStorage.getItem("otpResendAt");
+      if (!resendAt) return;
+
+      const remaining = Number(resendAt) - Date.now();
+      if (remaining <= 0) {
+        setCooldown(0);
+        localStorage.removeItem("otpResendAt");
+      } else {
+        setCooldown(Math.ceil(remaining / 1000));
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
   }, [email, navigate]);
 
   /* =============================
@@ -63,19 +84,19 @@ export default function VerificationEmail({ email: initialEmail }) {
     try {
       setLoading(true);
 
-      const res = await axios.post(
-        "http://localhost:5000/api/vendeur/auth/verify-otp",
+      const res = await api.post(
+        "/api/vendeur/auth/verify-otp",
         {
           email,
           code: code.trim(),
         }
       );
 
-      // ✅ OTP OK → TOKEN
       if (res.data.token) {
         localStorage.setItem("token", res.data.token);
         localStorage.removeItem("emailForOTP");
         localStorage.removeItem("otpExpireAt");
+        localStorage.removeItem("otpResendAt");
       }
 
       navigate("/tableau-de-bord");
@@ -89,21 +110,55 @@ export default function VerificationEmail({ email: initialEmail }) {
     }
   };
 
+  /* =============================
+     RENVOYER OTP
+  ============================= */
+  const handleResend = async () => {
+    setError("");
+
+    try {
+      setResendLoading(true);
+
+      await api.post(
+        "/api/vendeur/auth/resend-otp",
+        { email }
+      );
+
+      // 🔁 reset timers
+      localStorage.setItem(
+        "otpExpireAt",
+        Date.now() + OTP_DURATION
+      );
+      localStorage.setItem(
+        "otpResendAt",
+        Date.now() + RESEND_COOLDOWN
+      );
+
+      setCooldown(RESEND_COOLDOWN / 1000);
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+          "Erreur lors de l’envoi du code"
+      );
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
   return (
     <div>
       <h2 className="text-2xl font-bold mb-4 text-center">
         Vérification par email
       </h2>
 
-      <p className="text-center mb-6 text-gray-600">
+      <p className="text-center mb-4 text-gray-600">
         Un code de vérification a été envoyé à :
         <br />
         <strong>{email}</strong>
       </p>
 
       <p className="text-center mb-6 text-gray-500 text-sm">
-        ⏱️ Ce code est valable <strong>24 heures</strong>.
-        Vous pouvez quitter la page et revenir plus tard.
+        ⏱️ Code valable <strong>10 minutes</strong>
       </p>
 
       <form className="space-y-4" onSubmit={handleSubmit}>
@@ -131,6 +186,21 @@ export default function VerificationEmail({ email: initialEmail }) {
           {loading ? "Vérification..." : "Vérifier"}
         </button>
       </form>
+
+      {/* 🔁 RENVOYER OTP */}
+      <div className="mt-6 text-center">
+        <button
+          onClick={handleResend}
+          disabled={resendLoading || cooldown > 0}
+          className="text-sm text-orange-600 hover:underline disabled:text-gray-400"
+        >
+          {resendLoading
+            ? "Envoi en cours..."
+            : cooldown > 0
+            ? `Renvoyer le code (${cooldown}s)`
+            : "Renvoyer le code"}
+        </button>
+      </div>
     </div>
   );
 }
