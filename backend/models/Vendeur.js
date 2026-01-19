@@ -153,6 +153,27 @@ const vendeurSchema = new mongoose.Schema(
       default: false,
     },
 
+// =====================
+// OTP META (ANTI-SPAM)
+// =====================
+otpTentatives: {
+  type: Number,
+  default: 0,
+},
+
+dernierOtpEnvoi: {
+  type: Date,
+  default: null,
+},
+
+// =====================
+// INSCRIPTION
+// =====================
+inscriptionComplete: {
+  type: Boolean,
+  default: false,
+},
+
     // =====================
     // RESET MOT DE PASSE
     // =====================

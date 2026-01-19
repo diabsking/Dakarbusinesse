@@ -10,7 +10,7 @@ import {
 } from "../utils/validations.js";
 
 /* =====================================================
-   INSCRIPTION + ENVOI OTP EMAIL
+   INSCRIPTION + ENVOI OTP EMAIL (CORRIGÉE)
 ===================================================== */
 export const inscriptionVendeur = async (req, res) => {
   try {
@@ -40,24 +40,7 @@ export const inscriptionVendeur = async (req, res) => {
         message: "Mot de passe trop faible (min 6 caractères)",
       });
 
-    /* =============================
-       BLOQUAGE RÉINSCRIPTION < 24H
-    ============================= */
-    const inscriptionEnCours = req.app.locals.otpInscription;
-
-    if (
-      inscriptionEnCours &&
-      inscriptionEnCours.data.email === email.toLowerCase() &&
-      inscriptionEnCours.expire > Date.now()
-    ) {
-      return res.status(400).json({
-        message:
-          "Votre inscription est déjà en cours de validation. " +
-          "Pour votre sécurité et afin d’éviter les faux comptes, " +
-          "notre équipe est en train de valider votre demande. " +
-          "Veuillez vérifier votre email et confirmer votre inscription dans le délai imparti.",
-      });
-    }
+    const emailLower = email.toLowerCase();
 
     /* =============================
        VÉRIFICATION EXISTANT
@@ -66,33 +49,46 @@ export const inscriptionVendeur = async (req, res) => {
     if (existeTel)
       return res.status(400).json({ message: "Téléphone déjà utilisé" });
 
-    const existeEmail = await Vendeur.findOne({ email: email.toLowerCase() });
-    if (existeEmail)
+    const existeEmail = await Vendeur.findOne({ email: emailLower });
+    if (existeEmail && existeEmail.emailVerifie)
       return res.status(400).json({ message: "Email déjà utilisé" });
 
     /* =============================
-       GÉNÉRATION OTP
+       GÉNÉRATION OTP (10 MIN)
     ============================= */
     const otp = Math.floor(100000 + Math.random() * 900000);
+    const otpExpire = new Date(Date.now() + 10 * 60 * 1000); // ⏱️ 10 minutes
 
-    req.app.locals.otpInscription = {
-      otp,
-      expire: Date.now() + 24 * 60 * 60 * 1000, // ⏱️ 24 heures
-      data: {
+    let vendeur;
+
+    // 🔁 Si compte existe mais email non vérifié → on régénère l’OTP
+    if (existeEmail && !existeEmail.emailVerifie) {
+      vendeur = existeEmail;
+      vendeur.otp = otp;
+      vendeur.otpExpire = otpExpire;
+    } else {
+      // 🆕 Nouvelle inscription
+      vendeur = new Vendeur({
         nomVendeur,
-        email: email.toLowerCase(),
+        email: emailLower,
         telephone,
         password: await bcrypt.hash(password, 10),
         nomBoutique,
         typeBoutique,
-      },
-    };
+        otp,
+        otpExpire,
+        emailVerifie: false,
+        inscriptionComplete: false,
+      });
+    }
+
+    await vendeur.save();
 
     /* =============================
        ENVOI EMAIL OTP
     ============================= */
     await envoyerOTPMail({
-      email,
+      email: emailLower,
       otp,
       nomVendeur,
       type: "INSCRIPTION",
@@ -101,9 +97,8 @@ export const inscriptionVendeur = async (req, res) => {
     res.status(200).json({
       message:
         "Votre demande d’inscription a été prise en compte. " +
-        "Pour votre sécurité et afin d’éviter les faux comptes, " +
-        "un code de vérification a été envoyé à votre adresse email. " +
-        "Veuillez confirmer votre inscription dans les 24 heures.",
+        "Un code de vérification a été envoyé à votre adresse email. " +
+        "Veuillez confirmer votre inscription dans les 10 minutes.",
     });
   } catch (error) {
     console.error("[REGISTER ERROR]", error);
@@ -400,11 +395,9 @@ export const resetPassword = async (req, res) => {
   }
 };
 
-
 /* =====================================================
-   VERIFIER OTP EMAIL
+   VERIFIER OTP EMAIL (CORRIGÉ)
 ===================================================== */
-
 export const verifierOTP = async (req, res) => {
   try {
     const { email, code } = req.body;
@@ -415,47 +408,53 @@ export const verifierOTP = async (req, res) => {
       });
     }
 
-    const inscription = req.app.locals.otpInscription;
+    const emailLower = email.toLowerCase();
 
-    if (!inscription) {
-      return res.status(400).json({
-        message: "Aucune inscription en cours",
+    // 🔎 Recherche du vendeur
+    const vendeur = await Vendeur.findOne({ email: emailLower });
+
+    if (!vendeur) {
+      return res.status(404).json({
+        message: "Compte introuvable",
       });
     }
 
-    // 🔒 Vérifie que l’email correspond à l’inscription
-    if (inscription.data.email !== email) {
+    // 🕒 Vérification expiration
+    if (!vendeur.otp || !vendeur.otpExpire) {
       return res.status(400).json({
-        message: "Email incorrect pour ce code",
+        message: "Aucun code actif",
       });
     }
 
-    if (inscription.expire < Date.now()) {
-      req.app.locals.otpInscription = null;
+    if (vendeur.otpExpire < new Date()) {
+      vendeur.otp = null;
+      vendeur.otpExpire = null;
+      await vendeur.save();
+
       return res.status(400).json({
         message: "Code expiré",
       });
     }
 
-    if (String(inscription.otp) !== String(code)) {
+    // 🔐 Vérification code
+    if (String(vendeur.otp) !== String(code)) {
       return res.status(400).json({
         message: "Code incorrect",
       });
     }
 
-    // ✅ CRÉATION DÉFINITIVE DU COMPTE
-    const vendeur = await Vendeur.create({
-      ...inscription.data,
-      emailVerifie: true,
-    });
+    // ✅ VALIDATION COMPTE
+    vendeur.emailVerifie = true;
+    vendeur.inscriptionComplete = true;
+    vendeur.otp = null;
+    vendeur.otpExpire = null;
 
-    // 🧹 nettoyage
-    req.app.locals.otpInscription = null;
+    await vendeur.save();
 
     const token = genererToken(vendeur._id);
 
-    res.status(201).json({
-      message: "Compte créé avec succès",
+    res.status(200).json({
+      message: "Email vérifié avec succès",
       vendeur: {
         id: vendeur._id,
         nomVendeur: vendeur.nomVendeur,
@@ -471,9 +470,8 @@ export const verifierOTP = async (req, res) => {
   }
 };
 
-
 /* =====================================================
-   RENVOYER OTP EMAIL
+   RENVOYER OTP EMAIL (CORRIGÉ)
 ===================================================== */
 export const renvoyerOTP = async (req, res) => {
   try {
@@ -485,7 +483,9 @@ export const renvoyerOTP = async (req, res) => {
       });
     }
 
-    const vendeur = await Vendeur.findOne({ email });
+    const emailLower = email.toLowerCase();
+
+    const vendeur = await Vendeur.findOne({ email: emailLower });
 
     if (!vendeur) {
       return res.status(404).json({
@@ -493,19 +493,32 @@ export const renvoyerOTP = async (req, res) => {
       });
     }
 
-    // Générer nouveau OTP
+    // 🔒 Si email déjà vérifié → pas besoin d’OTP
+    if (vendeur.emailVerifie) {
+      return res.status(400).json({
+        message: "Email déjà vérifié",
+      });
+    }
+
+    // 🔄 Génération nouveau OTP (10 minutes)
     const otp = Math.floor(100000 + Math.random() * 900000);
+    const otpExpire = new Date(Date.now() + 10 * 60 * 1000);
 
     vendeur.otp = otp;
-    vendeur.otpExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
-    vendeur.emailVerifie = false;
+    vendeur.otpExpire = otpExpire;
 
     await vendeur.save();
 
-    await envoyerOTPMail(email, otp);
+    // 📩 Envoi email
+    await envoyerOTPMail({
+      email: emailLower,
+      otp,
+      nomVendeur: vendeur.nomVendeur,
+      type: "INSCRIPTION",
+    });
 
-    res.json({
-      message: "Nouveau code envoyé par email",
+    res.status(200).json({
+      message: "Nouveau code de vérification envoyé par email",
     });
   } catch (error) {
     console.error("[RESEND OTP ERROR]", error);
@@ -514,5 +527,6 @@ export const renvoyerOTP = async (req, res) => {
     });
   }
 };
+
 
 
