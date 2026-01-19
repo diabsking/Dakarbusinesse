@@ -46,7 +46,7 @@ export default function BanniereAccueil() {
 
           {/* Description */}
           <p className="text-base sm:text-lg mb-8 text-white/90">
-            Kolwaz met en relation des vendeurs locaux vérifiés et des clients,
+            Dakarbusinesse met en relation des vendeurs locaux vérifiés et des clients,
             avec un paiement à la livraison pour plus de sécurité.
           </p>
 

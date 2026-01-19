@@ -14,7 +14,7 @@ export default function OffresSpeciales() {
       id: 1,
       titre: "Vendez gratuitement",
       description:
-        "Créez votre boutique sur Kolwaz et commencez à vendre sans frais d’inscription.",
+        "Créez votre boutique sur Dakarbusinesse et commencez à vendre sans frais d’inscription.",
       icon: <FiShoppingBag size={40} />,
       action: "Devenir vendeur",
       link: "/space-vendeur",
@@ -45,7 +45,7 @@ export default function OffresSpeciales() {
   return (
     <section className="mb-20 p-10 rounded-3xl bg-gradient-to-r from-gray-50 to-gray-100">
       <h2 className="text-2xl font-extrabold text-center mb-12 text-gray-500">
-        kolwaz shop fait la difference....
+        Dakarbusinesse fait la difference....
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

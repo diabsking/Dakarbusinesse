@@ -12,7 +12,7 @@ export default function AppelAction() {
     <section className="mb-20">
       <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-10 text-center text-white shadow-xl">
         <h2 className="text-2xl md:text-3xl font-extrabold mb-4">
-          Commencez à vendre sur Kolwaz dès aujourd’hui
+          Commencez à vendre sur Dakarbusinesse dès aujourd’hui
         </h2>
 
         <p className="text-blue-100 max-w-2xl mx-auto mb-8">

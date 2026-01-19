@@ -43,10 +43,10 @@ export default function AvantagesKolwaz() {
       {/* Header */}
       <div className="text-center mb-12">
         <h2 className="text-2xl md:text-3xl font-extrabold text-gray-800">
-          Pourquoi choisir Kolwaz ?
+          Pourquoi choisir Dakarbusinesse ?
         </h2>
         <p className="text-gray-500 mt-3 max-w-2xl mx-auto">
-          Kolwaz est une marketplace locale conçue pour offrir une expérience
+          Dakarbusinesse est une marketplace locale conçue pour offrir une expérience
           d’achat simple, sécurisée et fiable, aussi bien pour les clients que
           pour les vendeurs.
         </p>
