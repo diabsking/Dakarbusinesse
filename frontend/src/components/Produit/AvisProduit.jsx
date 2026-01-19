@@ -22,11 +22,11 @@ const AvisProduit = ({ produitId, avisInit = [], onAvisAjoute }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!clientNom || !clientPhone || !note) return;
+    if (!clientNom || !clientPhone || note === 0) return;
 
     setLoading(true);
     try {
-      const res = await api.post("/avis", {
+      const res = await api.post("/api/avis", {
         produit: produitId,
         clientNom,
         clientPhone,
@@ -34,9 +34,11 @@ const AvisProduit = ({ produitId, avisInit = [], onAvisAjoute }) => {
         commentaire,
       });
 
-      if (res.data?.avis) {
-        setAvis((prev) => [res.data.avis, ...prev]);
-        onAvisAjoute?.(res.data.avis);
+      const newAvis = res.data?.avis || res.data?.data || res.data;
+
+      if (newAvis) {
+        setAvis((prev) => [newAvis, ...prev]);
+        onAvisAjoute?.(newAvis);
 
         setClientNom("");
         setClientPhone("");
@@ -44,8 +46,8 @@ const AvisProduit = ({ produitId, avisInit = [], onAvisAjoute }) => {
         setCommentaire("");
       }
     } catch (err) {
-      console.error("Erreur ajout avis :", err);
-      alert("Impossible d'ajouter l'avis.");
+      console.error("Erreur ajout avis :", err.response?.data || err.message);
+      alert(err.response?.data?.message || "Impossible d'ajouter l'avis.");
     } finally {
       setLoading(false);
     }
@@ -109,10 +111,7 @@ const AvisProduit = ({ produitId, avisInit = [], onAvisAjoute }) => {
       )}
 
       {/* FORMULAIRE */}
-      <form
-        onSubmit={handleSubmit}
-        className="mt-5 flex flex-col gap-3"
-      >
+      <form onSubmit={handleSubmit} className="mt-5 flex flex-col gap-3">
         <p className="text-xs text-gray-500">
           Laisser un avis
         </p>

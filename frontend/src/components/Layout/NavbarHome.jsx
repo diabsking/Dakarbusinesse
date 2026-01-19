@@ -27,7 +27,7 @@ export default function NavbarHome() {
             }}
           />
           <span className="hidden sm:block text-lg font-bold text-gray-800">
-            Kolwaz
+            Dakarbusinesse
           </span>
         </div>
 

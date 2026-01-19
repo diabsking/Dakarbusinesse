@@ -115,7 +115,7 @@ export default function Navbar() {
                 className="hidden sm:block w-20 sm:w-24"
               />
               <span className="hidden sm:block text-black font-medium">
-                Dakar
+                Dakarbusinesse
               </span>
             </Link>
           </div>
