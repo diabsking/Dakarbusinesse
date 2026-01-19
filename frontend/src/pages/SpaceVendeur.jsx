@@ -347,22 +347,6 @@ function RegisterForm({ setEmail, setVerificationPending }) {
       >
         {loading ? "Création..." : "Créer votre boutique"}
       </button>
-
-      {/* VERIFICATION EMAIL */}
-      <button
-        type="button"
-        onClick={() => {
-          if (!data.email) {
-            setError("Veuillez entrer votre adresse email");
-            return;
-          }
-          setEmail(data.email);
-          setVerificationPending(true);
-        }}
-        className="w-full py-4 border border-orange-600 text-orange-600 rounded-xl font-semibold"
-      >
-        Vérifier votre mail
-      </button>
     </form>
   );
 }

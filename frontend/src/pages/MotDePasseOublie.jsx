@@ -1,7 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
 import api from "../services/api";
-
 
 export default function MotDePasseOublie() {
   const [email, setEmail] = useState("");
@@ -28,7 +26,7 @@ export default function MotDePasseOublie() {
 
     try {
       setLoading(true);
-     await api.post("/api/vendeur/auth/forgot-password", { email });
+      await api.post("/api/vendeur/auth/forgot-password", { email });
       setMessage("OTP envoyé par email !");
     } catch (err) {
       setError(err.response?.data?.message || "Erreur lors de l’envoi de l’OTP");
@@ -58,11 +56,11 @@ export default function MotDePasseOublie() {
     try {
       setLoading(true);
 
-await api.post("/api/vendeur/auth/reset-password", {
-  email,
-  code,
-  nouveauPassword,
-});
+      await api.post("/api/vendeur/auth/reset-password", {
+        email,
+        code,
+        nouveauPassword,
+      });
 
       setMessage("Mot de passe réinitialisé avec succès !");
       setCode("");
@@ -84,7 +82,7 @@ await api.post("/api/vendeur/auth/reset-password", {
             FORMULAIRE ENVOYER OTP
         ====================== */}
         <form onSubmit={envoyerOtp} className="space-y-4">
-          <h2 className="font-semibold text-lg">Vous n'avez pas encore reçu d'OTP</h2>
+          <h2 className="font-semibold text-lg">Recevoir un OTP par email</h2>
           <input
             type="email"
             placeholder="Email"
@@ -103,17 +101,10 @@ await api.post("/api/vendeur/auth/reset-password", {
         <hr className="my-4" />
 
         {/* ======================
-            FORMULAIRE VALIDER OTP + RESET
+            FORMULAIRE RESET MDP
         ====================== */}
         <form onSubmit={resetAvecOtp} className="space-y-4">
-          <h2 className="font-semibold text-lg">Vous avez déjà reçu un OTP</h2>
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-3 border rounded-xl"
-          />
+          <h2 className="font-semibold text-lg">Réinitialiser le mot de passe</h2>
           <input
             type="text"
             placeholder="OTP reçu"
