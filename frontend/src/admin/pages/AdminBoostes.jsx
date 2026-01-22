@@ -11,53 +11,87 @@ export default function AdminBoosts() {
   const [actionLoading, setActionLoading] = useState(null);
 
   useEffect(() => {
+    console.log("🟢 AdminBoosts monté");
     fetchDemandes();
   }, []);
 
   const fetchDemandes = async () => {
+    console.log("🔵 fetchDemandes() appelé");
     setLoading(true);
+
     try {
       const res = await getDemandesBoost();
-      setDemandes(res?.data?.demandes || []);
+
+      console.log("🟡 Réponse API brute :", res);
+      console.log("🟡 res.data :", res?.data);
+
+      const demandesRecues =
+        res?.data?.demandes ||
+        res?.data?.data?.demandes ||
+        [];
+
+      console.log("🟢 Demandes finales :", demandesRecues);
+      console.log("🟢 Nombre de demandes :", demandesRecues.length);
+
+      setDemandes(demandesRecues);
     } catch (err) {
-      console.error("Erreur chargement boosts :", err);
+      console.error(
+        "❌ Erreur chargement boosts :",
+        err?.response?.data || err
+      );
     } finally {
       setLoading(false);
+      console.log("🔵 fetchDemandes() terminé");
     }
   };
 
   const handleValider = async (id) => {
+    console.log("✅ Validation boost :", id);
     setActionLoading(id);
     try {
       await validerBoost(id);
       await fetchDemandes();
     } catch (err) {
-      console.error("Erreur validation boost :", err);
+      console.error(
+        "❌ Erreur validation boost :",
+        err?.response?.data || err
+      );
     } finally {
       setActionLoading(null);
     }
   };
 
   const handleRefuser = async (id) => {
+    console.log("⛔ Refus boost :", id);
     setActionLoading(id);
     try {
       await refuserBoost(id);
       await fetchDemandes();
     } catch (err) {
-      console.error("Erreur refus boost :", err);
+      console.error(
+        "❌ Erreur refus boost :",
+        err?.response?.data || err
+      );
     } finally {
       setActionLoading(null);
     }
   };
 
-  if (loading) return <p>Chargement des demandes...</p>;
+  if (loading) {
+    console.log("⏳ Loading...");
+    return <p>Chargement des demandes...</p>;
+  }
+
+  console.log("🧾 RENDER demandes :", demandes);
 
   return (
     <div>
       <h2 className="text-2xl font-bold mb-6">Demandes de boost</h2>
 
       {demandes.length === 0 ? (
-        <p>Aucune demande pour le moment</p>
+        <p className="text-red-600 font-semibold">
+          Aucune demande pour le moment
+        </p>
       ) : (
         <div className="grid gap-4">
           {demandes.map((d) => {
