@@ -21,7 +21,7 @@ import {
 
 /* ===== Middlewares ===== */
 import authentification from "../middleware/authentification.middleware.js";
-import adminAuth from "../middleware/admin.middleware.js"; // <-- ajouté
+import adminAuth from "../middleware/adminSecret.middleware.js"; // <-- ajouté
 import upload from "../middleware/upload.middleware.js";
 
 const router = express.Router();
