@@ -18,9 +18,9 @@ export default function AdminBoostes() {
     setLoading(true);
     try {
       const res = await getDemandesBoost();
-      setDemandes(res.data.data || []);
+      setDemandes(res.data.demandes || []); // ✅ FIX ICI
     } catch (err) {
-      console.error(err);
+      console.error("Erreur chargement boosts :", err);
     } finally {
       setLoading(false);
     }
@@ -32,7 +32,7 @@ export default function AdminBoostes() {
       await validerBoost(id);
       await fetchDemandes();
     } catch (err) {
-      console.error(err);
+      console.error("Erreur validation boost :", err);
     } finally {
       setActionLoading(null);
     }
@@ -44,7 +44,7 @@ export default function AdminBoostes() {
       await refuserBoost(id);
       await fetchDemandes();
     } catch (err) {
-      console.error(err);
+      console.error("Erreur refus boost :", err);
     } finally {
       setActionLoading(null);
     }
@@ -69,14 +69,14 @@ export default function AdminBoostes() {
             >
               <div className="w-full md:w-2/5 flex items-center gap-4">
                 <img
-                  src={d.produit.images?.[0] || "/placeholder.jpg"}
-                  alt={d.produit.nom}
+                  src={d.produit?.images?.[0] || "/placeholder.jpg"}
+                  alt={d.produit?.nom}
                   className="h-16 w-16 object-cover rounded-lg"
                 />
                 <div>
-                  <p className="font-bold">{d.produit.nom}</p>
+                  <p className="font-bold">{d.produit?.nom}</p>
                   <p className="text-sm text-gray-500">
-                    Vendeur : {d.utilisateur.nom || d.utilisateur.email}
+                    Vendeur : {d.utilisateur?.nom || d.utilisateur?.email}
                   </p>
                 </div>
               </div>
@@ -91,7 +91,9 @@ export default function AdminBoostes() {
 
                 <div className="flex gap-2 mt-2">
                   <button
-                    disabled={actionLoading === d._id || d.statut !== "EN_ATTENTE"}
+                    disabled={
+                      actionLoading === d._id || d.statut !== "EN_ATTENTE"
+                    }
                     onClick={() => handleValider(d._id)}
                     className="bg-green-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
                   >
@@ -99,7 +101,9 @@ export default function AdminBoostes() {
                   </button>
 
                   <button
-                    disabled={actionLoading === d._id || d.statut !== "EN_ATTENTE"}
+                    disabled={
+                      actionLoading === d._id || d.statut !== "EN_ATTENTE"
+                    }
                     onClick={() => handleRefuser(d._id)}
                     className="bg-red-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
                   >
