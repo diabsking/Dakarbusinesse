@@ -6,6 +6,7 @@ import { getStatsAdmin } from "../services/admin.api";
 import AdminVendeurs from "./AdminVendeurs";
 import AdminProduits from "./AdminProduits";
 import AdminCommandes from "./AdminCommandes";
+import AdminBoostes from "./AdminBoostes";  // <-- ajouté
 import Sidebar from "../components/Sidebar";
 
 export default function Dashboard() {
@@ -72,6 +73,8 @@ export default function Dashboard() {
         return <AdminProduits />;
       case "commandes":
         return <AdminCommandes />;
+      case "boosts":             // <-- ajouté
+        return <AdminBoostes />; // <-- ajouté
       default:
         return <DashboardHome stats={stats} loading={loading} />;
     }

@@ -1,8 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import api from "../services/api";
-import { payerBoostProduit } from "../services/paiement.service";
 
 export default function BoosterProduit() {
   const { id } = useParams();
@@ -10,58 +8,67 @@ export default function BoosterProduit() {
 
   const [produit, setProduit] = useState(null);
   const [duree, setDuree] = useState(7);
+  const [waveNumber, setWaveNumber] = useState("");
+  const [demandeEnvoyee, setDemandeEnvoyee] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const token = localStorage.getItem("token");
+  /* ================= CONFIG BOOST ================= */
+  const BOOSTS = {
+    7: { montant: 500 },
+    15: { montant: 1000 },
+    30: { montant: 1500 },
+  };
+
+  const WAVE_BASE_LINK =
+    "https://pay.wave.com/m/M_sn_hHeTj4ufIvYG/c/sn/";
+
+  const wavePaymentLink = `${WAVE_BASE_LINK}?amount=${BOOSTS[duree].montant}`;
 
   /* ================= VALIDATION ID ================= */
   useEffect(() => {
     if (!id || id.length !== 24) {
-      alert("Lien invalide");
       navigate("/dashboard");
     }
   }, [id, navigate]);
 
-  /* ================= CHARGER LE PRODUIT ================= */
+  /* ================= CHARGER PRODUIT ================= */
   useEffect(() => {
     const fetchProduit = async () => {
       try {
-       const res = await api.get(`/api/produits/${id}`);
-
+        const res = await api.get(`/api/produits/${id}`);
         setProduit(res.data.produit);
-      } catch (error) {
-        alert("Produit introuvable");
+      } catch {
         navigate("/dashboard");
       }
     };
-
-    if (id && id.length === 24) fetchProduit();
+    fetchProduit();
   }, [id, navigate]);
 
-  /* ================= PAIEMENT ================= */
-  const handlePaiement = async () => {
-    if (!produit) return;
+  /* ================= DEMANDE BOOST ================= */
+  const handleDemandeBoost = async () => {
+    setError("");
+
+    if (!waveNumber || waveNumber.length < 8) {
+      setError("Veuillez entrer un numéro Wave valide");
+      return;
+    }
 
     try {
       setLoading(true);
 
-      // Appel API paiement (Kkiapay / Wave)
-      const res = await payerBoostProduit(
-        { produitId: id, duree },
-        token
+      await api.post("/api/produits/boost/demande", {
+        produitId: id,
+        duree,
+        waveNumber,
+      });
+
+      setDemandeEnvoyee(true);
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+          "Erreur lors de l’envoi de la demande"
       );
-
-      // Selon l'API Kkiapay, le lien peut être payment_url ou invoice_url
-      const paymentLink = res?.payment_url || res?.invoice_url;
-
-      if (paymentLink) {
-        window.location.href = paymentLink;
-      } else {
-        alert("Lien de paiement introuvable");
-      }
-    } catch (error) {
-      console.error(error);
-      alert("Erreur lors du paiement");
     } finally {
       setLoading(false);
     }
@@ -69,70 +76,119 @@ export default function BoosterProduit() {
 
   if (!produit) {
     return (
-      <div className="text-center mt-12 text-gray-500">
-        Chargement du produit...
+      <div className="min-h-screen flex items-center justify-center text-gray-500">
+        Chargement...
       </div>
     );
   }
 
   const imageSrc =
-    Array.isArray(produit.images) && produit.images.length > 0
-      ? produit.images[0]
-      : "/placeholder.jpg";
+    produit.images?.length > 0 ? produit.images[0] : "/placeholder.jpg";
 
-  /* ================= UI BOOST ================= */
+  /* ================= UI ================= */
   return (
-    <div className="max-w-xl mx-auto mt-12 bg-white rounded-xl shadow-lg overflow-hidden">
-      {/* IMAGE PRODUIT */}
-      <div className="h-64 bg-gray-100 flex items-center justify-center">
-        <img
-          src={imageSrc}
-          alt={produit.nom}
-          className="h-full object-contain"
-        />
-      </div>
-
-      <div className="p-6 space-y-6">
-        {/* INFOS PRODUIT */}
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800">
-            {produit.nom}
-          </h2>
-
-          <p className="text-xl font-semibold text-green-600 mt-2">
-            {produit.prixActuel?.toLocaleString("fr-FR")} FCFA
-          </p>
+    <div className="min-h-screen bg-gray-50 px-3 py-6">
+      <div className="max-w-md mx-auto bg-white rounded-xl shadow">
+        {/* IMAGE */}
+        <div className="h-48 bg-gray-100 flex items-center justify-center rounded-t-xl">
+          <img
+            src={imageSrc}
+            alt={produit.nom}
+            className="h-full object-contain"
+          />
         </div>
 
-        {/* DURÉE BOOST */}
-        <div>
-          <label className="block mb-2 font-medium text-gray-700">
-            Durée du boost
-          </label>
+        <div className="p-4 space-y-5">
+          {/* INFOS */}
+          <div className="text-center">
+            <h2 className="text-lg font-bold">{produit.nom}</h2>
+            <p className="text-green-600 font-semibold mt-1">
+              {produit.prixActuel?.toLocaleString("fr-FR")} FCFA
+            </p>
+          </div>
 
-          <select
-            value={duree}
-            onChange={(e) => setDuree(Number(e.target.value))}
-            className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500"
-          >
-            <option value={7}>7 jours – 500 FCFA</option>
-            <option value={15}>15 jours – 1 000 FCFA</option>
-            <option value={30}>30 jours – 1 500 FCFA</option>
-          </select>
+          {!demandeEnvoyee ? (
+            <>
+              {/* NUMERO WAVE */}
+              <div>
+                <label className="text-sm font-medium">Numéro Wave</label>
+                <input
+                  type="tel"
+                  inputMode="numeric"
+                  placeholder="07xxxxxxxx"
+                  value={waveNumber}
+                  onChange={(e) => setWaveNumber(e.target.value)}
+                  className="mt-1 w-full border rounded-lg px-3 py-2 text-base focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+
+              {/* DURÉE */}
+              <div>
+                <label className="text-sm font-medium">
+                  Durée du boost
+                </label>
+                <select
+                  value={duree}
+                  onChange={(e) => setDuree(Number(e.target.value))}
+                  className="mt-1 w-full border rounded-lg px-3 py-2"
+                >
+                  <option value={7}>7 jours – 500 FCFA</option>
+                  <option value={15}>15 jours – 1 000 FCFA</option>
+                  <option value={30}>30 jours – 1 500 FCFA</option>
+                </select>
+              </div>
+
+              {/* ERREUR */}
+              {error && (
+                <p className="text-red-500 text-sm text-center">
+                  {error}
+                </p>
+              )}
+
+              {/* BOUTON */}
+              <button
+                onClick={handleDemandeBoost}
+                disabled={loading}
+                className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold disabled:opacity-50"
+              >
+                {loading ? "Envoi..." : "Demander le boost"}
+              </button>
+            </>
+          ) : (
+            /* CONFIRMATION + PAIEMENT */
+            <div className="text-center space-y-4">
+              <p className="text-green-700 font-semibold">
+                Demande envoyée avec succès 🎉
+              </p>
+
+              <p className="text-sm text-gray-600">
+                Montant à payer :{" "}
+                <b>{BOOSTS[duree].montant.toLocaleString()} FCFA</b>
+              </p>
+
+              <a
+                href={wavePaymentLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full bg-green-600 text-white py-3 rounded-lg font-semibold"
+              >
+                Payer avec Wave
+              </a>
+
+              <p className="text-xs text-gray-500">
+                Le boost sera activé après validation du paiement par
+                l’administrateur.
+              </p>
+
+              <button
+                onClick={() => navigate("/dashboard")}
+                className="w-full bg-gray-100 text-gray-700 py-2 rounded-lg"
+              >
+                Retour au dashboard
+              </button>
+            </div>
+          )}
         </div>
-
-        {/* BOUTON ACTION */}
-        <button
-          onClick={handlePaiement}
-          disabled={loading}
-          className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed"
-        >
-          {loading ? "Redirection vers Wave..." : "BOOSTER N'EST PAS ENCORE FONCTIONNELLE. MERCI.."}
-        </button>
-
-        <p className="text-xs text-gray-500 text-center mt-2">
-          Paiement sécurisé via Wave / Kkiapay
-        </p>
       </div>
     </div>
   );
