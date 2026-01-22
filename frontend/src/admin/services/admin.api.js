@@ -78,8 +78,7 @@ export const modifierCommande = (id, status) =>
 /* =========================
    BOOSTS (ADMIN) ✅ FIX FINAL
 ========================= */
-export const getDemandesBoost = () =>
-  API.get("/produits/boosts");
+export const getDemandesBoost = () => API.get("/produits/boosts");
 
 export const validerBoost = (id) =>
   API.put(`/produits/boosts/${id}/valider`);
