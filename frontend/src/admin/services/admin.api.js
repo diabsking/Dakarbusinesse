@@ -78,13 +78,14 @@ export const modifierCommande = (id, status) =>
 /* =========================
    BOOSTS (ADMIN) ✅ FIX FINAL
 ========================= */
-export const getDemandesBoost = () => API.get("/produits/boosts");
+export const getDemandesBoost = () =>
+  API.get("/produits/admin/boosts");
 
 export const validerBoost = (id) =>
-  API.put(`/produits/boosts/${id}/valider`);
+  API.put(`/produits/admin/boosts/${id}/valider`);
 
 export const refuserBoost = (id) =>
-  API.put(`/produits/boosts/${id}/refuser`);
+  API.put(`/produits/admin/boosts/${id}/refuser`);
 
 /* =========================
    STATS ADMIN
