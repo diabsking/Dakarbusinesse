@@ -488,12 +488,31 @@ const BOOST_CONFIG = {
 export const demanderBoostProduit = async (req, res) => {
   try {
     const { produitId, waveNumber, duree } = req.body;
+
+    // Vérification auth
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({
+        success: false,
+        message: "Utilisateur non authentifié",
+      });
+    }
+
     const userId = req.user.id;
 
     if (!produitId || !waveNumber || !duree) {
       return res.status(400).json({
         success: false,
         message: "Données manquantes",
+      });
+    }
+
+    // force conversion en nombre
+    const dureeNum = Number(duree);
+
+    if (!BOOST_CONFIG[dureeNum]) {
+      return res.status(400).json({
+        success: false,
+        message: "Durée de boost invalide",
       });
     }
 
@@ -505,17 +524,14 @@ export const demanderBoostProduit = async (req, res) => {
       });
     }
 
-    if (!BOOST_CONFIG[duree]) {
-      return res.status(400).json({
-        success: false,
-        message: "Durée de boost invalide",
-      });
-    }
-
     const maintenant = new Date();
 
-    // ❌ Produit déjà boosté
-    if (produit.estBooster && produit.dateFinBoost > maintenant) {
+    // ❌ Produit déjà boosté (avec vérification de dateFinBoost)
+    if (
+      produit.estBooster &&
+      produit.dateFinBoost &&
+      produit.dateFinBoost > maintenant
+    ) {
       return res.status(400).json({
         success: false,
         message: "Ce produit est déjà boosté",
@@ -540,8 +556,8 @@ export const demanderBoostProduit = async (req, res) => {
       produit: produitId,
       utilisateur: userId,
       waveNumber,
-      duree,
-      montant: BOOST_CONFIG[duree].montant,
+      duree: dureeNum,
+      montant: BOOST_CONFIG[dureeNum].montant,
       statut: "EN_ATTENTE",
     });
 
@@ -555,13 +571,16 @@ export const demanderBoostProduit = async (req, res) => {
       },
     });
   } catch (err) {
-    console.error("❌ Demande boost:", err.message);
+    console.error("❌ Demande boost:", err);
+
+    // Renvoi de l'erreur réelle
     return res.status(500).json({
       success: false,
-      message: "Erreur lors de la demande de boost",
+      message: err.message || "Erreur lors de la demande de boost",
     });
   }
 };
+
 
 /* =====================================================
    📋 LISTE DES DEMANDES DE BOOST (ADMIN)
