@@ -474,7 +474,7 @@ export const incrementerVuesProduit = async (req, res, next) => {
 
 /* =====================================================
    ⚙️ CONFIGURATION BOOST
-===================================================== */
+==================================================== */
 const BOOST_CONFIG = {
   7: { montant: 500 },
   15: { montant: 1000 },
@@ -484,20 +484,20 @@ const BOOST_CONFIG = {
 /* =====================================================
    📝 DEMANDE DE BOOST (VENDEUR)
    POST /api/produits/boost/demande
-===================================================== */
+==================================================== */
 export const demanderBoostProduit = async (req, res) => {
   try {
     const { produitId, waveNumber, duree } = req.body;
 
     // Vérification auth
-    if (!req.user || !req.user.id) {
+    if (!req.vendeur || !req.vendeur.id) {
       return res.status(401).json({
         success: false,
         message: "Utilisateur non authentifié",
       });
     }
 
-    const userId = req.user.id;
+    const userId = req.vendeur.id;
 
     if (!produitId || !waveNumber || !duree) {
       return res.status(400).json({
@@ -579,8 +579,7 @@ export const demanderBoostProduit = async (req, res) => {
       message: err.message || "Erreur lors de la demande de boost",
     });
   }
-};
-
+}
 
 /* =====================================================
    📋 LISTE DES DEMANDES DE BOOST (ADMIN)
