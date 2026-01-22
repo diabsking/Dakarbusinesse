@@ -61,26 +61,9 @@ router.post(
 /* =====================================================
    ROUTES BOOST (ADMIN)
 ===================================================== */
-router.get(
-  "/admin/boosts",
-  authentification,
-  adminAuth,
-  obtenirDemandesBoost
-);
-
-router.put(
-  "/admin/boosts/:id/valider",
-  authentification,
-  adminAuth,
-  validerDemandeBoost
-);
-
-router.put(
-  "/admin/boosts/:id/refuser",
-  authentification,
-  adminAuth,
-  refuserDemandeBoost
-);
+router.get("/produits/boosts", obtenirDemandesBoost);
+router.put("/produits/boosts/:id/valider", validerDemandeBoost);
+router.put("/produits/boosts/:id/refuser", refuserDemandeBoost);
 
 /* =====================================================
    ROUTES PROTÉGÉES VENDEUR
