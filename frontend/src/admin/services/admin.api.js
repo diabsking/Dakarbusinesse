@@ -46,6 +46,7 @@ API.interceptors.response.use(
    VENDEURS
 ========================= */
 export const listerVendeurs = () => API.get("/vendeurs");
+
 export const changerStatutVendeur = (id, actif) =>
   API.put(`/vendeurs/${id}/statut`, { actif });
 
@@ -56,6 +57,7 @@ export const changerCertificationVendeur = (id, certifie) =>
    PRODUITS
 ========================= */
 export const listerProduits = () => API.get("/produits");
+
 export const validerProduit = (id, valide) =>
   API.put(`/produits/${id}/validation`, { valide });
 
@@ -69,20 +71,21 @@ export const mettreProduitEnPromo = (id, prixPromo) =>
    COMMANDES
 ========================= */
 export const listerCommandes = () => API.get("/commandes");
+
 export const modifierCommande = (id, status) =>
   API.put(`/commandes/${id}`, { status });
 
 /* =========================
-   BOOSTS (ADMIN)
+   BOOSTS (ADMIN) ✅ CORRIGÉ
 ========================= */
 export const getDemandesBoost = () =>
-  API.get("/produits/boosts");
+  API.get("/produits/admin/boosts");
 
 export const validerBoost = (id) =>
-  API.put(`/produits/boosts/${id}/valider`);
+  API.put(`/produits/admin/boosts/${id}/valider`);
 
 export const refuserBoost = (id) =>
-  API.put(`/produits/boosts/${id}/refuser`);
+  API.put(`/produits/admin/boosts/${id}/refuser`);
 
 /* =========================
    STATS ADMIN
