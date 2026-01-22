@@ -3,7 +3,7 @@ import {
   getDemandesBoost,
   validerBoost,
   refuserBoost,
-} from "../../services/admin.api";
+} from "../services/admin.api";
 
 export default function AdminBoostes() {
   const [demandes, setDemandes] = useState([]);
