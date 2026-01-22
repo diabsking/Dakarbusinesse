@@ -589,7 +589,7 @@ export const demanderBoostProduit = async (req, res) => {
 export const obtenirDemandesBoost = async (req, res) => {
   try {
     const demandes = await DemandeBoost.find()
-      .populate("produit", "nom prixActuel")
+      .populate("produit", "nom prixActuel images")
       .populate("utilisateur", "nom email")
       .sort({ createdAt: -1 });
 
