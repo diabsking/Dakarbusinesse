@@ -473,108 +473,224 @@ export const incrementerVuesProduit = async (req, res, next) => {
 };
 
 /* =====================================================
-   🔐 CONFIGURATION
+   ⚙️ CONFIGURATION BOOST
 ===================================================== */
-const KKIAPAY_SECRET_KEY = process.env.KKIAPAY_SECRET_KEY_SANDBOX; // Sandbox key
-const MONTANT_BOOST = 500; // FCFA
-const DUREE_JOURS = 7; // boost 1 semaine
-
-/* =====================================================
-   🔐 CREATION DE TRANSACTION KKIAPAY POUR BOOST
-===================================================== */
-export const boosterProduitAvecPaiement = async (produitId, client) => {
-  try {
-    const produit = await Produit.findById(produitId);
-    if (!produit) {
-      return { success: false, message: "Produit introuvable" };
-    }
-
-    // ✅ Création transaction KKIAPAY
-    const transactionData = {
-      amount: MONTANT_BOOST,
-      currency: "XOF",
-      metadata: {
-        produitId: produit._id.toString(),
-        service: "Boost produit",
-      },
-      customer: {
-        name: client.name,
-        email: client.email,
-        phone: client.phone,
-      },
-      callback_url: "https://tonsite.com/webhook-boost", // webhook pour confirmation
-    };
-
-    const response = await axios.post(
-      "https://api.kkiapay.me/v1/transaction",
-      transactionData,
-      {
-        headers: {
-          Authorization: `Bearer ${KKIAPAY_SECRET_KEY}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    if (!response.data || !response.data.payment_url) {
-      console.error("❌ KKIAPAY: réponse invalide", response.data);
-      return { success: false, message: "Impossible de générer le lien de paiement" };
-    }
-
-    const paymentUrl = response.data.payment_url;
-    console.log("💳 Lien de paiement Kkiapay généré:", paymentUrl);
-
-    return { success: true, paymentUrl };
-
-  } catch (err) {
-    console.error("❌ Erreur création transaction Kkiapay:", err.response?.data || err.message);
-    return { success: false, message: "Erreur lors de la création du paiement" };
-  }
+const BOOST_CONFIG = {
+  7: { montant: 500 },
+  15: { montant: 1000 },
+  30: { montant: 1500 },
 };
 
 /* =====================================================
-   🔐 ACTIVATION BOOST APRES CONFIRMATION WEBHOOK
+   📝 DEMANDE DE BOOST (VENDEUR)
+   POST /api/produits/boost/demande
 ===================================================== */
-export const activerBoostApresPaiement = async (produitId, dureeJours = DUREE_JOURS) => {
+export const demanderBoostProduit = async (req, res) => {
   try {
+    const { produitId, waveNumber, duree } = req.body;
+    const userId = req.user.id;
+
+    if (!produitId || !waveNumber || !duree) {
+      return res.status(400).json({
+        success: false,
+        message: "Données manquantes",
+      });
+    }
+
     const produit = await Produit.findById(produitId);
     if (!produit) {
-      console.error("❌ Boost: produit introuvable");
-      return;
+      return res.status(404).json({
+        success: false,
+        message: "Produit introuvable",
+      });
+    }
+
+    if (!BOOST_CONFIG[duree]) {
+      return res.status(400).json({
+        success: false,
+        message: "Durée de boost invalide",
+      });
     }
 
     const maintenant = new Date();
 
-    // ⚠️ Déjà boosté ?
-    if (produit.estBooster && produit.dateFinBoost && produit.dateFinBoost > maintenant) {
-      console.warn("⚠️ Produit déjà boosté");
-      return;
+    // ❌ Produit déjà boosté
+    if (produit.estBooster && produit.dateFinBoost > maintenant) {
+      return res.status(400).json({
+        success: false,
+        message: "Ce produit est déjà boosté",
+      });
     }
 
-    // ✅ Mettre à jour stats produit
-    const stat = await StatProduit.findOne({ produit: produit._id });
-    if (stat) {
-      stat.boostActif = true;
-      stat.boostUtilisations = (stat.boostUtilisations || 0) + 1;
-      stat.scorePopularite = (stat.scorePopularite || 0) + 30;
-      await stat.save();
-    }
-
-    // ✅ Créer événement boost
-    await StatProduitEvent.create({
-      produit: produit._id,
-      type: "BOOST",
-      date: maintenant,
+    // ❌ Double demande
+    const demandeExistante = await DemandeBoost.findOne({
+      produit: produitId,
+      statut: "EN_ATTENTE",
     });
 
-    // ✅ Activer boost produit
-    produit.estBooster = true;
-    produit.dateDebutBoost = maintenant;
-    produit.dateFinBoost = new Date(maintenant.getTime() + dureeJours * 24 * 60 * 60 * 1000); // +dureeJours
-    await produit.save();
+    if (demandeExistante) {
+      return res.status(400).json({
+        success: false,
+        message: "Une demande de boost est déjà en attente",
+      });
+    }
 
-    console.log(`🚀 Boost activé | Produit: ${produit._id} | ${dureeJours} jours`);
+    // ✅ Création demande
+    const demande = await DemandeBoost.create({
+      produit: produitId,
+      utilisateur: userId,
+      waveNumber,
+      duree,
+      montant: BOOST_CONFIG[duree].montant,
+      statut: "EN_ATTENTE",
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Demande de boost envoyée avec succès",
+      demande: {
+        id: demande._id,
+        montant: demande.montant,
+        duree: demande.duree,
+      },
+    });
   } catch (err) {
-    console.error("❌ Erreur activation boost:", err.message);
+    console.error("❌ Demande boost:", err.message);
+    return res.status(500).json({
+      success: false,
+      message: "Erreur lors de la demande de boost",
+    });
   }
+};
+
+/* =====================================================
+   📋 LISTE DES DEMANDES DE BOOST (ADMIN)
+   GET /api/produits/admin/boosts
+===================================================== */
+export const obtenirDemandesBoost = async (req, res) => {
+  try {
+    const demandes = await DemandeBoost.find()
+      .populate("produit", "nom prixActuel")
+      .populate("utilisateur", "nom email")
+      .sort({ createdAt: -1 });
+
+    return res.json({
+      success: true,
+      demandes,
+    });
+  } catch (err) {
+    console.error("❌ Liste boosts:", err.message);
+    return res.status(500).json({
+      success: false,
+      message: "Erreur récupération demandes boost",
+    });
+  }
+};
+
+/* =====================================================
+   ✅ VALIDATION BOOST (ADMIN)
+   PUT /api/produits/admin/boosts/:id/valider
+===================================================== */
+export const validerDemandeBoost = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const demande = await DemandeBoost.findById(id);
+    if (!demande) {
+      return res.status(404).json({
+        success: false,
+        message: "Demande introuvable",
+      });
+    }
+
+    if (demande.statut !== "EN_ATTENTE") {
+      return res.status(400).json({
+        success: false,
+        message: "Cette demande a déjà été traitée",
+      });
+    }
+
+    // ✅ Activer boost
+    await activerBoostProduit(demande.produit, demande.duree);
+
+    demande.statut = "VALIDEE";
+    demande.dateValidation = new Date();
+    await demande.save();
+
+    return res.json({
+      success: true,
+      message: "Boost validé et activé avec succès",
+    });
+  } catch (err) {
+    console.error("❌ Validation boost:", err.message);
+    return res.status(500).json({
+      success: false,
+      message: "Erreur validation boost",
+    });
+  }
+};
+
+/* =====================================================
+   ❌ REFUS BOOST (ADMIN)
+   PUT /api/produits/admin/boosts/:id/refuser
+===================================================== */
+export const refuserDemandeBoost = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const demande = await DemandeBoost.findById(id);
+    if (!demande) {
+      return res.status(404).json({
+        success: false,
+        message: "Demande introuvable",
+      });
+    }
+
+    demande.statut = "REFUSEE";
+    demande.dateValidation = new Date();
+    await demande.save();
+
+    return res.json({
+      success: true,
+      message: "Demande de boost refusée",
+    });
+  } catch (err) {
+    console.error("❌ Refus boost:", err.message);
+    return res.status(500).json({
+      success: false,
+      message: "Erreur refus boost",
+    });
+  }
+};
+
+/* =====================================================
+   🔧 FONCTION INTERNE ACTIVATION BOOST
+===================================================== */
+const activerBoostProduit = async (produitId, dureeJours) => {
+  const produit = await Produit.findById(produitId);
+  if (!produit) return;
+
+  const maintenant = new Date();
+
+  produit.estBooster = true;
+  produit.dateDebutBoost = maintenant;
+  produit.dateFinBoost = new Date(
+    maintenant.getTime() + dureeJours * 24 * 60 * 60 * 1000
+  );
+
+  await produit.save();
+
+  const stat = await StatProduit.findOne({ produit: produit._id });
+  if (stat) {
+    stat.boostActif = true;
+    stat.boostUtilisations = (stat.boostUtilisations || 0) + 1;
+    stat.scorePopularite = (stat.scorePopularite || 0) + 30;
+    await stat.save();
+  }
+
+  await StatProduitEvent.create({
+    produit: produit._id,
+    type: "BOOST",
+    date: maintenant,
+  });
 };

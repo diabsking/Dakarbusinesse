@@ -12,6 +12,10 @@ import {
   obtenirProduitsBoostes,
   obtenirProduitsPlusCommandes,
   produitsSimilaires,
+  demanderBoostProduit,
+  obtenirDemandesBoost,
+  validerDemandeBoost,
+  refuserDemandeBoost,
   incrementerVuesProduit,
 } from "../controllers/produit.controller.js";
 
@@ -41,6 +45,41 @@ router.get("/boostes", obtenirProduitsBoostes); // produits boostés
 router.get("/top-commandes", obtenirProduitsPlusCommandes); // top commandes
 router.get("/similaires/:id", produitsSimilaires); // produits similaires
 router.put("/vue/:id", incrementerVuesProduit); // incrémenter vues
+
+
+
+/* =====================================================
+   ROUTES BOOST (VENDEUR)
+===================================================== */
+router.post(
+  "/boost/demande",
+  authentification,
+  demanderBoostProduit
+);
+
+/* =====================================================
+   ROUTES BOOST (ADMIN)
+===================================================== */
+router.get(
+  "/admin/boosts",
+  authentification,
+  adminAuth,
+  obtenirDemandesBoost
+);
+
+router.put(
+  "/admin/boosts/:id/valider",
+  authentification,
+  adminAuth,
+  validerDemandeBoost
+);
+
+router.put(
+  "/admin/boosts/:id/refuser",
+  authentification,
+  adminAuth,
+  refuserDemandeBoost
+);
 
 /* =====================================================
    ROUTES PROTÉGÉES VENDEUR
