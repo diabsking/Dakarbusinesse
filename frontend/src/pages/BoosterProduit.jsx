@@ -49,8 +49,17 @@ export default function BoosterProduit() {
   const handleDemandeBoost = async () => {
     setError("");
 
-    if (!waveNumber || waveNumber.length < 8) {
-      setError("Veuillez entrer un numéro Wave valide");
+    // validation Wave
+    const waveRegex = /^(77|78|76|70)\d{7}$/;
+    if (!waveRegex.test(waveNumber)) {
+      setError("Veuillez entrer un numéro Wave valide (07xxxxxxxx).");
+      return;
+    }
+
+    // validation produit déjà boosté
+    const maintenant = new Date();
+    if (produit.estBooster && produit.dateFinBoost > maintenant) {
+      setError("Ce produit est déjà boosté.");
       return;
     }
 
@@ -85,11 +94,9 @@ export default function BoosterProduit() {
   const imageSrc =
     produit.images?.length > 0 ? produit.images[0] : "/placeholder.jpg";
 
-  /* ================= UI ================= */
   return (
     <div className="min-h-screen bg-gray-50 px-3 py-6">
       <div className="max-w-md mx-auto bg-white rounded-xl shadow">
-        {/* IMAGE */}
         <div className="h-48 bg-gray-100 flex items-center justify-center rounded-t-xl">
           <img
             src={imageSrc}
@@ -99,7 +106,6 @@ export default function BoosterProduit() {
         </div>
 
         <div className="p-4 space-y-5">
-          {/* INFOS */}
           <div className="text-center">
             <h2 className="text-lg font-bold">{produit.nom}</h2>
             <p className="text-green-600 font-semibold mt-1">
@@ -109,7 +115,6 @@ export default function BoosterProduit() {
 
           {!demandeEnvoyee ? (
             <>
-              {/* NUMERO WAVE */}
               <div>
                 <label className="text-sm font-medium">Numéro Wave</label>
                 <input
@@ -122,7 +127,6 @@ export default function BoosterProduit() {
                 />
               </div>
 
-              {/* DURÉE */}
               <div>
                 <label className="text-sm font-medium">
                   Durée du boost
@@ -138,14 +142,12 @@ export default function BoosterProduit() {
                 </select>
               </div>
 
-              {/* ERREUR */}
               {error && (
                 <p className="text-red-500 text-sm text-center">
                   {error}
                 </p>
               )}
 
-              {/* BOUTON */}
               <button
                 onClick={handleDemandeBoost}
                 disabled={loading}
@@ -155,7 +157,6 @@ export default function BoosterProduit() {
               </button>
             </>
           ) : (
-            /* CONFIRMATION + PAIEMENT */
             <div className="text-center space-y-4">
               <p className="text-green-700 font-semibold">
                 Demande envoyée avec succès 🎉
