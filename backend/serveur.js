@@ -36,8 +36,8 @@ app.use(express.json({ limit: "10mb" }));
 // ✅ CORS compatible Render
 
 const allowedOrigins = [
-  "https://dakarbusinesse-1.onrender.com",
-  "https://dakarbusinesse.onrender.com",
+  "https://dakarbusinesse-1-54rq.onrender.com",
+  "https://dakarbusinesse-g24r.onrender.com",
 ];
 
 app.use(
