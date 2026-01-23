@@ -60,10 +60,10 @@ router.post(
 
 /* =====================================================
    ROUTES BOOST (ADMIN)
-===================================================== */
-router.get("/produits/boosts", obtenirDemandesBoost);
-router.put("/produits/boosts/:id/valider", validerDemandeBoost);
-router.put("/produits/boosts/:id/refuser", refuserDemandeBoost);
+==================================================== */
+router.get("/boosts", obtenirDemandesBoost);
+router.put("/boosts/:id/valider", validerDemandeBoost);
+router.put("/boosts/:id/refuser", refuserDemandeBoost);
 
 /* =====================================================
    ROUTES PROTÉGÉES VENDEUR
