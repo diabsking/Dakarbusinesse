@@ -3,7 +3,7 @@ import {
   getDemandesBoost,
   validerBoost,
   refuserBoost,
-} from "../services/admin.api";
+} from "../services/boost.api";
 
 export default function AdminBoosts() {
   const [demandes, setDemandes] = useState([]);
@@ -20,7 +20,6 @@ export default function AdminBoosts() {
     try {
       const res = await getDemandesBoost();
 
-      // ⚙️ Normalisation de la réponse
       const demandesRecues =
         res?.data?.demandes ||
         res?.data?.data?.demandes ||
@@ -99,7 +98,9 @@ export default function AdminBoosts() {
                   />
 
                   <div>
-                    <p className="font-bold">{d.produit?.nom || "Produit inconnu"}</p>
+                    <p className="font-bold">
+                      {d.produit?.nom || "Produit inconnu"}
+                    </p>
                     <p className="text-sm text-gray-500">
                       Vendeur : {d.utilisateur?.nom || d.utilisateur?.email || "Inconnu"}
                     </p>
