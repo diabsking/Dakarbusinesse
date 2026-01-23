@@ -11,42 +11,30 @@ export default function AdminBoosts() {
   const [actionLoading, setActionLoading] = useState(null);
 
   useEffect(() => {
-    console.log("🟢 AdminBoosts monté");
     fetchDemandes();
   }, []);
 
   const fetchDemandes = async () => {
-    console.log("🔵 fetchDemandes() appelé");
     setLoading(true);
 
     try {
       const res = await getDemandesBoost();
 
-      console.log("🟡 Réponse API brute :", res);
-      console.log("🟡 res.data :", res?.data);
-
+      // ⚙️ Normalisation de la réponse
       const demandesRecues =
         res?.data?.demandes ||
         res?.data?.data?.demandes ||
         [];
 
-      console.log("🟢 Demandes finales :", demandesRecues);
-      console.log("🟢 Nombre de demandes :", demandesRecues.length);
-
       setDemandes(demandesRecues);
     } catch (err) {
-      console.error(
-        "❌ Erreur chargement boosts :",
-        err?.response?.data || err
-      );
+      console.error("❌ Erreur chargement boosts :", err?.response?.data || err);
     } finally {
       setLoading(false);
-      console.log("🔵 fetchDemandes() terminé");
     }
   };
 
   const handleValider = async (id) => {
-    console.log("✅ Validation boost :", id);
     setActionLoading(id);
     try {
       await validerBoost(id);
@@ -62,7 +50,6 @@ export default function AdminBoosts() {
   };
 
   const handleRefuser = async (id) => {
-    console.log("⛔ Refus boost :", id);
     setActionLoading(id);
     try {
       await refuserBoost(id);
@@ -78,11 +65,8 @@ export default function AdminBoosts() {
   };
 
   if (loading) {
-    console.log("⏳ Loading...");
     return <p>Chargement des demandes...</p>;
   }
-
-  console.log("🧾 RENDER demandes :", demandes);
 
   return (
     <div>
@@ -98,6 +82,10 @@ export default function AdminBoosts() {
             const disabled =
               actionLoading === d._id || d.statut !== "EN_ATTENTE";
 
+            const img =
+              d.produit?.images?.[0] ||
+              "/placeholder.jpg";
+
             return (
               <div
                 key={d._id}
@@ -105,15 +93,15 @@ export default function AdminBoosts() {
               >
                 <div className="md:w-2/5 flex items-center gap-4">
                   <img
-                    src="/placeholder.jpg"
-                    alt={d.produit?.nom}
+                    src={img}
+                    alt={d.produit?.nom || "Produit"}
                     className="h-16 w-16 object-cover rounded-lg"
                   />
 
                   <div>
-                    <p className="font-bold">{d.produit?.nom}</p>
+                    <p className="font-bold">{d.produit?.nom || "Produit inconnu"}</p>
                     <p className="text-sm text-gray-500">
-                      Vendeur : {d.utilisateur?.nom || d.utilisateur?.email}
+                      Vendeur : {d.utilisateur?.nom || d.utilisateur?.email || "Inconnu"}
                     </p>
                   </div>
                 </div>
