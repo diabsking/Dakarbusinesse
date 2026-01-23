@@ -1,5 +1,6 @@
 import Produit from "../models/Produit.js";
 import DemandeBoost from "../models/DemandeBoost.js";
+import { envoyerMailBoost } from "../services/mail.service"; // <-- à créer
 import StatProduit from "../models/StatProduit.js";
 import StatProduitDaily from "../models/StatProduitDaily.js";
 import StatProduitEvent from "../models/StatProduitEvent.js";
@@ -614,7 +615,10 @@ export const validerDemandeBoost = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const demande = await DemandeBoost.findById(id);
+    const demande = await DemandeBoost.findById(id)
+      .populate("utilisateur")
+      .populate("produit");
+
     if (!demande) {
       return res.status(404).json({
         success: false,
@@ -635,6 +639,13 @@ export const validerDemandeBoost = async (req, res) => {
     demande.statut = "VALIDEE";
     demande.dateValidation = new Date();
     await demande.save();
+
+    // 🚀 Envoi mail au vendeur
+    await envoyerMailBoost({
+      email: demande.utilisateur.email,
+      type: "VALIDEE",
+      produitNom: demande.produit.nom,
+    });
 
     return res.json({
       success: true,
@@ -657,7 +668,10 @@ export const refuserDemandeBoost = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const demande = await DemandeBoost.findById(id);
+    const demande = await DemandeBoost.findById(id)
+      .populate("utilisateur")
+      .populate("produit");
+
     if (!demande) {
       return res.status(404).json({
         success: false,
@@ -668,6 +682,13 @@ export const refuserDemandeBoost = async (req, res) => {
     demande.statut = "REFUSEE";
     demande.dateValidation = new Date();
     await demande.save();
+
+    // 🚀 Envoi mail au vendeur
+    await envoyerMailBoost({
+      email: demande.utilisateur.email,
+      type: "REFUSEE",
+      produitNom: demande.produit.nom,
+    });
 
     return res.json({
       success: true,
@@ -681,6 +702,7 @@ export const refuserDemandeBoost = async (req, res) => {
     });
   }
 };
+
 
 /* =====================================================
    🔧 FONCTION INTERNE ACTIVATION BOOST

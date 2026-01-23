@@ -97,3 +97,64 @@ export const envoyerOTPMail = async ({
     throw new Error("Impossible d'envoyer l'OTP par email");
   }
 };
+
+/* =====================================================
+   TEMPLATES EMAIL BOOST
+==================================================== */
+const templateBoostValide = ({ nomProduit }) => `
+  <div style="font-family:Arial;padding:20px">
+    <h2>Boost validé 🎉</h2>
+    <p>Bonjour,</p>
+    <p>Votre demande de boost pour le produit <strong>${nomProduit}</strong> a été <strong>VALIDÉE</strong>.</p>
+    <p>Le boost est désormais actif sur votre produit.</p>
+    <p>Merci pour votre confiance.</p>
+  </div>
+`;
+
+const templateBoostRefuse = ({ nomProduit }) => `
+  <div style="font-family:Arial;padding:20px">
+    <h2>Boost refusé ❌</h2>
+    <p>Bonjour,</p>
+    <p>Votre demande de boost pour le produit <strong>${nomProduit}</strong> a été <strong>REFUSÉE</strong>.</p>
+    <p>Si vous souhaitez plus d'informations, contactez le support.</p>
+  </div>
+`;
+
+/* =====================================================
+   ENVOI MAIL BOOST (Sendinblue API)
+==================================================== */
+export const envoyerMailBoost = async ({
+  email,
+  type = "VALIDEE",
+  produitNom,
+}) => {
+  try {
+    const subject =
+      type === "REFUSEE"
+        ? "Votre boost a été refusé ❌"
+        : "Votre boost a été validé 🎉";
+
+    const html =
+      type === "REFUSEE"
+        ? templateBoostRefuse({ nomProduit: produitNom })
+        : templateBoostValide({ nomProduit: produitNom });
+
+    const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+    sendSmtpEmail.to = [{ email }];
+    sendSmtpEmail.sender = {
+      email: process.env.MAIL_FROM,
+      name: process.env.MAIL_FROM_NAME || "Kolwaz",
+    };
+    sendSmtpEmail.subject = subject;
+    sendSmtpEmail.htmlContent = html;
+
+    const response = await apiInstance.sendTransacEmail(sendSmtpEmail);
+
+    console.log("📤 MAIL BOOST SENT INFO :", response);
+    console.log(`✅ Email boost envoyé à ${email}`);
+  } catch (error) {
+    console.error("❌ ERREUR ENVOI EMAIL BOOST :", error);
+    throw new Error("Impossible d'envoyer l'email de boost");
+  }
+};
+
