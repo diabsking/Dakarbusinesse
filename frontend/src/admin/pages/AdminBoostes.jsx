@@ -19,7 +19,6 @@ export default function AdminBoosts() {
 
     try {
       const res = await getDemandesBoost();
-
       const demandesRecues =
         res?.data?.demandes ||
         res?.data?.data?.demandes ||
@@ -63,6 +62,20 @@ export default function AdminBoosts() {
     }
   };
 
+  const buildWhatsappLink = (telephone, produitNom, statut) => {
+    // normalise +221 si nécessaire
+    let tel = telephone;
+    if (tel.startsWith("0")) tel = tel.slice(1);
+    if (!tel.startsWith("+221")) tel = "+221" + tel;
+
+    const message =
+      statut === "VALIDEE"
+        ? `Bonjour, votre demande de boost pour "${produitNom}" a été ACCEPTÉE. 🎉`
+        : `Bonjour, votre demande de boost pour "${produitNom}" a été REFUSÉE. ❌`;
+
+    return `https://wa.me/${tel.replace("+", "")}?text=${encodeURIComponent(message)}`;
+  };
+
   if (loading) {
     return <p>Chargement des demandes...</p>;
   }
@@ -78,12 +91,8 @@ export default function AdminBoosts() {
       ) : (
         <div className="grid gap-4">
           {demandes.map((d) => {
-            const disabled =
-              actionLoading === d._id || d.statut !== "EN_ATTENTE";
-
-            const img =
-              d.produit?.images?.[0] ||
-              "/placeholder.jpg";
+            const disabled = actionLoading === d._id;
+            const img = d.produit?.images?.[0] || "/placeholder.jpg";
 
             return (
               <div
@@ -104,6 +113,18 @@ export default function AdminBoosts() {
                     <p className="text-sm text-gray-500">
                       Vendeur : {d.utilisateur?.nom || d.utilisateur?.email || "Inconnu"}
                     </p>
+                    <p className="text-sm text-gray-700">
+                      Statut :{" "}
+                      <span className={
+                        d.statut === "VALIDEE"
+                          ? "text-green-600 font-bold"
+                          : d.statut === "REFUSEE"
+                          ? "text-red-600 font-bold"
+                          : "text-orange-600 font-bold"
+                      }>
+                        {d.statut}
+                      </span>
+                    </p>
                   </div>
                 </div>
 
@@ -112,10 +133,9 @@ export default function AdminBoosts() {
                     <Tag label={`Durée : ${d.duree} jours`} />
                     <Tag label={`Montant : ${d.montant} FCFA`} />
                     <Tag label={`Wave : ${d.waveNumber}`} />
-                    <Tag label={`Statut : ${d.statut}`} />
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     <button
                       disabled={disabled}
                       onClick={() => handleValider(d._id)}
@@ -131,6 +151,19 @@ export default function AdminBoosts() {
                     >
                       {actionLoading === d._id ? "..." : "Refuser"}
                     </button>
+
+                    <a
+                      href={buildWhatsappLink(
+                        d.utilisateur?.telephone || "000000000",
+                        d.produit?.nom || "votre produit",
+                        d.statut
+                      )}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-green-500 text-white px-4 py-2 rounded-lg"
+                    >
+                      WhatsApp
+                    </a>
                   </div>
                 </div>
               </div>
