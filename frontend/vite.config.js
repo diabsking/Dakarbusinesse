@@ -8,7 +8,7 @@ export default defineConfig({
     host: true, // écoute tous les hôtes pour dev
   },
   preview: {
-    allowedHosts: ['dakarbusinesse-1.onrender.com'], // autorise Render
+    allowedHosts: ['dakarbusinesse-1-54rq.onrender.com'], // autorise Render
   },
   build: {
     rollupOptions: {
