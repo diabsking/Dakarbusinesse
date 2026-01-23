@@ -96,9 +96,7 @@ function Input({
         {...props}
       />
 
-      {error && (
-        <p className="text-sm text-red-600">{error}</p>
-      )}
+      {error && <p className="text-sm text-red-600">{error}</p>}
     </div>
   );
 }
@@ -126,6 +124,19 @@ function LoginForm() {
     // eslint-disable-next-line
   }, []);
 
+  const cleanTelephone = (tel) => {
+    let cleaned = tel.trim();
+
+    // Supprimer espaces, tirets, parenthèses
+    cleaned = cleaned.replace(/[\s-()]/g, "");
+
+    // Supprimer +221 ou 00221
+    if (cleaned.startsWith("+221")) cleaned = cleaned.slice(4);
+    if (cleaned.startsWith("00221")) cleaned = cleaned.slice(5);
+
+    return cleaned;
+  };
+
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
     if (loading) return;
@@ -140,11 +151,12 @@ function LoginForm() {
     try {
       setLoading(true);
 
-      const res = await api.post("/api/vendeur/auth/login", {
-  telephone: data.telephone,
-  password: data.password,
-});
+      const telephoneClean = cleanTelephone(data.telephone);
 
+      const res = await api.post("/api/vendeur/auth/login", {
+        telephone: telephoneClean,
+        password: data.password,
+      });
 
       localStorage.setItem("token", res.data.token);
       localStorage.removeItem("login_pwd");
@@ -246,7 +258,7 @@ function RegisterForm({ setEmail, setVerificationPending }) {
     try {
       setLoading(true);
 
-     await api.post("/api/vendeur/auth/register", data);
+      await api.post("/api/vendeur/auth/register", data);
 
       setEmail(data.email);
       setVerificationPending(true);
