@@ -1,6 +1,6 @@
 import Produit from "../models/Produit.js";
 import DemandeBoost from "../models/DemandeBoost.js";
-import { envoyerMailBoost } from "../services/mailService"; // <-- à créer
+import { envoyerMailBoost } from "../services/mailService.js";
 import StatProduit from "../models/StatProduit.js";
 import StatProduitDaily from "../models/StatProduitDaily.js";
 import StatProduitEvent from "../models/StatProduitEvent.js";
