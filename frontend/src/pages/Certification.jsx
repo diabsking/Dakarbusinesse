@@ -32,6 +32,7 @@ export default function Certification() {
     }
 
     setUser(parsedUser);
+
     // Si le vendeur a déjà une demande en cours
     if (parsedUser.demandeCertification) {
       setDemandeEnvoyee(true);
@@ -46,7 +47,7 @@ export default function Certification() {
     try {
       setLoading(true);
       const res = await api.post("/api/certification/demande", {});
-      setCertification(res.data.certification);
+      setCertification(res.data.certification || null);
       setDemandeEnvoyee(true);
     } catch (err) {
       setError(
@@ -60,7 +61,9 @@ export default function Certification() {
 
   if (!user) return null;
 
-  const wavePaymentLink = `${WAVE_BASE_LINK}?amount=${CERTIFICATION_PRICE}&metadata=${certification?._id || ""}`;
+  const wavePaymentLink = certification
+    ? `${WAVE_BASE_LINK}?amount=${CERTIFICATION_PRICE}&metadata=${certification._id}`
+    : `${WAVE_BASE_LINK}?amount=${CERTIFICATION_PRICE}`;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
@@ -70,13 +73,12 @@ export default function Certification() {
         </div>
 
         <h2 className="text-2xl font-bold mb-2">Certification du vendeur</h2>
-
         <p className="text-gray-600 mb-4">
           Obtenez le badge officiel Dakarbusinesse.
         </p>
 
         <div className="mb-6 text-lg font-semibold">
-          Montant à payer :{" "}
+          Montant à payer:{" "}
           <span className="text-orange-600">
             {CERTIFICATION_PRICE.toLocaleString()} FCFA
           </span>
@@ -101,7 +103,7 @@ export default function Certification() {
             </p>
 
             <p className="text-gray-600">
-              Paiement manuel requis :{" "}
+              Paiement manuel requis:{" "}
               <b className="text-orange-600">
                 {CERTIFICATION_PRICE.toLocaleString()} FCFA
               </b>
