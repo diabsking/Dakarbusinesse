@@ -1,195 +1,153 @@
-import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+// frontend/src/pages/Certification.jsx
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { BsPatchCheckFill } from "react-icons/bs";
 import api from "../services/api";
 
-export default function BoosterProduit() {
-  const { id } = useParams();
+export default function Certification() {
   const navigate = useNavigate();
 
-  const [produit, setProduit] = useState(null);
-  const [duree, setDuree] = useState(7);
-  const [waveNumber, setWaveNumber] = useState("");
-  const [demandeEnvoyee, setDemandeEnvoyee] = useState(false);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [demandeEnvoyee, setDemandeEnvoyee] = useState(false);
   const [error, setError] = useState("");
+  const [certification, setCertification] = useState(null);
 
-  /* ================= CONFIG BOOST ================= */
-  const BOOSTS = {
-    7: { montant: 500 },
-    15: { montant: 1000 },
-    30: { montant: 1500 },
-  };
+  /* ================= CONFIG ================= */
+  const CERTIFICATION_PRICE = 5000;
+  const WAVE_BASE_LINK = "https://pay.wave.com/m/M_sn_hHeTj4ufIvYG";
 
-  const WAVE_BASE_LINK =
-    "https://pay.wave.com/m/M_sn_hHeTj4ufIvYG/c/sn/";
-
-  const wavePaymentLink = `${WAVE_BASE_LINK}?amount=${BOOSTS[duree].montant}`;
-
-  /* ================= VALIDATION ID ================= */
+  /* ================= CHECK USER ================= */
   useEffect(() => {
-    if (!id || id.length !== 24) {
+    const storedUser = localStorage.getItem("user");
+    if (!storedUser) {
+      navigate("/login");
+      return;
+    }
+
+    const parsedUser = JSON.parse(storedUser);
+    if (!parsedUser.token) {
+      navigate("/login");
+      return;
+    }
+
+    if (parsedUser.certifie === true) {
       navigate("/dashboard");
+      return;
     }
-  }, [id, navigate]);
 
-  /* ================= CHARGER PRODUIT ================= */
-  useEffect(() => {
-    const fetchProduit = async () => {
-      try {
-        const res = await api.get(`/api/produits/${id}`);
-        setProduit(res.data.produit);
-      } catch {
-        navigate("/dashboard");
-      }
-    };
-    fetchProduit();
-  }, [id, navigate]);
+    setUser(parsedUser);
 
-  /* ================= DEMANDE BOOST ================= */
-  const handleDemandeBoost = async () => {
+    if (parsedUser.demandeCertification === true) {
+      setDemandeEnvoyee(true);
+      setCertification(parsedUser.certification || null);
+    }
+  }, [navigate]);
+
+  /* ================= DEMANDE CERTIFICATION ================= */
+  const envoyerDemande = async () => {
+    if (!user?.token) {
+      setError("Token manquant, reconnectez-vous.");
+      return;
+    }
+
+    if (loading || demandeEnvoyee) return;
+
     setError("");
-
-    // validation Wave
-    const waveRegex = /^(77|78|76|70)\d{7}$/;
-    if (!waveRegex.test(waveNumber)) {
-      setError("Veuillez entrer un numéro Wave valide (07xxxxxxxx).");
-      return;
-    }
-
-    // validation produit déjà boosté
-    const maintenant = new Date();
-    if (produit.estBooster && produit.dateFinBoost > maintenant) {
-      setError("Ce produit est déjà boosté.");
-      return;
-    }
+    setLoading(true);
 
     try {
-      setLoading(true);
-
-      await api.post("/api/produits/boost/demande", {
-        produitId: id,
-        duree,
-        waveNumber,
-      });
-
-      setDemandeEnvoyee(true);
-    } catch (err) {
-      setError(
-        err.response?.data?.message ||
-          "Erreur lors de l’envoi de la demande"
+      const res = await api.post(
+        "/api/certification/demande",
+        {},
+        { headers: { Authorization: `Bearer ${user.token}` } } // 🔑 token ici
       );
+
+      const certificationData = res.data.certification || null;
+      setCertification(certificationData);
+      setDemandeEnvoyee(true);
+
+      const updatedUser = {
+        ...user,
+        demandeCertification: true,
+        certification: certificationData,
+      };
+
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      setUser(updatedUser);
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || "Erreur lors de l’envoi de la demande");
     } finally {
       setLoading(false);
     }
   };
 
-  if (!produit) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-gray-500">
-        Chargement...
-      </div>
-    );
-  }
+  if (!user) return null;
 
-  const imageSrc =
-    produit.images?.length > 0 ? produit.images[0] : "/placeholder.jpg";
+  const wavePaymentLink = certification
+    ? `${WAVE_BASE_LINK}?amount=${CERTIFICATION_PRICE}&metadata=${certification._id}`
+    : `${WAVE_BASE_LINK}?amount=${CERTIFICATION_PRICE}`;
 
   return (
-    <div className="min-h-screen bg-gray-50 px-3 py-6">
-      <div className="max-w-md mx-auto bg-white rounded-xl shadow">
-        <div className="h-48 bg-gray-100 flex items-center justify-center rounded-t-xl">
-          <img
-            src={imageSrc}
-            alt={produit.nom}
-            className="h-full object-contain"
-          />
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+      <div className="bg-white p-6 rounded-xl shadow-md max-w-md w-full text-center">
+        <div className="flex justify-center mb-4">
+          <BsPatchCheckFill size={48} className="text-blue-500" />
         </div>
 
-        <div className="p-4 space-y-5">
-          <div className="text-center">
-            <h2 className="text-lg font-bold">{produit.nom}</h2>
-            <p className="text-green-600 font-semibold mt-1">
-              {produit.prixActuel?.toLocaleString("fr-FR")} FCFA
+        <h2 className="text-2xl font-bold mb-2">Certification du vendeur</h2>
+
+        <p className="text-gray-600 mb-4">Obtenez le badge officiel Dakarbusinesse.</p>
+
+        <div className="mb-6 text-lg font-semibold">
+          Montant à payer :{" "}
+          <span className="text-orange-600">
+            {CERTIFICATION_PRICE.toLocaleString()} FCFA
+          </span>
+        </div>
+
+        {!demandeEnvoyee ? (
+          <>
+            {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+
+            <button
+              onClick={envoyerDemande}
+              disabled={loading}
+              className="w-full bg-orange-600 text-black py-2 rounded-lg font-semibold disabled:opacity-50"
+            >
+              {loading ? "Envoi..." : "Demander la certification"}
+            </button>
+          </>
+        ) : (
+          <div className="space-y-4">
+            <p className="text-green-600 font-semibold">Demande envoyée avec succès 🎉</p>
+
+            <p className="text-gray-600">
+              Paiement manuel requis :{" "}
+              <b className="text-orange-600">{CERTIFICATION_PRICE.toLocaleString()} FCFA</b>
             </p>
+
+            <a
+              href={wavePaymentLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full bg-orange-600 text-black py-2 rounded-lg font-semibold"
+            >
+              Payer avec Wave
+            </a>
+
+            <p className="text-xs text-gray-500">
+              La certification sera activée après validation du paiement par l’administrateur.
+            </p>
+
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="w-full bg-gray-100 text-gray-700 py-2 rounded-lg"
+            >
+              Retour au dashboard
+            </button>
           </div>
-
-          {!demandeEnvoyee ? (
-            <>
-              <div>
-                <label className="text-sm font-medium">Numéro Wave</label>
-                <input
-                  type="tel"
-                  inputMode="numeric"
-                  placeholder="07xxxxxxxx"
-                  value={waveNumber}
-                  onChange={(e) => setWaveNumber(e.target.value)}
-                  className="mt-1 w-full border rounded-lg px-3 py-2 text-base focus:ring-2 focus:ring-green-500"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium">
-                  Durée du boost
-                </label>
-                <select
-                  value={duree}
-                  onChange={(e) => setDuree(Number(e.target.value))}
-                  className="mt-1 w-full border rounded-lg px-3 py-2"
-                >
-                  <option value={7}>7 jours – 500 FCFA</option>
-                  <option value={15}>15 jours – 1 000 FCFA</option>
-                  <option value={30}>30 jours – 1 500 FCFA</option>
-                </select>
-              </div>
-
-              {error && (
-                <p className="text-red-500 text-sm text-center">
-                  {error}
-                </p>
-              )}
-
-              <button
-                onClick={handleDemandeBoost}
-                disabled={loading}
-                className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold disabled:opacity-50"
-              >
-                {loading ? "Envoi..." : "Demander le boost"}
-              </button>
-            </>
-          ) : (
-            <div className="text-center space-y-4">
-              <p className="text-green-700 font-semibold">
-                Demande envoyée avec succès 🎉
-              </p>
-
-              <p className="text-sm text-gray-600">
-                Montant à payer :{" "}
-                <b>{BOOSTS[duree].montant.toLocaleString()} FCFA</b>
-              </p>
-
-              <a
-                href={wavePaymentLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block w-full bg-green-600 text-white py-3 rounded-lg font-semibold"
-              >
-                Payer avec Wave
-              </a>
-
-              <p className="text-xs text-gray-500">
-                Le boost sera activé après validation du paiement par
-                l’administrateur.
-              </p>
-
-              <button
-                onClick={() => navigate("/dashboard")}
-                className="w-full bg-gray-100 text-gray-700 py-2 rounded-lg"
-              >
-                Retour au dashboard
-              </button>
-            </div>
-          )}
-        </div>
+        )}
       </div>
     </div>
   );
