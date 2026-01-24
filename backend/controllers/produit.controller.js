@@ -626,21 +626,26 @@ export const validerDemandeBoost = async (req, res) => {
       });
     }
 
-    if (demande.statut !== "EN_ATTENTE") {
+    // 🚫 Bloquer uniquement si déjà validée
+    if (demande.statut === "VALIDEE") {
       return res.status(400).json({
         success: false,
-        message: "Cette demande a déjà été traitée",
+        message: "Cette demande est déjà validée",
       });
     }
 
-    // ✅ Activer boost
+    // Activation du boost
     await activerBoostProduit(demande.produit, demande.duree);
 
     demande.statut = "VALIDEE";
     demande.dateValidation = new Date();
     await demande.save();
 
-    // 🚀 Envoi mail au vendeur
+    // 🔍 Logs de debug
+    console.log("📩 Envoi mail validation à:", demande.utilisateur.email);
+    console.log("📦 Produit:", demande.produit.nom);
+
+    // Envoi mail
     await envoyerMailBoost({
       email: demande.utilisateur.email,
       type: "VALIDEE",
