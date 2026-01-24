@@ -13,7 +13,7 @@ export default function Certification() {
   const [certification, setCertification] = useState(null);
 
   /* ================= CONFIG ================= */
-  const CERTIFICATION_PRICE = 5000; // Paiement initial manuel
+  const CERTIFICATION_PRICE = 5000;
   const WAVE_BASE_LINK = "https://pay.wave.com/m/M_sn_hHeTj4ufIvYG";
 
   /* ================= CHECK USER ================= */
@@ -26,15 +26,14 @@ export default function Certification() {
 
     const parsedUser = JSON.parse(storedUser);
 
-    if (parsedUser.certifie) {
+    if (parsedUser.certifie === true) {
       navigate("/dashboard");
       return;
     }
 
     setUser(parsedUser);
 
-    // Si le vendeur a déjà une demande en cours
-    if (parsedUser.demandeCertification) {
+    if (parsedUser.demandeCertification === true) {
       setDemandeEnvoyee(true);
       setCertification(parsedUser.certification || null);
     }
@@ -42,16 +41,32 @@ export default function Certification() {
 
   /* ================= DEMANDE CERTIFICATION ================= */
   const envoyerDemande = async () => {
+    if (loading || demandeEnvoyee) return;
+
     setError("");
-    if (demandeEnvoyee) return; // éviter double clic
+    setLoading(true);
+
     try {
-      setLoading(true);
-      const res = await api.post("/api/certification/demande", {});
-      setCertification(res.data.certification || null);
+      const res = await api.post("/api/certification/demande");
+
+      const certificationData = res.data.certification || null;
+      setCertification(certificationData);
       setDemandeEnvoyee(true);
+
+      // 🔄 Mise à jour du localStorage user
+      const updatedUser = {
+        ...user,
+        demandeCertification: true,
+        certification: certificationData,
+      };
+
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      setUser(updatedUser);
     } catch (err) {
+      console.error("Erreur demande certification :", err);
       setError(
         err.response?.data?.message ||
+          err.message ||
           "Erreur lors de l’envoi de la demande"
       );
     } finally {
@@ -72,13 +87,15 @@ export default function Certification() {
           <BsPatchCheckFill size={48} className="text-blue-500" />
         </div>
 
-        <h2 className="text-2xl font-bold mb-2">Certification du vendeur</h2>
+        <h2 className="text-2xl font-bold mb-2">
+          Certification du vendeur
+        </h2>
         <p className="text-gray-600 mb-4">
           Obtenez le badge officiel Dakarbusinesse.
         </p>
 
         <div className="mb-6 text-lg font-semibold">
-          Montant à payer:{" "}
+          Montant à payer :{" "}
           <span className="text-orange-600">
             {CERTIFICATION_PRICE.toLocaleString()} FCFA
           </span>
@@ -86,7 +103,9 @@ export default function Certification() {
 
         {!demandeEnvoyee ? (
           <>
-            {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+            {error && (
+              <p className="text-red-500 text-sm mb-4">{error}</p>
+            )}
 
             <button
               onClick={envoyerDemande}
@@ -103,7 +122,7 @@ export default function Certification() {
             </p>
 
             <p className="text-gray-600">
-              Paiement manuel requis:{" "}
+              Paiement manuel requis :{" "}
               <b className="text-orange-600">
                 {CERTIFICATION_PRICE.toLocaleString()} FCFA
               </b>
@@ -119,8 +138,8 @@ export default function Certification() {
             </a>
 
             <p className="text-xs text-gray-500">
-              La certification sera activée après validation du paiement par
-              l’administrateur.
+              La certification sera activée après validation du paiement
+              par l’administrateur.
             </p>
 
             <button
