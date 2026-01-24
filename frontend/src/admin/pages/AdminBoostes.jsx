@@ -4,6 +4,7 @@ import {
   validerBoost,
   refuserBoost,
 } from "../services/boost.api";
+import { envoyerMailBoost } from "../services/boost.api"; // <- ajoute ceci
 
 export default function AdminBoosts() {
   const [demandes, setDemandes] = useState([]);
@@ -58,13 +59,15 @@ export default function AdminBoosts() {
   const handleValider = async (id) => {
     setActionLoading(id);
     try {
-      const res = await validerBoost(id);
+      await validerBoost(id);
 
-      // envoyer mail au vendeur
+      // -> utilise les données de la demande actuelle (frontend)
+      const demande = demandes.find((d) => d._id === id);
+
       await envoyerMailBoost({
-        email: res.data.vendeur.email,
+        email: demande.utilisateur.email,
         type: "VALIDEE",
-        produit: res.data.boost.produit.nom,
+        produit: demande.produit.nom,
       });
 
       await fetchDemandes();
@@ -79,13 +82,14 @@ export default function AdminBoosts() {
   const handleRefuser = async (id) => {
     setActionLoading(id);
     try {
-      const res = await refuserBoost(id);
+      await refuserBoost(id);
 
-      // envoyer mail au vendeur
+      const demande = demandes.find((d) => d._id === id);
+
       await envoyerMailBoost({
-        email: res.data.vendeur.email,
+        email: demande.utilisateur.email,
         type: "REFUSEE",
-        produit: res.data.boost.produit.nom,
+        produit: demande.produit.nom,
       });
 
       await fetchDemandes();
@@ -112,7 +116,9 @@ export default function AdminBoosts() {
       ) : (
         <div className="grid gap-4">
           {demandes.map((d) => {
+            const alreadyTreated = d.statut !== "EN_ATTENTE";
             const disabled = actionLoading === d._id;
+
             const img = d.produit?.images?.[0] || "/placeholder.jpg";
 
             return (
@@ -158,7 +164,7 @@ export default function AdminBoosts() {
 
                   <div className="flex gap-2 flex-wrap">
                     <button
-                      disabled={disabled}
+                      disabled={disabled || (d.statut === "VALIDEE")}
                       onClick={() => openModal("VALIDER", d)}
                       className="bg-green-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
                     >
@@ -166,7 +172,7 @@ export default function AdminBoosts() {
                     </button>
 
                     <button
-                      disabled={disabled}
+                      disabled={disabled || (d.statut === "VALIDEE")}
                       onClick={() => openModal("REFUSER", d)}
                       className="bg-red-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
                     >
