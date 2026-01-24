@@ -5,6 +5,8 @@ import {
   refuserBoost,
 } from "../services/boost.api";
 
+import { envoyerMailBoost } from "../services/emailBoost.api";
+
 export default function AdminBoosts() {
   const [demandes, setDemandes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -58,27 +60,24 @@ export default function AdminBoosts() {
   const handleValider = async (id) => {
     if (actionLoading) return;
 
-    const demande = demandes.find(d => d._id === id);
-    if (!demande) return;
-
     setActionLoading(id);
 
     try {
       const res = await validerBoost(id);
 
+      // envoyer mail au vendeur
       await envoyerMailBoost({
         email: res.data.vendeur.email,
         type: "VALIDEE",
-        produit: res.data.boost.produit.nom,
+        produitNom: res.data.boost.produit.nom,
       });
 
-      // Mise à jour locale immédiate
-      setDemandes(prev =>
-        prev.map(d =>
+      // mise à jour locale immédiate
+      setDemandes((prev) =>
+        prev.map((d) =>
           d._id === id ? { ...d, statut: "VALIDEE" } : d
         )
       );
-
     } catch (err) {
       console.error("❌ Erreur validation boost :", err?.response?.data || err);
     } finally {
@@ -90,27 +89,24 @@ export default function AdminBoosts() {
   const handleRefuser = async (id) => {
     if (actionLoading) return;
 
-    const demande = demandes.find(d => d._id === id);
-    if (!demande) return;
-
     setActionLoading(id);
 
     try {
       const res = await refuserBoost(id);
 
+      // envoyer mail au vendeur
       await envoyerMailBoost({
         email: res.data.vendeur.email,
         type: "REFUSEE",
-        produit: res.data.boost.produit.nom,
+        produitNom: res.data.boost.produit.nom,
       });
 
-      // Mise à jour locale immédiate
-      setDemandes(prev =>
-        prev.map(d =>
+      // mise à jour locale immédiate
+      setDemandes((prev) =>
+        prev.map((d) =>
           d._id === id ? { ...d, statut: "REFUSEE" } : d
         )
       );
-
     } catch (err) {
       console.error("❌ Erreur refus boost :", err?.response?.data || err);
     } finally {
