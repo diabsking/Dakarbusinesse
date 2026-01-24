@@ -3,6 +3,7 @@ import {
   getDemandesBoost,
   validerBoost,
   refuserBoost,
+  envoyerMailBoost, // <-- nouveau service
 } from "../services/boost.api";
 
 export default function AdminBoosts() {
@@ -10,20 +11,23 @@ export default function AdminBoosts() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(null);
 
+  const [modal, setModal] = useState({
+    open: false,
+    type: null, // "VALIDER" | "REFUSER"
+    id: null,
+    produit: null,
+    vendeur: null,
+  });
+
   useEffect(() => {
     fetchDemandes();
   }, []);
 
   const fetchDemandes = async () => {
     setLoading(true);
-
     try {
       const res = await getDemandesBoost();
-      const demandesRecues =
-        res?.data?.demandes ||
-        res?.data?.data?.demandes ||
-        [];
-
+      const demandesRecues = res?.data?.demandes || res?.data?.data?.demandes || [];
       setDemandes(demandesRecues);
     } catch (err) {
       console.error("❌ Erreur chargement boosts :", err?.response?.data || err);
@@ -32,48 +36,66 @@ export default function AdminBoosts() {
     }
   };
 
+  const openModal = (type, d) => {
+    setModal({
+      open: true,
+      type,
+      id: d._id,
+      produit: d.produit?.nom,
+      vendeur: d.utilisateur,
+    });
+  };
+
+  const closeModal = () => {
+    setModal({
+      open: false,
+      type: null,
+      id: null,
+      produit: null,
+      vendeur: null,
+    });
+  };
+
   const handleValider = async (id) => {
     setActionLoading(id);
     try {
-      await validerBoost(id);
+      const res = await validerBoost(id);
+
+      // envoyer mail au vendeur
+      await envoyerMailBoost({
+        email: res.data.vendeur.email,
+        type: "VALIDEE",
+        produit: res.data.boost.produit.nom,
+      });
+
       await fetchDemandes();
     } catch (err) {
-      console.error(
-        "❌ Erreur validation boost :",
-        err?.response?.data || err
-      );
+      console.error("❌ Erreur validation boost :", err?.response?.data || err);
     } finally {
       setActionLoading(null);
+      closeModal();
     }
   };
 
   const handleRefuser = async (id) => {
     setActionLoading(id);
     try {
-      await refuserBoost(id);
+      const res = await refuserBoost(id);
+
+      // envoyer mail au vendeur
+      await envoyerMailBoost({
+        email: res.data.vendeur.email,
+        type: "REFUSEE",
+        produit: res.data.boost.produit.nom,
+      });
+
       await fetchDemandes();
     } catch (err) {
-      console.error(
-        "❌ Erreur refus boost :",
-        err?.response?.data || err
-      );
+      console.error("❌ Erreur refus boost :", err?.response?.data || err);
     } finally {
       setActionLoading(null);
+      closeModal();
     }
-  };
-
-  const buildWhatsappLink = (telephone, produitNom, statut) => {
-    // normalise +221 si nécessaire
-    let tel = telephone;
-    if (tel.startsWith("0")) tel = tel.slice(1);
-    if (!tel.startsWith("+221")) tel = "+221" + tel;
-
-    const message =
-      statut === "VALIDEE"
-        ? `Bonjour, votre demande de boost pour "${produitNom}" a été ACCEPTÉE. 🎉`
-        : `Bonjour, votre demande de boost pour "${produitNom}" a été REFUSÉE. ❌`;
-
-    return `https://wa.me/${tel.replace("+", "")}?text=${encodeURIComponent(message)}`;
   };
 
   if (loading) {
@@ -138,7 +160,7 @@ export default function AdminBoosts() {
                   <div className="flex gap-2 flex-wrap">
                     <button
                       disabled={disabled}
-                      onClick={() => handleValider(d._id)}
+                      onClick={() => openModal("VALIDER", d)}
                       className="bg-green-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
                     >
                       {actionLoading === d._id ? "..." : "Valider"}
@@ -146,29 +168,56 @@ export default function AdminBoosts() {
 
                     <button
                       disabled={disabled}
-                      onClick={() => handleRefuser(d._id)}
+                      onClick={() => openModal("REFUSER", d)}
                       className="bg-red-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
                     >
                       {actionLoading === d._id ? "..." : "Refuser"}
                     </button>
-
-                    <a
-                      href={buildWhatsappLink(
-                        d.utilisateur?.telephone || "000000000",
-                        d.produit?.nom || "votre produit",
-                        d.statut
-                      )}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-green-500 text-white px-4 py-2 rounded-lg"
-                    >
-                      WhatsApp
-                    </a>
                   </div>
                 </div>
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* MODAL */}
+      {modal.open && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-xl w-11/12 md:w-1/3">
+            <h3 className="text-xl font-bold mb-4">
+              {modal.type === "VALIDER" ? "Valider la demande ?" : "Refuser la demande ?"}
+            </h3>
+
+            <p className="mb-4">
+              Produit : <strong>{modal.produit}</strong>
+            </p>
+
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={closeModal}
+                className="bg-gray-200 px-4 py-2 rounded-lg"
+              >
+                Annuler
+              </button>
+
+              {modal.type === "VALIDER" ? (
+                <button
+                  onClick={() => handleValider(modal.id)}
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg"
+                >
+                  {actionLoading === modal.id ? "..." : "Confirmer"}
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleRefuser(modal.id)}
+                  className="bg-red-600 text-white px-4 py-2 rounded-lg"
+                >
+                  {actionLoading === modal.id ? "..." : "Confirmer"}
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
