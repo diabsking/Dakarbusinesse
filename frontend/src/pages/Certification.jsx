@@ -10,11 +10,11 @@ export default function Certification() {
   const [loading, setLoading] = useState(false);
   const [demandeEnvoyee, setDemandeEnvoyee] = useState(false);
   const [error, setError] = useState("");
+  const [certification, setCertification] = useState(null);
 
   /* ================= CONFIG ================= */
-  const CERTIFICATION_PRICE = 10000;
+  const CERTIFICATION_PRICE = 5000; // Paiement initial manuel
   const WAVE_BASE_LINK = "https://pay.wave.com/m/M_sn_hHeTj4ufIvYG";
-  const wavePaymentLink = `${WAVE_BASE_LINK}?amount=${CERTIFICATION_PRICE}`;
 
   /* ================= CHECK USER ================= */
   useEffect(() => {
@@ -32,14 +32,21 @@ export default function Certification() {
     }
 
     setUser(parsedUser);
+    // Si le vendeur a déjà une demande en cours
+    if (parsedUser.demandeCertification) {
+      setDemandeEnvoyee(true);
+      setCertification(parsedUser.certification || null);
+    }
   }, [navigate]);
 
   /* ================= DEMANDE CERTIFICATION ================= */
   const envoyerDemande = async () => {
     setError("");
+    if (demandeEnvoyee) return; // éviter double clic
     try {
       setLoading(true);
-      await api.post("/api/certification/demande", {});
+      const res = await api.post("/api/certification/demande", {});
+      setCertification(res.data.certification);
       setDemandeEnvoyee(true);
     } catch (err) {
       setError(
@@ -53,6 +60,8 @@ export default function Certification() {
 
   if (!user) return null;
 
+  const wavePaymentLink = `${WAVE_BASE_LINK}?amount=${CERTIFICATION_PRICE}&metadata=${certification?._id || ""}`;
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
       <div className="bg-white p-6 rounded-xl shadow-md max-w-md w-full text-center">
@@ -60,16 +69,14 @@ export default function Certification() {
           <BsPatchCheckFill size={48} className="text-blue-500" />
         </div>
 
-        <h2 className="text-2xl font-bold mb-2">
-          Certification du vendeur
-        </h2>
+        <h2 className="text-2xl font-bold mb-2">Certification du vendeur</h2>
 
         <p className="text-gray-600 mb-4">
           Obtenez le badge officiel Dakarbusinesse.
         </p>
 
         <div className="mb-6 text-lg font-semibold">
-          Prix :{" "}
+          Montant à payer :{" "}
           <span className="text-orange-600">
             {CERTIFICATION_PRICE.toLocaleString()} FCFA
           </span>
@@ -77,9 +84,7 @@ export default function Certification() {
 
         {!demandeEnvoyee ? (
           <>
-            {error && (
-              <p className="text-red-500 text-sm mb-4">{error}</p>
-            )}
+            {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
             <button
               onClick={envoyerDemande}
@@ -96,7 +101,7 @@ export default function Certification() {
             </p>
 
             <p className="text-gray-600">
-              Montant à payer :{" "}
+              Paiement manuel requis :{" "}
               <b className="text-orange-600">
                 {CERTIFICATION_PRICE.toLocaleString()} FCFA
               </b>
