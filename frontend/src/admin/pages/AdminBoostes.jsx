@@ -9,6 +9,7 @@ export default function AdminBoosts() {
   const [demandes, setDemandes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(null);
+  const [search, setSearch] = useState("");
 
   const [modal, setModal] = useState({
     open: false,
@@ -26,7 +27,8 @@ export default function AdminBoosts() {
     setLoading(true);
     try {
       const res = await getDemandesBoost();
-      const demandesRecues = res?.data?.demandes || res?.data?.data?.demandes || [];
+      const demandesRecues =
+        res?.data?.demandes || res?.data?.data?.demandes || [];
       setDemandes(demandesRecues);
     } catch (err) {
       console.error("❌ Erreur chargement boosts :", err?.response?.data || err);
@@ -57,19 +59,15 @@ export default function AdminBoosts() {
 
   const handleValider = async (id) => {
     if (actionLoading) return;
-
     setActionLoading(id);
 
     try {
-      const res = await validerBoost(id);
-
-      // Mise à jour locale immédiate
+      await validerBoost(id);
       setDemandes((prev) =>
         prev.map((d) =>
           d._id === id ? { ...d, statut: "VALIDEE" } : d
         )
       );
-
     } catch (err) {
       console.error("❌ Erreur validation boost :", err?.response?.data || err);
     } finally {
@@ -80,19 +78,15 @@ export default function AdminBoosts() {
 
   const handleRefuser = async (id) => {
     if (actionLoading) return;
-
     setActionLoading(id);
 
     try {
-      const res = await refuserBoost(id);
-
-      // Mise à jour locale immédiate
+      await refuserBoost(id);
       setDemandes((prev) =>
         prev.map((d) =>
           d._id === id ? { ...d, statut: "REFUSEE" } : d
         )
       );
-
     } catch (err) {
       console.error("❌ Erreur refus boost :", err?.response?.data || err);
     } finally {
@@ -100,6 +94,25 @@ export default function AdminBoosts() {
       closeModal();
     }
   };
+
+  /* ================= STATS ================= */
+  const stats = {
+    total: demandes.length,
+    validees: demandes.filter((d) => d.statut === "VALIDEE").length,
+    refusees: demandes.filter((d) => d.statut === "REFUSEE").length,
+    attente: demandes.filter((d) => d.statut === "EN_ATTENTE").length,
+  };
+
+  /* ================= SEARCH ================= */
+  const demandesFiltrees = demandes.filter((d) => {
+    const q = search.toLowerCase();
+    return (
+      d.utilisateur?.email?.toLowerCase().includes(q) ||
+      d.utilisateur?.nom?.toLowerCase().includes(q) ||
+      d.produit?.nom?.toLowerCase().includes(q) ||
+      d.waveNumber?.toString().includes(q)
+    );
+  });
 
   if (loading) {
     return <p>Chargement des demandes...</p>;
@@ -109,13 +122,30 @@ export default function AdminBoosts() {
     <div>
       <h2 className="text-2xl font-bold mb-6">Demandes de boost</h2>
 
-      {demandes.length === 0 ? (
+      {/* STATS */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <StatCard label="Total" value={stats.total} color="bg-gray-800" />
+        <StatCard label="Validées" value={stats.validees} color="bg-green-600" />
+        <StatCard label="Refusées" value={stats.refusees} color="bg-red-600" />
+        <StatCard label="En attente" value={stats.attente} color="bg-orange-500" />
+      </div>
+
+      {/* SEARCH */}
+      <input
+        type="text"
+        placeholder="Rechercher par email, produit ou numéro Wave..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="w-full mb-6 px-4 py-2 border rounded-lg focus:outline-none focus:ring"
+      />
+
+      {demandesFiltrees.length === 0 ? (
         <p className="text-red-600 font-semibold">
-          Aucune demande pour le moment
+          Aucune demande trouvée
         </p>
       ) : (
         <div className="grid gap-4">
-          {demandes.map((d) => {
+          {demandesFiltrees.map((d) => {
             const disabled = actionLoading === d._id;
             const img = d.produit?.images?.[0] || "/placeholder.jpg";
 
@@ -136,17 +166,22 @@ export default function AdminBoosts() {
                       {d.produit?.nom || "Produit inconnu"}
                     </p>
                     <p className="text-sm text-gray-500">
-                      Vendeur : {d.utilisateur?.nom || d.utilisateur?.email || "Inconnu"}
+                      Vendeur :{" "}
+                      {d.utilisateur?.nom ||
+                        d.utilisateur?.email ||
+                        "Inconnu"}
                     </p>
-                    <p className="text-sm text-gray-700">
+                    <p className="text-sm">
                       Statut :{" "}
-                      <span className={
-                        d.statut === "VALIDEE"
-                          ? "text-green-600 font-bold"
-                          : d.statut === "REFUSEE"
-                          ? "text-red-600 font-bold"
-                          : "text-orange-600 font-bold"
-                      }>
+                      <span
+                        className={
+                          d.statut === "VALIDEE"
+                            ? "text-green-600 font-bold"
+                            : d.statut === "REFUSEE"
+                            ? "text-red-600 font-bold"
+                            : "text-orange-600 font-bold"
+                        }
+                      >
                         {d.statut}
                       </span>
                     </p>
@@ -189,7 +224,9 @@ export default function AdminBoosts() {
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
           <div className="bg-white p-6 rounded-xl w-11/12 md:w-1/3">
             <h3 className="text-xl font-bold mb-4">
-              {modal.type === "VALIDER" ? "Valider la demande ?" : "Refuser la demande ?"}
+              {modal.type === "VALIDER"
+                ? "Valider la demande ?"
+                : "Refuser la demande ?"}
             </h3>
 
             <p className="mb-4">
@@ -227,10 +264,21 @@ export default function AdminBoosts() {
   );
 }
 
+/* ================= COMPONENTS ================= */
+
 function Tag({ label }) {
   return (
     <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs">
       {label}
     </span>
+  );
+}
+
+function StatCard({ label, value, color }) {
+  return (
+    <div className={`${color} text-white p-4 rounded-xl shadow`}>
+      <p className="text-sm opacity-80">{label}</p>
+      <p className="text-2xl font-bold">{value}</p>
+    </div>
   );
 }
