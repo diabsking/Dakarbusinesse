@@ -1,14 +1,22 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { BsPatchCheckFill } from "react-icons/bs";
 import api from "../services/api";
 
 export default function Certification() {
-  const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [demandeEnvoyee, setDemandeEnvoyee] = useState(false);
+  const [error, setError] = useState("");
+
+  /* ================= CONFIG ================= */
+  const CERTIFICATION_PRICE = 10000;
+  const WAVE_BASE_LINK = "https://pay.wave.com/m/M_sn_hHeTj4ufIvYG";
+  const wavePaymentLink = `${WAVE_BASE_LINK}?amount=${CERTIFICATION_PRICE}`;
+
+  /* ================= CHECK USER ================= */
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (!storedUser) {
@@ -17,6 +25,7 @@ export default function Certification() {
     }
 
     const parsedUser = JSON.parse(storedUser);
+
     if (parsedUser.certifie) {
       navigate("/dashboard");
       return;
@@ -25,17 +34,17 @@ export default function Certification() {
     setUser(parsedUser);
   }, [navigate]);
 
-  const lancerPaiement = async () => {
+  /* ================= DEMANDE CERTIFICATION ================= */
+  const envoyerDemande = async () => {
+    setError("");
     try {
       setLoading(true);
-      const token = localStorage.getItem("token");
-
-     const res = await api.post("/api/certification/payer", {});
-      window.location.href = res.data.payment_url;
-    } catch (error) {
-      alert(
-        error.response?.data?.message ||
-          "Erreur lors du paiement de la certification"
+      await api.post("/api/certification/demande", {});
+      setDemandeEnvoyee(true);
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+          "Erreur lors de l’envoi de la demande"
       );
     } finally {
       setLoading(false);
@@ -60,16 +69,61 @@ export default function Certification() {
         </p>
 
         <div className="mb-6 text-lg font-semibold">
-          Prix : <span className="text-orange-600">10 000 FCFA</span>
+          Prix :{" "}
+          <span className="text-orange-600">
+            {CERTIFICATION_PRICE.toLocaleString()} FCFA
+          </span>
         </div>
 
-        <button
-          onClick={lancerPaiement}
-          disabled={loading}
-          className="w-full bg-orange-600 text-black py-2 rounded-lg hover:bg-orange-700"
-        >
-          {loading ? "Redirection..." : "CERTIFICATION N'EST PAS FONCTIONNELLE. MERCI..."}
-        </button>
+        {!demandeEnvoyee ? (
+          <>
+            {error && (
+              <p className="text-red-500 text-sm mb-4">{error}</p>
+            )}
+
+            <button
+              onClick={envoyerDemande}
+              disabled={loading}
+              className="w-full bg-orange-600 text-black py-2 rounded-lg font-semibold disabled:opacity-50"
+            >
+              {loading ? "Envoi..." : "Demander la certification"}
+            </button>
+          </>
+        ) : (
+          <div className="space-y-4">
+            <p className="text-green-600 font-semibold">
+              Demande envoyée avec succès 🎉
+            </p>
+
+            <p className="text-gray-600">
+              Montant à payer :{" "}
+              <b className="text-orange-600">
+                {CERTIFICATION_PRICE.toLocaleString()} FCFA
+              </b>
+            </p>
+
+            <a
+              href={wavePaymentLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full bg-orange-600 text-black py-2 rounded-lg font-semibold"
+            >
+              Payer avec Wave
+            </a>
+
+            <p className="text-xs text-gray-500">
+              La certification sera activée après validation du paiement par
+              l’administrateur.
+            </p>
+
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="w-full bg-gray-100 text-gray-700 py-2 rounded-lg"
+            >
+              Retour au dashboard
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

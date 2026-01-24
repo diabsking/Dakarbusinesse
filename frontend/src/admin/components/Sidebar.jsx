@@ -4,6 +4,7 @@ import {
   FiBox,
   FiShoppingCart,
   FiZap,
+  FiAward, // <-- ajouté pour Certification
 } from "react-icons/fi";
 
 export default function Sidebar({ active, setActive }) {
@@ -12,7 +13,8 @@ export default function Sidebar({ active, setActive }) {
     { id: "vendeurs", label: "Vendeurs", Icon: FiUsers },
     { id: "produits", label: "Produits", Icon: FiBox },
     { id: "commandes", label: "Commandes", Icon: FiShoppingCart },
-    { id: "boosts", label: "Boosts", Icon: FiZap }, // <-- ajouté
+    { id: "boosts", label: "Boosts", Icon: FiZap },
+    { id: "certification", label: "Certification", Icon: FiAward }, // <-- ajouté
   ];
 
   /* =====================

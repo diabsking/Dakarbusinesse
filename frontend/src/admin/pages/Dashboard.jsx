@@ -6,20 +6,20 @@ import { getStatsAdmin } from "../services/admin.api";
 import AdminVendeurs from "./AdminVendeurs";
 import AdminProduits from "./AdminProduits";
 import AdminCommandes from "./AdminCommandes";
-import AdminBoostes from "./AdminBoostes";  // <-- ajouté
+import AdminBoostes from "./AdminBoostes";
+import AdminCertification from "./AdminCertification"; // <-- ajouté
 import Sidebar from "../components/Sidebar";
 
 export default function Dashboard() {
   const [active, setActive] = useState("home");
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
-  const [isAuthorized, setIsAuthorized] = useState(null); // null = check, true = ok, false = no
+  const [isAuthorized, setIsAuthorized] = useState(null);
 
   const navigate = useNavigate();
 
   /* =========================
      VÉRIFICATION AUTH ADMIN
-     (via route protégée /stats)
   ========================= */
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
@@ -31,9 +31,7 @@ export default function Dashboard() {
     }
 
     getStatsAdmin()
-      .then(() => {
-        setIsAuthorized(true);
-      })
+      .then(() => setIsAuthorized(true))
       .catch(() => {
         localStorage.removeItem("adminToken");
         navigate("/admin/login");
@@ -48,21 +46,12 @@ export default function Dashboard() {
     if (!isAuthorized) return;
 
     getStatsAdmin()
-      .then((res) => {
-        setStats(res.data?.data || {});
-      })
-      .catch(() => {
-        setStats({});
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+      .then((res) => setStats(res.data?.data || {}))
+      .catch(() => setStats({}))
+      .finally(() => setLoading(false));
   }, [isAuthorized]);
 
-  if (isAuthorized === null) {
-    return <p className="p-6">Vérification du token admin...</p>;
-  }
-
+  if (isAuthorized === null) return <p className="p-6">Vérification du token admin...</p>;
   if (isAuthorized === false) return null;
 
   const renderContent = () => {
@@ -73,8 +62,10 @@ export default function Dashboard() {
         return <AdminProduits />;
       case "commandes":
         return <AdminCommandes />;
-      case "boosts":             // <-- ajouté
-        return <AdminBoostes />; // <-- ajouté
+      case "boosts":
+        return <AdminBoostes />;
+      case "certification": // <-- ajouté
+        return <AdminCertification />; // <-- ajouté
       default:
         return <DashboardHome stats={stats} loading={loading} />;
     }
@@ -94,27 +85,16 @@ export default function Dashboard() {
    HOME DASHBOARD
 ========================= */
 function DashboardHome({ stats, loading }) {
-  if (loading) {
-    return <p>Chargement des statistiques...</p>;
-  }
+  if (loading) return <p>Chargement des statistiques...</p>;
 
   return (
     <>
       <h2 className="text-2xl font-bold mb-6">Vue générale</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard
-          title="Commandes"
-          value={stats.totalCommandes ?? 0}
-        />
-        <StatCard
-          title="Ventes"
-          value={`${stats.totalVentes ?? 0} FCFA`}
-        />
-        <StatCard
-          title="Annulées"
-          value={stats.commandesAnnulees ?? 0}
-        />
+        <StatCard title="Commandes" value={stats.totalCommandes ?? 0} />
+        <StatCard title="Ventes" value={`${stats.totalVentes ?? 0} FCFA`} />
+        <StatCard title="Annulées" value={stats.commandesAnnulees ?? 0} />
       </div>
     </>
   );
