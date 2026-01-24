@@ -1,3 +1,4 @@
+// frontend/src/pages/Certification.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { BsPatchCheckFill } from "react-icons/bs";
@@ -21,8 +22,6 @@ export default function Certification() {
     console.log("🔍 CHECK USER");
 
     const storedUser = localStorage.getItem("user");
-    console.log("👤 localStorage user :", storedUser);
-
     if (!storedUser) {
       console.warn("❌ Aucun user → redirection login");
       navigate("/login");
@@ -51,21 +50,21 @@ export default function Certification() {
   const envoyerDemande = async () => {
     console.log("🚀 CLICK → envoyerDemande");
 
-    if (loading || demandeEnvoyee) {
-      console.warn("⛔ Action bloquée (loading ou déjà envoyée)");
-      return;
-    }
+    if (loading || demandeEnvoyee) return;
 
     setError("");
     setLoading(true);
 
     try {
-      console.log("📡 Envoi POST /api/certification/demande");
+      // 🔑 token depuis user
+      const token = user?.token;
+      if (!token) throw new Error("Token manquant, reconnectez-vous.");
 
-      const res = await api.post("/api/certification/demande");
+      const res = await api.post("/api/certification/demande", {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-      console.log("✅ RÉPONSE API :", res);
-      console.log("📦 DATA :", res.data);
+      console.log("✅ RÉPONSE API :", res.data);
 
       const certificationData = res.data.certification || null;
       setCertification(certificationData);
@@ -77,29 +76,16 @@ export default function Certification() {
         certification: certificationData,
       };
 
-      console.log("🔄 User mis à jour :", updatedUser);
-
       localStorage.setItem("user", JSON.stringify(updatedUser));
       setUser(updatedUser);
+
     } catch (err) {
-      console.error("🔥 ERREUR FRONTEND DEMANDE CERTIFICATION");
-
-      if (err.response) {
-        console.error("📡 STATUS :", err.response.status);
-        console.error("📦 DATA :", err.response.data);
-        console.error("📄 HEADERS :", err.response.headers);
-      } else {
-        console.error("❓ ERREUR SANS RÉPONSE :", err.message);
-      }
-
+      console.error("🔥 ERREUR FRONTEND DEMANDE CERTIFICATION", err);
       setError(
-        err.response?.data?.message ||
-          err.message ||
-          "Erreur lors de l’envoi de la demande"
+        err.response?.data?.message || err.message || "Erreur lors de l’envoi de la demande"
       );
     } finally {
       setLoading(false);
-      console.log("⏹️ Fin envoyerDemande");
     }
   };
 
@@ -133,9 +119,7 @@ export default function Certification() {
 
         {!demandeEnvoyee ? (
           <>
-            {error && (
-              <p className="text-red-500 text-sm mb-4">{error}</p>
-            )}
+            {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
             <button
               onClick={envoyerDemande}
