@@ -5,8 +5,6 @@ import {
   refuserBoost,
 } from "../services/boost.api";
 
-import { envoyerMailBoost } from "../services/emailBoost.api";
-
 export default function AdminBoosts() {
   const [demandes, setDemandes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -65,19 +63,13 @@ export default function AdminBoosts() {
     try {
       const res = await validerBoost(id);
 
-      // envoyer mail au vendeur
-      await envoyerMailBoost({
-        email: res.data.vendeur.email,
-        type: "VALIDEE",
-        produitNom: res.data.boost.produit.nom,
-      });
-
-      // mise à jour locale immédiate
+      // Mise à jour locale immédiate
       setDemandes((prev) =>
         prev.map((d) =>
           d._id === id ? { ...d, statut: "VALIDEE" } : d
         )
       );
+
     } catch (err) {
       console.error("❌ Erreur validation boost :", err?.response?.data || err);
     } finally {
@@ -94,19 +86,13 @@ export default function AdminBoosts() {
     try {
       const res = await refuserBoost(id);
 
-      // envoyer mail au vendeur
-      await envoyerMailBoost({
-        email: res.data.vendeur.email,
-        type: "REFUSEE",
-        produitNom: res.data.boost.produit.nom,
-      });
-
-      // mise à jour locale immédiate
+      // Mise à jour locale immédiate
       setDemandes((prev) =>
         prev.map((d) =>
           d._id === id ? { ...d, statut: "REFUSEE" } : d
         )
       );
+
     } catch (err) {
       console.error("❌ Erreur refus boost :", err?.response?.data || err);
     } finally {
