@@ -3,7 +3,6 @@ import {
   getDemandesBoost,
   validerBoost,
   refuserBoost,
-  envoyerMailBoost, // <-- nouveau service
 } from "../services/boost.api";
 
 export default function AdminBoosts() {
