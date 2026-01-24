@@ -1,6 +1,6 @@
 import cron from "node-cron";
-import Produit from "../models/Produit";
-import StatProduit from "../models/StatProduit";
+import Produit from "../models/Produit.js";
+import StatProduit from "../models/StatProduit.js";
 
 /**
  * Vérifie toutes les minutes si des boosts ont expiré
