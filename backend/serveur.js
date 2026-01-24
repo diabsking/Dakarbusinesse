@@ -16,11 +16,11 @@ import paiementsRoutes from "./routes/paiements.routes.js";
 import certificationRoutes from "./routes/certification.routes.js";
 import vendeurPublicRoutes from "./routes/vendeur.public.routes.js";
 import adminRoutes from "./src/admin/routes/index.js";
-
+import { startBoostScheduler } from "./utils/boostScheduler.js";
 
 
 const app = express();
-
+startBoostScheduler();
 /* =====================================================
    🔍 LOG DÉMARRAGE
 ===================================================== */

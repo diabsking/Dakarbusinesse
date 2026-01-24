@@ -708,6 +708,8 @@ export const refuserDemandeBoost = async (req, res) => {
    🔧 FONCTION INTERNE ACTIVATION BOOST
 ===================================================== */
 const activerBoostProduit = async (produitId, dureeJours) => {
+  if (!produitId || !dureeJours || dureeJours <= 0) return;
+
   const produit = await Produit.findById(produitId);
   if (!produit) return;
 
