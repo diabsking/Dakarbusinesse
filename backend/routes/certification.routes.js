@@ -4,7 +4,6 @@ import {
   getDemandesCertification,
   validerDemandeCertification,
   refuserDemandeCertification,
-  webhookCertification,
 } from "../controllers/certification.controller.js";
 
 const router = express.Router();
@@ -13,11 +12,6 @@ const router = express.Router();
    ROUTES VENDEUR
 ======================= */
 router.post("/demande", demandeCertification);
-
-/* =======================
-   ROUTE WEBHOOK (PayDunya / Wave)
-======================= */
-router.post("/webhook", webhookCertification);
 
 /* =======================
    ROUTES ADMIN
