@@ -18,15 +18,22 @@ export default function Certification() {
 
   /* ================= CHECK USER ================= */
   useEffect(() => {
+    console.log("🔍 CHECK USER");
+
     const storedUser = localStorage.getItem("user");
+    console.log("👤 localStorage user :", storedUser);
+
     if (!storedUser) {
+      console.warn("❌ Aucun user → redirection login");
       navigate("/login");
       return;
     }
 
     const parsedUser = JSON.parse(storedUser);
+    console.log("✅ User parsé :", parsedUser);
 
     if (parsedUser.certifie === true) {
+      console.log("ℹ️ Déjà certifié → dashboard");
       navigate("/dashboard");
       return;
     }
@@ -34,6 +41,7 @@ export default function Certification() {
     setUser(parsedUser);
 
     if (parsedUser.demandeCertification === true) {
+      console.log("ℹ️ Demande déjà envoyée");
       setDemandeEnvoyee(true);
       setCertification(parsedUser.certification || null);
     }
@@ -41,29 +49,49 @@ export default function Certification() {
 
   /* ================= DEMANDE CERTIFICATION ================= */
   const envoyerDemande = async () => {
-    if (loading || demandeEnvoyee) return;
+    console.log("🚀 CLICK → envoyerDemande");
+
+    if (loading || demandeEnvoyee) {
+      console.warn("⛔ Action bloquée (loading ou déjà envoyée)");
+      return;
+    }
 
     setError("");
     setLoading(true);
 
     try {
+      console.log("📡 Envoi POST /api/certification/demande");
+
       const res = await api.post("/api/certification/demande");
+
+      console.log("✅ RÉPONSE API :", res);
+      console.log("📦 DATA :", res.data);
 
       const certificationData = res.data.certification || null;
       setCertification(certificationData);
       setDemandeEnvoyee(true);
 
-      // 🔄 Mise à jour du localStorage user
       const updatedUser = {
         ...user,
         demandeCertification: true,
         certification: certificationData,
       };
 
+      console.log("🔄 User mis à jour :", updatedUser);
+
       localStorage.setItem("user", JSON.stringify(updatedUser));
       setUser(updatedUser);
     } catch (err) {
-      console.error("Erreur demande certification :", err);
+      console.error("🔥 ERREUR FRONTEND DEMANDE CERTIFICATION");
+
+      if (err.response) {
+        console.error("📡 STATUS :", err.response.status);
+        console.error("📦 DATA :", err.response.data);
+        console.error("📄 HEADERS :", err.response.headers);
+      } else {
+        console.error("❓ ERREUR SANS RÉPONSE :", err.message);
+      }
+
       setError(
         err.response?.data?.message ||
           err.message ||
@@ -71,6 +99,7 @@ export default function Certification() {
       );
     } finally {
       setLoading(false);
+      console.log("⏹️ Fin envoyerDemande");
     }
   };
 
@@ -90,6 +119,7 @@ export default function Certification() {
         <h2 className="text-2xl font-bold mb-2">
           Certification du vendeur
         </h2>
+
         <p className="text-gray-600 mb-4">
           Obtenez le badge officiel Dakarbusinesse.
         </p>
