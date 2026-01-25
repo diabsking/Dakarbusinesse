@@ -95,8 +95,12 @@ export const validerDemandeCertification = async (req, res) => {
     const { paiementReference } = req.body;
 
     const certification = await Certification.findById(id);
-    if (!certification) return res.status(404).json({ message: "Certification introuvable" });
+    if (!certification) {
+      console.warn("❌ Certification introuvable");
+      return res.status(404).json({ message: "Certification introuvable" });
+    }
 
+    // ✅ Autoriser la validation même si la demande était refusée
     if (certification.statut === "active") {
       return res.status(400).json({ message: "Cette demande est déjà validée" });
     }
@@ -105,34 +109,49 @@ export const validerDemandeCertification = async (req, res) => {
       certification: certification._id,
       type: "initial",
     });
-    if (!paiement) return res.status(404).json({ message: "Paiement initial introuvable" });
+    if (!paiement) {
+      console.warn("❌ Paiement initial introuvable");
+      return res.status(404).json({ message: "Paiement initial introuvable" });
+    }
 
     // Validation du paiement
     paiement.statut = "validated";
     paiement.referencePaiement = paiementReference || "";
     paiement.dateValidation = new Date();
     await paiement.save();
+    console.log("Paiement validé :", paiement._id);
 
     // Activation de la certification
     certification.statut = "active";
     certification.dateActivation = new Date();
     const dateFin = new Date();
-    dateFin.setMonth(dateFin.getMonth() + 1);
+    dateFin.setMonth(dateFin.getMonth() + 1); // 1 mois de validité
     certification.dateExpiration = dateFin;
     await certification.save();
+    console.log("Certification activée :", certification._id);
 
     // Mise à jour du vendeur
     const vendeur = await Vendeur.findById(certification.vendeur);
+    if (!vendeur) {
+      console.warn("⚠️ Vendeur introuvable pour cette certification");
+      return res.status(404).json({ message: "Vendeur introuvable" });
+    }
     vendeur.certifie = true;
     vendeur.demandeCertification = false;
     await vendeur.save();
+    console.log("Vendeur mis à jour :", vendeur._id);
 
     // Envoi email au vendeur
-    await envoyerMailCertification({
-      email: vendeur.email,
-      type: "VALIDEE",
-      nomVendeur: vendeur.nomVendeur,
-    });
+    try {
+      await envoyerMailCertification({
+        email: vendeur.email,
+        type: "VALIDEE",
+        nomVendeur: vendeur.nomVendeur,
+      });
+      console.log(`✅ Email de validation envoyé à ${vendeur.email}`);
+    } catch (emailErr) {
+      console.error("❌ Erreur envoi email :", emailErr);
+    }
 
     res.json({ message: "Demande de certification validée" });
   } catch (err) {
