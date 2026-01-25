@@ -3,80 +3,64 @@ import Certification from "../models/Certification.js";
 import CertificationPaiement from "../models/CertificationPaiement.js";
 
 /* =======================
-   1️⃣ DEMANDE DE CERTIFICATION
+   1️⃣ DEMANDE DE CERTIFICATION (VENDEUR)
 ======================= */
 export const demandeCertification = async (req, res) => {
-  console.log("🚀 [CERTIFICATION] demandeCertification appelée");
+  console.log("🚀 [CERTIFICATION] demandeCertification");
 
   try {
-    console.log("🔑 req.vendeur :", req.vendeur);
-
     if (!req.vendeur?.id) {
-      console.log("❌ req.vendeur.id manquant");
       return res.status(401).json({ message: "Non autorisé" });
     }
 
-    console.log("🔍 Recherche vendeur ID :", req.vendeur.id);
     const vendeur = await Vendeur.findById(req.vendeur.id);
-    console.log("👤 Vendeur trouvé :", vendeur?._id);
-
     if (!vendeur) {
-      console.log("❌ Vendeur introuvable");
       return res.status(404).json({ message: "Vendeur introuvable" });
     }
 
-    console.log("📌 État vendeur :", {
-      certifie: vendeur.certifie,
-      demandeCertification: vendeur.demandeCertification,
-    });
-
-    if (vendeur.certification?.statut === "active" || vendeur.certifie === true) {
-      console.log("⛔ Vendeur déjà certifié");
+    // Déjà certifié
+    if (vendeur.certifie === true) {
       return res.status(400).json({ message: "Vous êtes déjà certifié" });
     }
 
-    console.log("🔎 Recherche certification existante");
+    // Cherche ou crée la certification
     let certification = await Certification.findOne({ vendeur: vendeur._id });
-    console.log("📄 Certification existante :", certification?._id);
 
     if (!certification) {
-      console.log("➕ Création nouvelle certification");
       certification = new Certification({
         vendeur: vendeur._id,
         statut: "pending",
         dateDemande: new Date(),
       });
     } else {
-      console.log("♻️ Mise à jour certification existante");
+      // Remise en attente si nouvelle demande
       certification.statut = "pending";
       certification.dateDemande = new Date();
+      certification.dateActivation = null;
+      certification.dateExpiration = null;
     }
 
     await certification.save();
-    console.log("✅ Certification sauvegardée :", certification._id);
 
-    console.log("💰 Création paiement initial");
+    // Paiement initial (optionnel : vérifier s’il existe déjà)
     const paiement = new CertificationPaiement({
       certification: certification._id,
       vendeur: vendeur._id,
       type: "initial",
-      montant: certification.montantInitial || 5000,
+      montant: certification.montantInitial,
       statut: "pending",
     });
 
     await paiement.save();
-    console.log("✅ Paiement créé :", paiement._id);
 
+    // MAJ vendeur
     vendeur.demandeCertification = true;
     vendeur.dateDemandeCertification = new Date();
     await vendeur.save();
 
-    console.log("✅ Vendeur mis à jour");
-
     res.json({
       message: "Demande de certification envoyée avec succès",
       certification,
-      paiement,
     });
   } catch (err) {
     console.error("🔥 ERREUR demandeCertification :", err);
@@ -97,7 +81,6 @@ export const getDemandesCertification = async (req, res) => {
       .populate("vendeur", "nomVendeur email nomBoutique")
       .sort({ dateDemande: -1 });
 
-    console.log("📊 Nombre de demandes :", demandes.length);
     res.json(demandes);
   } catch (err) {
     console.error("🔥 ERREUR getDemandesCertification :", err);
@@ -109,19 +92,24 @@ export const getDemandesCertification = async (req, res) => {
 
 /* =======================
    3️⃣ VALIDER DEMANDE (ADMIN)
+   PUT /api/certification/:id/valider
 ======================= */
 export const validerDemandeCertification = async (req, res) => {
   console.log("✅ [ADMIN] validerDemandeCertification");
 
   try {
-    const { certificationId, paiementReference } = req.body;
-    console.log("📥 Body :", req.body);
+    const { id } = req.params;
+    const { paiementReference } = req.body;
 
-    const certification = await Certification.findById(certificationId);
-    console.log("📄 Certification :", certification?._id);
-
+    const certification = await Certification.findById(id);
     if (!certification) {
       return res.status(404).json({ message: "Certification introuvable" });
+    }
+
+    if (certification.statut !== "pending") {
+      return res.status(400).json({
+        message: "Cette demande ne peut plus être validée",
+      });
     }
 
     const paiement = await CertificationPaiement.findOne({
@@ -129,10 +117,10 @@ export const validerDemandeCertification = async (req, res) => {
       type: "initial",
     });
 
-    console.log("💳 Paiement :", paiement?._id);
-
     if (!paiement) {
-      return res.status(404).json({ message: "Paiement initial introuvable" });
+      return res.status(404).json({
+        message: "Paiement initial introuvable",
+      });
     }
 
     paiement.statut = "validated";
@@ -151,14 +139,11 @@ export const validerDemandeCertification = async (req, res) => {
 
     const vendeur = await Vendeur.findById(certification.vendeur);
     vendeur.certifie = true;
+    vendeur.demandeCertification = false;
     await vendeur.save();
-
-    console.log("🎉 Certification activée");
 
     res.json({
       message: "Demande de certification validée",
-      certification,
-      paiement,
     });
   } catch (err) {
     console.error("🔥 ERREUR validerDemandeCertification :", err);
@@ -170,17 +155,16 @@ export const validerDemandeCertification = async (req, res) => {
 
 /* =======================
    4️⃣ REFUSER DEMANDE (ADMIN)
+   PUT /api/certification/:id/refuser
 ======================= */
 export const refuserDemandeCertification = async (req, res) => {
   console.log("❌ [ADMIN] refuserDemandeCertification");
 
   try {
-    const { certificationId, commentaireAdmin } = req.body;
-    console.log("📥 Body :", req.body);
+    const { id } = req.params;
+    const { commentaireAdmin } = req.body;
 
-    const certification = await Certification.findById(certificationId);
-    console.log("📄 Certification :", certification?._id);
-
+    const certification = await Certification.findById(id);
     if (!certification) {
       return res.status(404).json({ message: "Certification introuvable" });
     }
@@ -190,9 +174,8 @@ export const refuserDemandeCertification = async (req, res) => {
 
     const vendeur = await Vendeur.findById(certification.vendeur);
     vendeur.demandeCertification = false;
+    vendeur.certifie = false;
     await vendeur.save();
-
-    console.log("🚫 Demande refusée");
 
     res.json({
       message: "Demande de certification refusée",
