@@ -11,14 +11,19 @@ const router = express.Router();
 /* =======================
    ROUTES VENDEUR
 ======================= */
+// POST /api/certification/demande
 router.post("/demande", demandeCertification);
 
 /* =======================
    ROUTES ADMIN
 ======================= */
+// GET /api/certification/demandes
 router.get("/demandes", getDemandesCertification);
-router.post("/certification/valider/:id", validerDemandeCertification);
-router.post("/certification/refuser/:id", refuserDemandeCertification);
 
+// POST /api/certification/valider/:id
+router.post("/valider/:id", validerDemandeCertification);
+
+// POST /api/certification/refuser/:id
+router.post("/refuser/:id", refuserDemandeCertification);
 
 export default router;
