@@ -23,6 +23,7 @@ export default function AdminCertification() {
       setDemandes(res.data || []);
     } catch (err) {
       console.error("Erreur fetch demandes :", err);
+      alert("Erreur lors du chargement des demandes");
     } finally {
       setLoading(false);
     }
@@ -40,9 +41,10 @@ export default function AdminCertification() {
 
     setActionLoading(id);
     try {
-      await validerDemandeCertification(id); // ✅ id dans l'URL
+      await validerDemandeCertification(id);
       await fetchDemandes();
     } catch (err) {
+      console.error(err);
       alert(err.response?.data?.message || "Erreur lors de la validation");
     } finally {
       setActionLoading(null);
@@ -57,9 +59,10 @@ export default function AdminCertification() {
 
     setActionLoading(id);
     try {
-      await refuserDemandeCertification(id); // ✅ id dans l'URL
+      await refuserDemandeCertification(id);
       await fetchDemandes();
     } catch (err) {
+      console.error(err);
       alert(err.response?.data?.message || "Erreur lors du refus");
     } finally {
       setActionLoading(null);
@@ -69,24 +72,25 @@ export default function AdminCertification() {
   /* =====================
      FILTRAGE PAR EMAIL
   ===================== */
-  const demandesFiltrees = useMemo(() => {
-    return demandes.filter((d) =>
-      d.vendeur?.email?.toLowerCase().includes(searchEmail.toLowerCase())
-    );
-  }, [demandes, searchEmail]);
+  const demandesFiltrees = useMemo(
+    () =>
+      demandes.filter((d) =>
+        d.vendeur?.email?.toLowerCase().includes(searchEmail.toLowerCase())
+      ),
+    [demandes, searchEmail]
+  );
 
   /* =====================
      STATS
   ===================== */
   const stats = useMemo(() => {
-    let total = 0;
-    let totalValide = 0;
-    let totalRefuse = 0;
+    let total = 0,
+      totalValide = 0,
+      totalRefuse = 0;
 
     demandes.forEach((d) => {
       const montant = d.montantInitial || DEFAULT_PRICE;
       total += montant;
-
       if (d.statut === "active") totalValide += montant;
       if (d.statut === "rejected") totalRefuse += montant;
     });
@@ -173,7 +177,6 @@ export default function AdminCertification() {
                     >
                       {actionLoading === d._id ? "..." : "Valider"}
                     </button>
-
                     <button
                       onClick={() => handleRefuser(d._id)}
                       disabled={actionLoading === d._id}
