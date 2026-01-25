@@ -4,16 +4,18 @@ import CertificationPaiement from "../models/CertificationPaiement.js";
 
 /* =======================
    1️⃣ DEMANDE DE CERTIFICATION (VENDEUR)
+   Sans token, on récupère l'ID du vendeur depuis req.body
 ======================= */
 export const demandeCertification = async (req, res) => {
   console.log("🚀 [CERTIFICATION] demandeCertification");
 
   try {
-    if (!req.vendeur?.id) {
-      return res.status(401).json({ message: "Non autorisé" });
+    const { vendeurId } = req.body; // <-- ID vendeur envoyé par le front
+    if (!vendeurId) {
+      return res.status(400).json({ message: "ID vendeur requis" });
     }
 
-    const vendeur = await Vendeur.findById(req.vendeur.id);
+    const vendeur = await Vendeur.findById(vendeurId);
     if (!vendeur) {
       return res.status(404).json({ message: "Vendeur introuvable" });
     }
@@ -42,7 +44,7 @@ export const demandeCertification = async (req, res) => {
 
     await certification.save();
 
-    // Paiement initial (optionnel : vérifier s’il existe déjà)
+    // Paiement initial
     const paiement = new CertificationPaiement({
       certification: certification._id,
       vendeur: vendeur._id,
@@ -92,7 +94,6 @@ export const getDemandesCertification = async (req, res) => {
 
 /* =======================
    3️⃣ VALIDER DEMANDE (ADMIN)
-   PUT /api/certification/:id/valider
 ======================= */
 export const validerDemandeCertification = async (req, res) => {
   console.log("✅ [ADMIN] validerDemandeCertification");
@@ -130,11 +131,9 @@ export const validerDemandeCertification = async (req, res) => {
 
     certification.statut = "active";
     certification.dateActivation = new Date();
-
     const dateFin = new Date();
     dateFin.setMonth(dateFin.getMonth() + 1);
     certification.dateExpiration = dateFin;
-
     await certification.save();
 
     const vendeur = await Vendeur.findById(certification.vendeur);
@@ -155,7 +154,6 @@ export const validerDemandeCertification = async (req, res) => {
 
 /* =======================
    4️⃣ REFUSER DEMANDE (ADMIN)
-   PUT /api/certification/:id/refuser
 ======================= */
 export const refuserDemandeCertification = async (req, res) => {
   console.log("❌ [ADMIN] refuserDemandeCertification");
