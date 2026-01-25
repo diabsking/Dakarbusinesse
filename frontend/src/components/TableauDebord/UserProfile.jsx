@@ -327,11 +327,12 @@ function UserProfile() {
 
             {!user.certifie && (
               <button
-                onClick={() => navigate("/certification")}
-                className="w-full px-4 py-2 text-left text-blue-600 hover:bg-gray-100"
-              >
-                Devenir vendeur certifié
-              </button>
+            onClick={() => navigate("/certification")}
+            className="w-full px-4 py-2 text-left text-blue-600 hover:bg-gray-100"
+            >
+            Devenir vendeur certifié
+            </button>
+
             )}
 
             <button
