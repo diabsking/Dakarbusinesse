@@ -2,7 +2,7 @@ import { useState } from "react";
 import { BsPatchCheckFill } from "react-icons/bs";
 import api from "../services/api";
 
-export default function Certification() {
+export default function Certification({ vendeurId }) {
   const [demandeEnvoyee, setDemandeEnvoyee] = useState(false);
   const [certification, setCertification] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
@@ -12,24 +12,22 @@ export default function Certification() {
 
   /* ================= ENVOI DEMANDE CERTIFICATION ================= */
   const envoyerDemandeCertification = async () => {
-    if (demandeEnvoyee || actionLoading) return;
+    if (demandeEnvoyee) return;
+
+    if (!vendeurId) {
+      alert("ID vendeur manquant !");
+      return;
+    }
 
     setActionLoading(true);
-
     try {
-      // On poste directement la demande, le backend gère l'identification
-      const res = await api.post("/api/certification/demande");
+      const res = await api.post("/api/certification/demande", { vendeurId });
+      const nouvelleCertification = res.data.certification;
 
-      if (!res.data.certification) {
-        throw new Error("Aucune certification reçue du serveur");
-      }
-
-      setCertification(res.data.certification);
+      setCertification(nouvelleCertification);
       setDemandeEnvoyee(true);
-
     } catch (err) {
-      console.error("🔥 Erreur lors de la demande de certification :", err);
-
+      console.error("🔥 Erreur lors de la demande :", err);
       const message =
         err.response?.data?.message ||
         err.message ||
