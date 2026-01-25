@@ -3,14 +3,14 @@ import Certification from "../models/Certification.js";
 import CertificationPaiement from "../models/CertificationPaiement.js";
 
 /* =======================
-   DEMANDE DE CERTIFICATION
-   Sans token, on récupère l'ID du vendeur depuis req.body
+   1️⃣ DEMANDE DE CERTIFICATION
 ======================= */
 export const demandeCertification = async (req, res) => {
   console.log("🚀 [CERTIFICATION] demandeCertification");
 
   try {
-    const { vendeurId } = req.body; // ID du vendeur envoyé depuis le front
+    const { vendeurId } = req.body;
+
     if (!vendeurId) {
       return res.status(400).json({ message: "ID vendeur requis" });
     }
@@ -25,28 +25,32 @@ export const demandeCertification = async (req, res) => {
       return res.status(400).json({ message: "Vous êtes déjà certifié" });
     }
 
-    // Cherche ou crée la certification
-    let certification = await Certification.findOne({ vendeur: vendeur._id });
+    // 🔒 BLOCAGE DEMANDE RÉPÉTITIVE
+    const existingCertification = await Certification.findOne({
+      vendeur: vendeur._id,
+      statut: { $in: ["pending", "active"] },
+    });
 
-    if (!certification) {
-      certification = new Certification({
-        vendeur: vendeur._id,
-        statut: "pending",
-        dateDemande: new Date(),
-        montantInitial: 5000, // valeur par défaut sécurisée
+    if (existingCertification) {
+      return res.status(400).json({
+        message:
+          existingCertification.statut === "active"
+            ? "Vous êtes déjà certifié"
+            : "Une demande de certification est déjà en cours",
       });
-    } else {
-      // Remise en attente si nouvelle demande
-      certification.statut = "pending";
-      certification.dateDemande = new Date();
-      certification.dateActivation = null;
-      certification.dateExpiration = null;
-      if (!certification.montantInitial) certification.montantInitial = 5000;
     }
+
+    // Création nouvelle certification
+    const certification = new Certification({
+      vendeur: vendeur._id,
+      statut: "pending",
+      dateDemande: new Date(),
+      montantInitial: 5000,
+    });
 
     await certification.save();
 
-    // Paiement initial
+    // Création paiement initial
     const paiement = new CertificationPaiement({
       certification: certification._id,
       vendeur: vendeur._id,
@@ -68,7 +72,7 @@ export const demandeCertification = async (req, res) => {
     });
   } catch (err) {
     console.error("🔥 ERREUR demandeCertification :", err);
-    console.error(err.stack); // affichage complet de la stack
+    console.error(err.stack);
     res.status(500).json({
       message: "Erreur lors de la demande de certification",
     });
