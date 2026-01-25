@@ -17,7 +17,8 @@ router.post("/demande", demandeCertification);
    ROUTES ADMIN
 ======================= */
 router.get("/demandes", getDemandesCertification);
-router.post("/valider", validerDemandeCertification);
-router.post("/refuser", refuserDemandeCertification);
+router.post("/certification/valider/:id", validerDemandeCertification);
+router.post("/certification/refuser/:id", refuserDemandeCertification);
+
 
 export default router;
