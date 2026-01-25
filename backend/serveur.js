@@ -182,7 +182,7 @@ app.use("/api/produits", produitsRoutes);
 app.use("/api/avis", avisRoutes);
 app.use("/api/commandes", commandeRoutes);
 app.use("/api/statistiques", statistiquesRoutes);
-app.use("/api", certificationRoutes);
+app.use("/api/certification", certificationRoutes);
 app.use("/api", vendeurPublicRoutes);
 app.use("/api/admin", adminRoutes);
 
