@@ -33,10 +33,15 @@ export default function Certification({ vendeurId }) {
     try {
       const res = await api.post("/api/certification/demande", { vendeurId });
       setCertification(res.data.certification);
+
+      alert(
+        res.data.certification.statut === "pending"
+          ? "✅ Votre demande a été envoyée avec succès. Veuillez effectuer le paiement pour continuer."
+          : "✅ Votre demande a été soumise."
+      );
     } catch (err) {
       const message =
-        err.response?.data?.message ||
-        "Impossible d'envoyer la demande";
+        err.response?.data?.message || "Impossible d'envoyer la demande";
       alert(message);
     } finally {
       setActionLoading(false);
@@ -62,13 +67,8 @@ export default function Certification({ vendeurId }) {
           <BsPatchCheckFill size={48} className="text-blue-500" />
         </div>
 
-        <h2 className="text-2xl font-bold mb-2">
-          Certification du vendeur
-        </h2>
-
-        <p className="text-gray-600 mb-4">
-          Obtenez le badge officiel Dakarbusinesse.
-        </p>
+        <h2 className="text-2xl font-bold mb-2">Certification du vendeur</h2>
+        <p className="text-gray-600 mb-4">Obtenez le badge officiel Dakarbusinesse.</p>
 
         <div className="mb-6 text-lg font-semibold">
           Montant :{" "}
@@ -94,12 +94,10 @@ export default function Certification({ vendeurId }) {
         {isPending && (
           <div className="space-y-4">
             <p className="text-yellow-600 font-semibold">
-              ⏳ Votre demande de certification est en cours de traitement
+              ⏳ Votre demande est en cours de traitement
             </p>
 
-            <p className="text-gray-600">
-              Merci d’effectuer le paiement pour continuer.
-            </p>
+            <p className="text-gray-600">Merci d’effectuer le paiement pour continuer.</p>
 
             <a
               href={wavePaymentLink}
@@ -120,11 +118,9 @@ export default function Certification({ vendeurId }) {
         {isActive && (
           <div className="space-y-3">
             <p className="text-green-600 font-semibold text-lg">
-              ✅ Vous êtes déjà certifié
+              ✅ Votre certification est active
             </p>
-            <p className="text-gray-600">
-              Votre badge est actif et visible sur votre profil.
-            </p>
+            <p className="text-gray-600">Votre badge est visible sur votre profil.</p>
           </div>
         )}
 
@@ -133,6 +129,9 @@ export default function Certification({ vendeurId }) {
           <div className="space-y-4">
             <p className="text-red-600 font-semibold">
               ❌ Votre demande de certification a été refusée
+            </p>
+            <p className="text-gray-600">
+              Vous pouvez soumettre une nouvelle demande si vous le souhaitez.
             </p>
 
             <button
