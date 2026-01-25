@@ -8,14 +8,10 @@ import api from "../../services/api";
 export const getDemandesCertification = () =>
   api.get("/api/certification/demandes");
 
-// ✅ Valider une demande
-export const validerDemandeCertification = (id, paiementReference) =>
-  api.put(`/api/certification/${id}/valider`, {
-    paiementReference,
-  });
+// ✅ Valider une demande (sans body)
+export const validerDemandeCertification = (id) =>
+  api.post("/api/certification/valider", { certificationId: id });
 
-// ❌ Refuser une demande
-export const refuserDemandeCertification = (id, commentaireAdmin) =>
-  api.put(`/api/certification/${id}/refuser`, {
-    commentaireAdmin,
-  });
+// ❌ Refuser une demande (sans body)
+export const refuserDemandeCertification = (id) =>
+  api.post("/api/certification/refuser", { certificationId: id });

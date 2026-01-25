@@ -36,7 +36,7 @@ export default function AdminCertification() {
     setActionLoading(id);
     try {
       await validerDemandeCertification(id);
-      await fetchDemandes(); // refresh liste
+      await fetchDemandes(); // rafraîchit la liste après validation
     } catch (err) {
       alert(err.response?.data?.message || "Erreur lors de la validation");
     } finally {
@@ -51,7 +51,7 @@ export default function AdminCertification() {
     setActionLoading(id);
     try {
       await refuserDemandeCertification(id);
-      await fetchDemandes(); // refresh liste
+      await fetchDemandes(); // rafraîchit la liste après refus
     } catch (err) {
       alert(err.response?.data?.message || "Erreur lors du refus");
     } finally {
@@ -60,7 +60,6 @@ export default function AdminCertification() {
   };
 
   if (loading) return <p>Chargement des demandes...</p>;
-
   if (demandes.length === 0)
     return <p className="text-gray-500">Aucune demande de certification.</p>;
 
@@ -86,7 +85,9 @@ export default function AdminCertification() {
                 <td className="px-4 py-2">{d.vendeur?.email}</td>
                 <td className="px-4 py-2">{d.vendeur?.nomBoutique}</td>
                 <td className="px-4 py-2">
-                  {new Date(d.dateDemande).toLocaleDateString()}
+                  {d.dateDemande
+                    ? new Date(d.dateDemande).toLocaleDateString()
+                    : "-"}
                 </td>
                 <td className="px-4 py-2 space-x-2">
                   <button
