@@ -230,11 +230,12 @@ function UserProfile() {
         {!editMode ? (
           <>
             <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-              <h3 className="text-xl font-semibold">
-                {user.nomVendeur}
-              </h3>
+              <h3 className="text-xl font-semibold">{user.nomVendeur}</h3>
               {user.certifie && (
-                <BsPatchCheckFill className="text-blue-600" title="Vendeur certifié" />
+                <BsPatchCheckFill
+                  className="text-blue-600"
+                  title="Vendeur certifié"
+                />
               )}
             </div>
 
@@ -242,39 +243,46 @@ function UserProfile() {
             <p className="text-gray-600 italic mt-2">{user.description}</p>
 
             {!user.certifie && (
-  <div className="mt-4 bg-blue-50 border-l-4 border-blue-600 p-4 rounded-lg text-sm shadow-sm">
-    <p className="font-semibold text-blue-700">🚀 Boostez votre visibilité</p>
-    <p className="text-gray-700 mt-1">
-      Les vendeurs <strong>certifiés</strong> sont priorisés sur Kolwaz.
-    </p>
-    <button
-      onClick={() => navigate("/certification", { state: { vendeurId: user._id } })}
-      className="mt-3 text-blue-600 font-semibold hover:underline"
-    >
-      Devenir vendeur certifié →
-    </button>
-  </div>
-)}
-
+              <div className="mt-4 bg-blue-50 border-l-4 border-blue-600 p-4 rounded-lg text-sm shadow-sm">
+                <p className="font-semibold text-blue-700">🚀 Boostez votre visibilité</p>
+                <p className="text-gray-700 mt-1">
+                  Les vendeurs <strong>certifiés</strong> sont priorisés sur Kolwaz.
+                </p>
+                <button
+                  onClick={() =>
+                    navigate("/certification", { state: { vendeurId: user._id } })
+                  }
+                  className="mt-3 text-blue-600 font-semibold hover:underline"
+                >
+                  Devenir vendeur certifié →
+                </button>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm mt-4">
-              <p><strong>Email :</strong> {user.email}</p>
-              <p><strong>Téléphone :</strong> {user.telephone}</p>
-              <p><strong>Adresse :</strong> {user.adresseBoutique}</p>
-              <p><strong>Type :</strong> {user.typeBoutique}</p>
+              <p>
+                <strong>Email :</strong> {user.email}
+              </p>
+              <p>
+                <strong>Téléphone :</strong> {user.telephone}
+              </p>
+              <p>
+                <strong>Adresse :</strong> {user.adresseBoutique}
+              </p>
+              <p>
+                <strong>Type :</strong> {user.typeBoutique}
+              </p>
             </div>
           </>
         ) : (
           <div className="space-y-2">
-            {["nomVendeur","nomBoutique","adresseBoutique","email"].map((f) => (
+            {["nomVendeur", "nomBoutique", "adresseBoutique", "email"].map((f) => (
               <input
                 key={f}
                 className="w-full border rounded px-3 py-2"
                 value={user[f] || ""}
                 placeholder={f}
-                onChange={(e) =>
-                  setUser({ ...user, [f]: e.target.value })
-                }
+                onChange={(e) => setUser({ ...user, [f]: e.target.value })}
               />
             ))}
 
@@ -282,9 +290,7 @@ function UserProfile() {
               className="w-full border rounded px-3 py-2"
               placeholder="Description"
               value={user.description || ""}
-              onChange={(e) =>
-                setUser({ ...user, description: e.target.value })
-              }
+              onChange={(e) => setUser({ ...user, description: e.target.value })}
             />
 
             <div className="flex flex-col sm:flex-row gap-2">
@@ -309,7 +315,10 @@ function UserProfile() {
 
       {/* Menu */}
       <div className="relative" ref={menuRef}>
-        <button onClick={() => setMenuOpen(!menuOpen)} className="p-2 rounded hover:bg-gray-100">
+        <button
+          onClick={() => setMenuOpen(!menuOpen)}
+          className="p-2 rounded hover:bg-gray-100"
+        >
           <FiSettings size={22} />
         </button>
 
@@ -325,15 +334,13 @@ function UserProfile() {
               Modifier le profil
             </button>
 
-            {!user.certifie && (
-              <button
-            onClick={() => navigate("/certification")}
-            className="w-full px-4 py-2 text-left text-blue-600 hover:bg-gray-100"
+            {/* ✅ TOUJOURS AFFICHÉ */}
+            <button
+              onClick={() => navigate("/certification")}
+              className="w-full px-4 py-2 text-left text-blue-600 hover:bg-gray-100"
             >
-            Devenir vendeur certifié
+              Devenir vendeur certifié
             </button>
-
-            )}
 
             <button
               onClick={handleLogout}
