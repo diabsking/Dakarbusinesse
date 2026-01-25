@@ -6,7 +6,7 @@ const certificationSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Vendeur",
       required: true,
-      unique: true, // 1 certification par vendeur
+      // unique: true, // retiré pour éviter conflit sur plusieurs demandes
     },
 
     /* =====================
@@ -16,7 +16,7 @@ const certificationSchema = new mongoose.Schema(
       type: String,
       enum: ["pending", "active", "suspended", "rejected"],
       default: "pending",
-      index: true,
+      index: true, // index pour filtrage rapide
     },
 
     /* =====================
@@ -33,8 +33,8 @@ const certificationSchema = new mongoose.Schema(
     },
 
     dateExpiration: {
-      type: Date, // fin de validité
-      default: null,
+      type: Date,
+      default: null, // fin de validité
     },
 
     /* =====================
@@ -51,7 +51,7 @@ const certificationSchema = new mongoose.Schema(
     },
   },
   {
-    timestamps: true,
+    timestamps: true, // createdAt & updatedAt
   }
 );
 

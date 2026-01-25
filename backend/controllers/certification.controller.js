@@ -181,29 +181,38 @@ export const refuserDemandeCertification = async (req, res) => {
 
   try {
     const { id } = req.params;
-    const { commentaireAdmin } = req.body;
-    console.log("ID reçu pour refus :", id, "Commentaire :", commentaireAdmin);
+    console.log("ID reçu pour refus :", id);
 
     const certification = await Certification.findById(id);
     if (!certification) {
       console.warn("❌ Certification introuvable");
       return res.status(404).json({ message: "Certification introuvable" });
     }
-    console.log("Certification trouvée :", certification._id, "Statut :", certification.statut);
+    console.log(
+      "Certification trouvée :",
+      certification._id,
+      "Statut actuel :",
+      certification.statut
+    );
 
+    // Mise à jour du statut
     certification.statut = "rejected";
     await certification.save();
     console.log("Certification refusée :", certification._id);
 
+    // Mise à jour du vendeur
     const vendeur = await Vendeur.findById(certification.vendeur);
-    vendeur.demandeCertification = false;
-    vendeur.certifie = false;
-    await vendeur.save();
-    console.log("Vendeur mis à jour après refus :", vendeur._id);
+    if (vendeur) {
+      vendeur.demandeCertification = false;
+      vendeur.certifie = false;
+      await vendeur.save();
+      console.log("Vendeur mis à jour après refus :", vendeur._id);
+    } else {
+      console.warn("⚠️ Vendeur non trouvé pour cette certification :", certification.vendeur);
+    }
 
     res.json({
       message: "Demande de certification refusée",
-      commentaireAdmin,
     });
   } catch (err) {
     console.error("🔥 ERREUR refuserDemandeCertification :", err);
