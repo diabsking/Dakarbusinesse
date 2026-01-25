@@ -6,25 +6,25 @@ const certificationSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Vendeur",
       required: true,
-      unique: true, // 1 certification active par vendeur
+      unique: true, // 1 certification par vendeur
     },
 
-    // =====================
-    // STATUT CERTIFICATION
-    // =====================
+    /* =====================
+       STATUT CERTIFICATION
+    ===================== */
     statut: {
       type: String,
-      enum: ["none", "pending", "active", "suspended", "rejected"],
-      default: "none",
+      enum: ["pending", "active", "suspended", "rejected"],
+      default: "pending",
       index: true,
     },
 
-    // =====================
-    // DATES
-    // =====================
+    /* =====================
+       DATES
+    ===================== */
     dateDemande: {
       type: Date,
-      default: null,
+      default: Date.now,
     },
 
     dateActivation: {
@@ -33,13 +33,13 @@ const certificationSchema = new mongoose.Schema(
     },
 
     dateExpiration: {
-      type: Date, // fin du mois payé
+      type: Date, // fin de validité
       default: null,
     },
 
-    // =====================
-    // MONTANTS
-    // =====================
+    /* =====================
+       MONTANTS
+    ===================== */
     montantInitial: {
       type: Number,
       default: 5000,
