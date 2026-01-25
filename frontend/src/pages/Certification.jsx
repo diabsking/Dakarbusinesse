@@ -12,20 +12,24 @@ export default function Certification() {
 
   /* ================= ENVOI DEMANDE CERTIFICATION ================= */
   const envoyerDemandeCertification = async () => {
-    if (demandeEnvoyee) return;
+    if (demandeEnvoyee || actionLoading) return;
 
     setActionLoading(true);
+
     try {
       // On poste directement la demande, le backend gère l'identification
       const res = await api.post("/api/certification/demande");
-      const nouvelleCertification = res.data.certification;
 
-      setCertification(nouvelleCertification);
+      if (!res.data.certification) {
+        throw new Error("Aucune certification reçue du serveur");
+      }
+
+      setCertification(res.data.certification);
       setDemandeEnvoyee(true);
-    } catch (err) {
-      console.error("Erreur lors de la demande :", err);
 
-      // Message d'erreur clair pour l'utilisateur
+    } catch (err) {
+      console.error("🔥 Erreur lors de la demande de certification :", err);
+
       const message =
         err.response?.data?.message ||
         err.message ||
