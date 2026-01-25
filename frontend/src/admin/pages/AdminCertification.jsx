@@ -20,6 +20,7 @@ export default function AdminCertification() {
     setLoading(true);
     try {
       const res = await getDemandesCertification();
+      console.log("📥 Demandes reçues :", res.data);
       setDemandes(res.data || []);
     } catch (err) {
       console.error("Erreur fetch demandes :", err);
@@ -41,10 +42,11 @@ export default function AdminCertification() {
 
     setActionLoading(id);
     try {
+      console.log(`✅ Validation de la demande ${id}`);
       await validerDemandeCertification(id);
       await fetchDemandes();
     } catch (err) {
-      console.error(err);
+      console.error("Erreur validation :", err);
       alert(err.response?.data?.message || "Erreur lors de la validation");
     } finally {
       setActionLoading(null);
@@ -57,12 +59,18 @@ export default function AdminCertification() {
   const handleRefuser = async (id) => {
     if (!window.confirm("Refuser cette demande de certification ?")) return;
 
+    const commentaireAdmin = prompt(
+      "Entrez un commentaire pour le refus (facultatif) :",
+      ""
+    );
+
     setActionLoading(id);
     try {
-      await refuserDemandeCertification(id);
+      console.log(`❌ Refus de la demande ${id} avec commentaire :`, commentaireAdmin);
+      await refuserDemandeCertification(id, commentaireAdmin || "");
       await fetchDemandes();
     } catch (err) {
-      console.error(err);
+      console.error("Erreur refus :", err);
       alert(err.response?.data?.message || "Erreur lors du refus");
     } finally {
       setActionLoading(null);
