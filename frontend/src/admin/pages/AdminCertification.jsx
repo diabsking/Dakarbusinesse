@@ -59,15 +59,10 @@ export default function AdminCertification() {
   const handleRefuser = async (id) => {
     if (!window.confirm("Refuser cette demande de certification ?")) return;
 
-    const commentaireAdmin = prompt(
-      "Entrez un commentaire pour le refus (facultatif) :",
-      ""
-    );
-
     setActionLoading(id);
     try {
-      console.log(`❌ Refus de la demande ${id} avec commentaire :`, commentaireAdmin);
-      await refuserDemandeCertification(id, commentaireAdmin || "");
+      console.log(`❌ Refus de la demande ${id}`);
+      await refuserDemandeCertification(id);
       await fetchDemandes();
     } catch (err) {
       console.error("Erreur refus :", err);
