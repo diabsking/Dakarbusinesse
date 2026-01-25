@@ -20,7 +20,6 @@ export default function AdminCertification() {
     setLoading(true);
     try {
       const res = await getDemandesCertification();
-      console.log("📥 Demandes reçues :", res.data);
       setDemandes(res.data || []);
     } catch (err) {
       console.error("Erreur fetch demandes :", err);
@@ -39,10 +38,8 @@ export default function AdminCertification() {
   ===================== */
   const handleValider = async (id) => {
     if (!window.confirm("Valider cette demande de certification ?")) return;
-
     setActionLoading(id);
     try {
-      console.log(`✅ Validation de la demande ${id}`);
       await validerDemandeCertification(id);
       await fetchDemandes();
     } catch (err) {
@@ -58,10 +55,8 @@ export default function AdminCertification() {
   ===================== */
   const handleRefuser = async (id) => {
     if (!window.confirm("Refuser cette demande de certification ?")) return;
-
     setActionLoading(id);
     try {
-      console.log(`❌ Refus de la demande ${id}`);
       await refuserDemandeCertification(id);
       await fetchDemandes();
     } catch (err) {
@@ -155,6 +150,7 @@ export default function AdminCertification() {
                 <th className="px-4 py-2">Boutique</th>
                 <th className="px-4 py-2">Date</th>
                 <th className="px-4 py-2">Montant</th>
+                <th className="px-4 py-2">Statut</th>
                 <th className="px-4 py-2">Actions</th>
               </tr>
             </thead>
@@ -172,17 +168,30 @@ export default function AdminCertification() {
                   <td className="px-4 py-2 font-semibold">
                     {(d.montantInitial || DEFAULT_PRICE).toLocaleString()} FCFA
                   </td>
+                  <td className="px-4 py-2">
+                    <span
+                      className={`px-2 py-1 rounded text-white text-sm ${
+                        d.statut === "active"
+                          ? "bg-green-600"
+                          : d.statut === "rejected"
+                          ? "bg-red-600"
+                          : "bg-yellow-500"
+                      }`}
+                    >
+                      {d.statut}
+                    </span>
+                  </td>
                   <td className="px-4 py-2 space-x-2">
                     <button
                       onClick={() => handleValider(d._id)}
-                      disabled={actionLoading === d._id}
+                      disabled={actionLoading === d._id || d.statut === "active"}
                       className="bg-green-600 text-white px-3 py-1 rounded disabled:opacity-50"
                     >
                       {actionLoading === d._id ? "..." : "Valider"}
                     </button>
                     <button
                       onClick={() => handleRefuser(d._id)}
-                      disabled={actionLoading === d._id}
+                      disabled={actionLoading === d._id || d.statut === "rejected"}
                       className="bg-red-600 text-white px-3 py-1 rounded disabled:opacity-50"
                     >
                       {actionLoading === d._id ? "..." : "Refuser"}

@@ -158,3 +158,69 @@ export const envoyerMailBoost = async ({
   }
 };
 
+/* =====================================================
+   TEMPLATES EMAIL CERTIFICATION
+==================================================== */
+const templateCertificationValidee = ({ nomVendeur }) => `
+  <div style="font-family:Arial;padding:20px">
+    <h2>Certification validée 🎉</h2>
+    <p>Bonjour <strong>${nomVendeur}</strong>,</p>
+    <p>Votre demande de certification a été <strong>VALIDÉE</strong>.</p>
+    <p>Vous êtes désormais un vendeur certifié sur notre plateforme.</p>
+    <p>Merci pour votre confiance !</p>
+  </div>
+`;
+
+const templateCertificationRefusee = ({ nomVendeur, commentaire }) => `
+  <div style="font-family:Arial;padding:20px">
+    <h2>Certification refusée ❌</h2>
+    <p>Bonjour <strong>${nomVendeur}</strong>,</p>
+    <p>Votre demande de certification a été <strong>REFUSÉE</strong>.</p>
+    ${
+      commentaire
+        ? `<p>Commentaire du support : <em>${commentaire}</em></p>`
+        : ""
+    }
+    <p>Si vous souhaitez plus d'informations, contactez notre support.</p>
+  </div>
+`;
+
+/* =====================================================
+   ENVOI MAIL CERTIFICATION
+==================================================== */
+export const envoyerMailCertification = async ({
+  email,
+  type = "VALIDEE",
+  nomVendeur,
+  commentaire = "",
+}) => {
+  try {
+    const subject =
+      type === "REFUSEE"
+        ? "Votre certification a été refusée ❌"
+        : "Votre certification a été validée 🎉";
+
+    const html =
+      type === "REFUSEE"
+        ? templateCertificationRefusee({ nomVendeur, commentaire })
+        : templateCertificationValidee({ nomVendeur });
+
+    const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+    sendSmtpEmail.to = [{ email }];
+    sendSmtpEmail.sender = {
+      email: process.env.MAIL_FROM,
+      name: process.env.MAIL_FROM_NAME || "Kolwaz",
+    };
+    sendSmtpEmail.subject = subject;
+    sendSmtpEmail.htmlContent = html;
+
+    const response = await apiInstance.sendTransacEmail(sendSmtpEmail);
+
+    console.log("📤 MAIL CERTIFICATION SENT INFO :", response);
+    console.log(`✅ Email certification ${type} envoyé à ${email}`);
+  } catch (error) {
+    console.error("❌ ERREUR ENVOI EMAIL CERTIFICATION :", error);
+    throw new Error("Impossible d'envoyer l'email de certification");
+  }
+};
+
