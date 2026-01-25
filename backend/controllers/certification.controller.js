@@ -7,23 +7,26 @@ import { envoyerMailCertification } from "../services/mailService.js";
    1️⃣ DEMANDE DE CERTIFICATION
 ======================= */
 export const demandeCertification = async (req, res) => {
-  console.log("🚀 [CERTIFICATION] demandeCertification appelé");
-
   try {
     const { vendeurId } = req.body;
-    if (!vendeurId)
+    if (!vendeurId) {
       return res.status(400).json({ message: "ID vendeur requis" });
+    }
 
     const vendeur = await Vendeur.findById(vendeurId);
-    if (!vendeur) return res.status(404).json({ message: "Vendeur introuvable" });
+    if (!vendeur) {
+      return res.status(404).json({ message: "Vendeur introuvable" });
+    }
 
-    if (vendeur.certifie)
+    if (vendeur.certifie) {
       return res.status(400).json({ message: "Vous êtes déjà certifié" });
+    }
 
     const existingCertification = await Certification.findOne({
       vendeur: vendeur._id,
       statut: { $in: ["pending", "active"] },
     });
+
     if (existingCertification) {
       return res.status(400).json({
         message:
@@ -33,22 +36,20 @@ export const demandeCertification = async (req, res) => {
       });
     }
 
-    const certification = new Certification({
+    const certification = await Certification.create({
       vendeur: vendeur._id,
       statut: "pending",
       dateDemande: new Date(),
       montantInitial: 5000,
     });
-    await certification.save();
 
-    const paiement = new CertificationPaiement({
+    await CertificationPaiement.create({
       certification: certification._id,
       vendeur: vendeur._id,
       type: "initial",
-      montant: certification.montantInitial || 5000,
+      montant: certification.montantInitial,
       statut: "pending",
     });
-    await paiement.save();
 
     vendeur.demandeCertification = true;
     vendeur.dateDemandeCertification = new Date();
@@ -59,7 +60,7 @@ export const demandeCertification = async (req, res) => {
       certification,
     });
   } catch (err) {
-    console.error("🔥 ERREUR demandeCertification :", err);
+    console.error("🔥 demandeCertification :", err);
     res.status(500).json({ message: "Erreur lors de la demande de certification" });
   }
 };
@@ -68,18 +69,16 @@ export const demandeCertification = async (req, res) => {
    2️⃣ GET DEMANDES CERTIFICATION (ADMIN)
 ======================= */
 export const getDemandesCertification = async (req, res) => {
-  console.log("📥 [ADMIN] getDemandesCertification appelé");
-
   try {
     const demandes = await Certification.find({
-      statut: { $in: ["pending", "rejected"] }, // inclure les refusées pour pouvoir les repasser à active
+      statut: { $in: ["pending", "active", "rejected"] },
     })
       .populate("vendeur", "nomVendeur email nomBoutique")
       .sort({ dateDemande: -1 });
 
     res.json(demandes);
   } catch (err) {
-    console.error("🔥 ERREUR getDemandesCertification :", err);
+    console.error("🔥 getDemandesCertification :", err);
     res.status(500).json({ message: "Erreur lors de la récupération des demandes" });
   }
 };
@@ -92,11 +91,12 @@ export const validerDemandeCertification = async (req, res) => {
     const { id } = req.params;
 
     const certification = await Certification.findById(id);
-    if (!certification)
+    if (!certification) {
       return res.status(404).json({ message: "Certification introuvable" });
+    }
 
     if (certification.statut === "active") {
-      return res.status(400).json({ message: "Déjà validée" });
+      return res.status(400).json({ message: "Certification déjà validée" });
     }
 
     const paiement = await CertificationPaiement.findOne({
@@ -104,8 +104,9 @@ export const validerDemandeCertification = async (req, res) => {
       type: "initial",
     });
 
-    if (!paiement)
-      return res.status(404).json({ message: "Paiement introuvable" });
+    if (!paiement) {
+      return res.status(404).json({ message: "Paiement initial introuvable" });
+    }
 
     paiement.statut = "validated";
     paiement.dateValidation = new Date();
@@ -113,69 +114,74 @@ export const validerDemandeCertification = async (req, res) => {
 
     certification.statut = "active";
     certification.dateActivation = new Date();
-    certification.dateExpiration = new Date(
-      new Date().setMonth(new Date().getMonth() + 1)
-    );
+
+    const expiration = new Date();
+    expiration.setMonth(expiration.getMonth() + 1);
+    certification.dateExpiration = expiration;
+
     await certification.save();
 
     const vendeur = await Vendeur.findById(certification.vendeur);
-    vendeur.certifie = true;
-    vendeur.demandeCertification = false;
-    await vendeur.save();
+    if (vendeur) {
+      vendeur.certifie = true;
+      vendeur.demandeCertification = false;
+      await vendeur.save();
+    }
 
-    // ✅ EMAIL (ne doit JAMAIS casser la validation)
     try {
       await envoyerMailCertification({
-        email: vendeur.email,
+        email: vendeur?.email,
         type: "VALIDEE",
-        nomVendeur: vendeur.nomVendeur,
+        nomVendeur: vendeur?.nomVendeur,
       });
     } catch (mailErr) {
-      console.error("⚠️ Email non envoyé :", mailErr.message);
+      console.warn("⚠️ Email validation non envoyé");
     }
 
     res.json({ message: "Certification validée avec succès" });
   } catch (err) {
-    console.error("🔥 ERREUR validation :", err);
+    console.error("🔥 validerDemandeCertification :", err);
     res.status(500).json({ message: "Erreur lors de la validation de la demande" });
   }
 };
+
 /* =======================
    4️⃣ REFUSER DEMANDE (ADMIN)
 ======================= */
 export const refuserDemandeCertification = async (req, res) => {
-  console.log("❌ [ADMIN] refuserDemandeCertification appelé");
-
   try {
     const { id } = req.params;
     const { commentaireAdmin } = req.body;
 
     const certification = await Certification.findById(id);
-    if (!certification) return res.status(404).json({ message: "Certification introuvable" });
+    if (!certification) {
+      return res.status(404).json({ message: "Certification introuvable" });
+    }
 
-    // Mettre le statut à rejected, mais conserver l'objet pour possible re-validation
     certification.statut = "rejected";
     await certification.save();
 
-    // Mise à jour du vendeur
     const vendeur = await Vendeur.findById(certification.vendeur);
     if (vendeur) {
-      vendeur.demandeCertification = false;
       vendeur.certifie = false;
+      vendeur.demandeCertification = false;
       await vendeur.save();
 
-      // Envoi email au vendeur
-      await envoyerMailCertification({
-        email: vendeur.email,
-        type: "REFUSEE",
-        nomVendeur: vendeur.nomVendeur,
-        commentaire: commentaireAdmin || "",
-      });
+      try {
+        await envoyerMailCertification({
+          email: vendeur.email,
+          type: "REFUSEE",
+          nomVendeur: vendeur.nomVendeur,
+          commentaire: commentaireAdmin || "",
+        });
+      } catch (mailErr) {
+        console.warn("⚠️ Email refus non envoyé");
+      }
     }
 
     res.json({ message: "Demande de certification refusée" });
   } catch (err) {
-    console.error("🔥 ERREUR refuserDemandeCertification :", err);
+    console.error("🔥 refuserDemandeCertification :", err);
     res.status(500).json({ message: "Erreur lors du refus de la demande" });
   }
 };
