@@ -10,11 +10,13 @@ export default function Certification() {
   const CERTIFICATION_PRICE = 5000;
   const WAVE_BASE_LINK = "https://pay.wave.com/m/M_sn_hHeTj4ufIvYG";
 
+  /* ================= ENVOI DEMANDE CERTIFICATION ================= */
   const envoyerDemandeCertification = async () => {
     if (demandeEnvoyee) return;
 
     setActionLoading(true);
     try {
+      // On poste directement la demande, le backend gère l'identification
       const res = await api.post("/api/certification/demande");
       const nouvelleCertification = res.data.certification;
 
@@ -22,6 +24,8 @@ export default function Certification() {
       setDemandeEnvoyee(true);
     } catch (err) {
       console.error("Erreur lors de la demande :", err);
+
+      // Message d'erreur clair pour l'utilisateur
       const message =
         err.response?.data?.message ||
         err.message ||
@@ -32,6 +36,7 @@ export default function Certification() {
     }
   };
 
+  /* ================= LIEN DE PAIEMENT WAVE ================= */
   const wavePaymentLink = certification
     ? `${WAVE_BASE_LINK}?amount=${CERTIFICATION_PRICE}&metadata=${encodeURIComponent(certification._id)}`
     : `${WAVE_BASE_LINK}?amount=${CERTIFICATION_PRICE}`;
