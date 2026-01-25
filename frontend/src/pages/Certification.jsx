@@ -1,8 +1,15 @@
 import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { BsPatchCheckFill } from "react-icons/bs";
 import api from "../services/api";
 
-export default function Certification({ vendeurId }) {
+export default function Certification() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // 🔑 ID vendeur reçu depuis UserProfile
+  const vendeurId = location.state?.vendeurId;
+
   const [demandeEnvoyee, setDemandeEnvoyee] = useState(false);
   const [certification, setCertification] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
@@ -10,21 +17,36 @@ export default function Certification({ vendeurId }) {
   const CERTIFICATION_PRICE = 5000;
   const WAVE_BASE_LINK = "https://pay.wave.com/m/M_sn_hHeTj4ufIvYG";
 
+  /* ================= SECURITE ================= */
+  if (!vendeurId) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+        <div className="bg-white p-6 rounded-xl shadow-md max-w-md w-full text-center">
+          <p className="text-red-600 font-semibold mb-4">
+            ID vendeur manquant
+          </p>
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="bg-gray-200 px-4 py-2 rounded"
+          >
+            Retour au dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   /* ================= ENVOI DEMANDE CERTIFICATION ================= */
   const envoyerDemandeCertification = async () => {
     if (demandeEnvoyee) return;
 
-    if (!vendeurId) {
-      alert("ID vendeur manquant !");
-      return;
-    }
-
     setActionLoading(true);
     try {
-      const res = await api.post("/api/certification/demande", { vendeurId });
-      const nouvelleCertification = res.data.certification;
+      const res = await api.post("/api/certification/demande", {
+        vendeurId,
+      });
 
-      setCertification(nouvelleCertification);
+      setCertification(res.data.certification);
       setDemandeEnvoyee(true);
     } catch (err) {
       console.error("🔥 Erreur lors de la demande :", err);
@@ -38,9 +60,11 @@ export default function Certification({ vendeurId }) {
     }
   };
 
-  /* ================= LIEN DE PAIEMENT WAVE ================= */
+  /* ================= LIEN WAVE ================= */
   const wavePaymentLink = certification
-    ? `${WAVE_BASE_LINK}?amount=${CERTIFICATION_PRICE}&metadata=${encodeURIComponent(certification._id)}`
+    ? `${WAVE_BASE_LINK}?amount=${CERTIFICATION_PRICE}&metadata=${encodeURIComponent(
+        certification._id
+      )}`
     : `${WAVE_BASE_LINK}?amount=${CERTIFICATION_PRICE}`;
 
   return (
@@ -50,12 +74,18 @@ export default function Certification({ vendeurId }) {
           <BsPatchCheckFill size={48} className="text-blue-500" />
         </div>
 
-        <h2 className="text-2xl font-bold mb-2">Certification du vendeur</h2>
-        <p className="text-gray-600 mb-4">Obtenez le badge officiel Dakarbusinesse.</p>
+        <h2 className="text-2xl font-bold mb-2">
+          Certification du vendeur
+        </h2>
+        <p className="text-gray-600 mb-4">
+          Obtenez le badge officiel Dakarbusinesse.
+        </p>
 
         <div className="mb-6 text-lg font-semibold">
           Montant à payer :{" "}
-          <span className="text-orange-600">{CERTIFICATION_PRICE.toLocaleString()} FCFA</span>
+          <span className="text-orange-600">
+            {CERTIFICATION_PRICE.toLocaleString()} FCFA
+          </span>
         </div>
 
         {!demandeEnvoyee ? (
@@ -69,11 +99,17 @@ export default function Certification({ vendeurId }) {
           </button>
         ) : (
           <div className="space-y-4">
-            <p className="text-green-600 font-semibold">Demande envoyée avec succès 🎉</p>
+            <p className="text-green-600 font-semibold">
+              Demande envoyée avec succès 🎉
+            </p>
+
             <p className="text-gray-600">
               Paiement manuel requis :{" "}
-              <b className="text-orange-600">{CERTIFICATION_PRICE.toLocaleString()} FCFA</b>
+              <b className="text-orange-600">
+                {CERTIFICATION_PRICE.toLocaleString()} FCFA
+              </b>
             </p>
+
             <a
               href={wavePaymentLink}
               target="_blank"
@@ -82,9 +118,18 @@ export default function Certification({ vendeurId }) {
             >
               Payer avec Wave
             </a>
+
             <p className="text-xs text-gray-500">
-              La certification sera activée après validation du paiement par l’administrateur.
+              La certification sera activée après validation du paiement
+              par l’administrateur.
             </p>
+
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="w-full bg-gray-100 text-gray-700 py-2 rounded-lg"
+            >
+              Retour au dashboard
+            </button>
           </div>
         )}
       </div>
