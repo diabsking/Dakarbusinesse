@@ -3,14 +3,14 @@ import Certification from "../models/Certification.js";
 import CertificationPaiement from "../models/CertificationPaiement.js";
 
 /* =======================
-   1️⃣ DEMANDE DE CERTIFICATION (VENDEUR)
+   DEMANDE DE CERTIFICATION
    Sans token, on récupère l'ID du vendeur depuis req.body
 ======================= */
 export const demandeCertification = async (req, res) => {
   console.log("🚀 [CERTIFICATION] demandeCertification");
 
   try {
-    const { vendeurId } = req.body; // ID vendeur envoyé par le front
+    const { vendeurId } = req.body; // ID du vendeur envoyé depuis le front
     if (!vendeurId) {
       return res.status(400).json({ message: "ID vendeur requis" });
     }
@@ -21,7 +21,7 @@ export const demandeCertification = async (req, res) => {
     }
 
     // Déjà certifié
-    if (vendeur.certifie) {
+    if (vendeur.certifie === true) {
       return res.status(400).json({ message: "Vous êtes déjà certifié" });
     }
 
@@ -33,7 +33,7 @@ export const demandeCertification = async (req, res) => {
         vendeur: vendeur._id,
         statut: "pending",
         dateDemande: new Date(),
-        montantInitial: 5000, // valeur par défaut si non défini
+        montantInitial: 5000, // valeur par défaut sécurisée
       });
     } else {
       // Remise en attente si nouvelle demande
@@ -41,7 +41,7 @@ export const demandeCertification = async (req, res) => {
       certification.dateDemande = new Date();
       certification.dateActivation = null;
       certification.dateExpiration = null;
-      certification.montantInitial = certification.montantInitial || 5000;
+      if (!certification.montantInitial) certification.montantInitial = 5000;
     }
 
     await certification.save();
@@ -51,13 +51,13 @@ export const demandeCertification = async (req, res) => {
       certification: certification._id,
       vendeur: vendeur._id,
       type: "initial",
-      montant: certification.montantInitial,
+      montant: certification.montantInitial || 5000,
       statut: "pending",
     });
 
     await paiement.save();
 
-    // MAJ vendeur
+    // Mise à jour vendeur
     vendeur.demandeCertification = true;
     vendeur.dateDemandeCertification = new Date();
     await vendeur.save();
@@ -68,6 +68,7 @@ export const demandeCertification = async (req, res) => {
     });
   } catch (err) {
     console.error("🔥 ERREUR demandeCertification :", err);
+    console.error(err.stack); // affichage complet de la stack
     res.status(500).json({
       message: "Erreur lors de la demande de certification",
     });
