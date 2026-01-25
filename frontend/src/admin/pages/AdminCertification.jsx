@@ -40,7 +40,7 @@ export default function AdminCertification() {
 
     setActionLoading(id);
     try {
-      await validerDemandeCertification(id);
+      await validerDemandeCertification(id); // ✅ id dans l'URL
       await fetchDemandes();
     } catch (err) {
       alert(err.response?.data?.message || "Erreur lors de la validation");
@@ -57,7 +57,7 @@ export default function AdminCertification() {
 
     setActionLoading(id);
     try {
-      await refuserDemandeCertification(id);
+      await refuserDemandeCertification(id); // ✅ id dans l'URL
       await fetchDemandes();
     } catch (err) {
       alert(err.response?.data?.message || "Erreur lors du refus");
@@ -71,9 +71,7 @@ export default function AdminCertification() {
   ===================== */
   const demandesFiltrees = useMemo(() => {
     return demandes.filter((d) =>
-      d.vendeur?.email
-        ?.toLowerCase()
-        .includes(searchEmail.toLowerCase())
+      d.vendeur?.email?.toLowerCase().includes(searchEmail.toLowerCase())
     );
   }, [demandes, searchEmail]);
 
