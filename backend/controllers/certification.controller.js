@@ -10,7 +10,7 @@ export const demandeCertification = async (req, res) => {
   console.log("🚀 [CERTIFICATION] demandeCertification");
 
   try {
-    const { vendeurId } = req.body; // <-- ID vendeur envoyé par le front
+    const { vendeurId } = req.body; // ID vendeur envoyé par le front
     if (!vendeurId) {
       return res.status(400).json({ message: "ID vendeur requis" });
     }
@@ -21,7 +21,7 @@ export const demandeCertification = async (req, res) => {
     }
 
     // Déjà certifié
-    if (vendeur.certifie === true) {
+    if (vendeur.certifie) {
       return res.status(400).json({ message: "Vous êtes déjà certifié" });
     }
 
@@ -33,6 +33,7 @@ export const demandeCertification = async (req, res) => {
         vendeur: vendeur._id,
         statut: "pending",
         dateDemande: new Date(),
+        montantInitial: 5000, // valeur par défaut si non défini
       });
     } else {
       // Remise en attente si nouvelle demande
@@ -40,6 +41,7 @@ export const demandeCertification = async (req, res) => {
       certification.dateDemande = new Date();
       certification.dateActivation = null;
       certification.dateExpiration = null;
+      certification.montantInitial = certification.montantInitial || 5000;
     }
 
     await certification.save();
@@ -131,9 +133,11 @@ export const validerDemandeCertification = async (req, res) => {
 
     certification.statut = "active";
     certification.dateActivation = new Date();
+
     const dateFin = new Date();
     dateFin.setMonth(dateFin.getMonth() + 1);
     certification.dateExpiration = dateFin;
+
     await certification.save();
 
     const vendeur = await Vendeur.findById(certification.vendeur);
