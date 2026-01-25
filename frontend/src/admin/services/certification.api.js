@@ -8,10 +8,10 @@ import api from "../../services/api";
 export const getDemandesCertification = () =>
   api.get("/api/certification/demandes");
 
-// ✅ Valider une demande (sans body)
+// ✅ Valider une demande
 export const validerDemandeCertification = (id) =>
-  api.post("/api/certification/valider", { certificationId: id });
+  api.post(`/api/certification/valider/${id}`);
 
-// ❌ Refuser une demande (sans body)
+// ❌ Refuser une demande
 export const refuserDemandeCertification = (id) =>
-  api.post("/api/certification/refuser", { certificationId: id });
+  api.post(`/api/certification/refuser/${id}`);

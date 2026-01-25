@@ -3,7 +3,6 @@ import { BsPatchCheckFill } from "react-icons/bs";
 import api from "../services/api";
 
 export default function Certification({ vendeurId }) {
-  const [demandeEnvoyee, setDemandeEnvoyee] = useState(false);
   const [certification, setCertification] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -17,10 +16,7 @@ export default function Certification({ vendeurId }) {
 
       try {
         const res = await api.get(`/api/certification/${vendeurId}`);
-        if (res.data?.certification) {
-          setCertification(res.data.certification);
-          setDemandeEnvoyee(true);
-        }
+        setCertification(res.data?.certification || null);
       } catch (err) {
         console.error("Erreur chargement certification", err);
       }
@@ -31,18 +27,16 @@ export default function Certification({ vendeurId }) {
 
   /* ================= ENVOI DEMANDE CERTIFICATION ================= */
   const envoyerDemandeCertification = async () => {
-    if (demandeEnvoyee || !vendeurId) return;
+    if (!vendeurId) return;
 
     setActionLoading(true);
     try {
       const res = await api.post("/api/certification/demande", { vendeurId });
       setCertification(res.data.certification);
-      setDemandeEnvoyee(true);
     } catch (err) {
       const message =
         err.response?.data?.message ||
-        err.message ||
-        "Erreur lors de l'envoi de la demande";
+        "Impossible d'envoyer la demande";
       alert(message);
     } finally {
       setActionLoading(false);
@@ -55,6 +49,11 @@ export default function Certification({ vendeurId }) {
         certification._id
       )}`
     : `${WAVE_BASE_LINK}?amount=${CERTIFICATION_PRICE}`;
+
+  /* ================= ETATS ================= */
+  const isPending = certification?.statut === "pending";
+  const isActive = certification?.statut === "active";
+  const isRejected = certification?.statut === "rejected";
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
@@ -78,48 +77,71 @@ export default function Certification({ vendeurId }) {
           </span>
         </div>
 
-        {/* ================= ACTIONS ================= */}
-        {!demandeEnvoyee ? (
+        {/* ================= AFFICHAGE SELON STATUT ================= */}
+
+        {/* Aucune demande */}
+        {!certification && (
           <button
-            type="button"
             onClick={envoyerDemandeCertification}
             disabled={actionLoading}
             className="w-full bg-orange-600 text-black py-2 rounded-lg font-semibold disabled:opacity-50"
           >
             {actionLoading ? "Envoi..." : "Demander la certification"}
           </button>
-        ) : (
+        )}
+
+        {/* Demande en cours */}
+        {isPending && (
           <div className="space-y-4">
-            <p className="text-green-600 font-semibold">
-              Une demande de certification existe déjà ⏳
+            <p className="text-yellow-600 font-semibold">
+              ⏳ Votre demande de certification est en cours de traitement
             </p>
 
-            {certification?.status === "validee" && (
-              <p className="text-blue-600 font-semibold">
-                Certification déjà validée ✅
-              </p>
-            )}
+            <p className="text-gray-600">
+              Merci d’effectuer le paiement pour continuer.
+            </p>
 
-            {certification?.status === "en_attente" && !certification?.isPaid && (
-              <>
-                <p className="text-gray-600">
-                  Paiement requis pour continuer
-                </p>
-
-                <a
-                  href={wavePaymentLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block w-full bg-orange-600 text-black py-2 rounded-lg font-semibold"
-                >
-                  Payer avec Wave
-                </a>
-              </>
-            )}
+            <a
+              href={wavePaymentLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full bg-orange-600 text-black py-2 rounded-lg font-semibold"
+            >
+              Payer avec Wave
+            </a>
 
             <p className="text-xs text-gray-500">
-              La certification est activée après validation par l’administrateur.
+              La certification sera activée après validation par l’administrateur.
             </p>
+          </div>
+        )}
+
+        {/* Certification validée */}
+        {isActive && (
+          <div className="space-y-3">
+            <p className="text-green-600 font-semibold text-lg">
+              ✅ Vous êtes déjà certifié
+            </p>
+            <p className="text-gray-600">
+              Votre badge est actif et visible sur votre profil.
+            </p>
+          </div>
+        )}
+
+        {/* Certification refusée */}
+        {isRejected && (
+          <div className="space-y-4">
+            <p className="text-red-600 font-semibold">
+              ❌ Votre demande de certification a été refusée
+            </p>
+
+            <button
+              onClick={envoyerDemandeCertification}
+              disabled={actionLoading}
+              className="w-full bg-orange-600 text-black py-2 rounded-lg font-semibold disabled:opacity-50"
+            >
+              {actionLoading ? "Envoi..." : "Soumettre une nouvelle demande"}
+            </button>
           </div>
         )}
       </div>
