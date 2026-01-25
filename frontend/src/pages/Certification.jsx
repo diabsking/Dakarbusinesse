@@ -1,53 +1,17 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { BsPatchCheckFill } from "react-icons/bs";
 import api from "../services/api";
 
 export default function Certification() {
-  const navigate = useNavigate();
-
-  const [user, setUser] = useState(null);
   const [demandeEnvoyee, setDemandeEnvoyee] = useState(false);
   const [certification, setCertification] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
   const CERTIFICATION_PRICE = 5000;
   const WAVE_BASE_LINK = "https://pay.wave.com/m/M_sn_hHeTj4ufIvYG";
 
-  useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem("user");
-      if (!storedUser) {
-        navigate("/login");
-        return;
-      }
-
-      const parsedUser = JSON.parse(storedUser);
-
-      // Redirige si déjà certifié
-      if (parsedUser.certifie === true) {
-        navigate("/dashboard");
-        return;
-      }
-
-      setUser(parsedUser);
-
-      // Si demande déjà envoyée
-      if (parsedUser.demandeCertification === true) {
-        setDemandeEnvoyee(true);
-        setCertification(parsedUser.certification || null);
-      }
-
-      setLoading(false);
-    } catch (err) {
-      console.error("Erreur lors du parsing du user :", err);
-      navigate("/login");
-    }
-  }, [navigate]);
-
   const envoyerDemandeCertification = async () => {
-    if (!user || demandeEnvoyee) return;
+    if (demandeEnvoyee) return;
 
     setActionLoading(true);
     try {
@@ -56,14 +20,6 @@ export default function Certification() {
 
       setCertification(nouvelleCertification);
       setDemandeEnvoyee(true);
-
-      const updatedUser = {
-        ...user,
-        demandeCertification: true,
-        certification: nouvelleCertification,
-      };
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-      setUser(updatedUser);
     } catch (err) {
       console.error("Erreur lors de la demande :", err);
       const message =
@@ -79,14 +35,6 @@ export default function Certification() {
   const wavePaymentLink = certification
     ? `${WAVE_BASE_LINK}?amount=${CERTIFICATION_PRICE}&metadata=${encodeURIComponent(certification._id)}`
     : `${WAVE_BASE_LINK}?amount=${CERTIFICATION_PRICE}`;
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-gray-500">
-        Chargement...
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
@@ -130,13 +78,6 @@ export default function Certification() {
             <p className="text-xs text-gray-500">
               La certification sera activée après validation du paiement par l’administrateur.
             </p>
-            <button
-              type="button"
-              onClick={() => navigate("/dashboard")}
-              className="w-full bg-gray-100 text-gray-700 py-2 rounded-lg"
-            >
-              Retour au dashboard
-            </button>
           </div>
         )}
       </div>
