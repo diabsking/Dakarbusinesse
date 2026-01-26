@@ -36,25 +36,23 @@ export default function AdminBoosts() {
     }
   };
 
-  /* ================= STATS ================= */
-
-  const sumMontant = (statut = null) =>
-    demandes
-      .filter(d => !statut || d.statut === statut)
-      .reduce((acc, d) => acc + (d.montant || 0), 0);
-
+  /* ===================== STATS ===================== */
   const stats = {
     total: demandes.length,
-    validees: demandes.filter(d => d.statut === "VALIDEE").length,
-    refusees: demandes.filter(d => d.statut === "REFUSEE").length,
-    attente: demandes.filter(d => d.statut === "EN_ATTENTE").length,
-    montantTotal: sumMontant(),
-    montantValide: sumMontant("VALIDEE"),
-    montantRefuse: sumMontant("REFUSEE"),
+    validees: demandes.filter((d) => d.statut === "VALIDEE").length,
+    refusees: demandes.filter((d) => d.statut === "REFUSEE").length,
+    attente: demandes.filter((d) => d.statut === "EN_ATTENTE").length,
+
+    montantTotal: demandes.reduce((s, d) => s + (d.montant || 0), 0),
+    montantValide: demandes
+      .filter((d) => d.statut === "VALIDEE")
+      .reduce((s, d) => s + (d.montant || 0), 0),
+    montantRefuse: demandes
+      .filter((d) => d.statut === "REFUSEE")
+      .reduce((s, d) => s + (d.montant || 0), 0),
   };
 
-  /* ================= FILTER ================= */
-
+  /* ===================== SEARCH ===================== */
   const demandesFiltrees = demandes.filter((d) => {
     const q = search.toLowerCase();
     return (
@@ -65,8 +63,7 @@ export default function AdminBoosts() {
     );
   });
 
-  /* ================= ACTION ================= */
-
+  /* ===================== ACTION ===================== */
   const handleAction = async (id, type) => {
     if (actionLoading) return;
     setActionLoading(id);
@@ -78,7 +75,11 @@ export default function AdminBoosts() {
       setDemandes((prev) =>
         prev.map((d) =>
           d._id === id
-            ? { ...d, statut: type === "VALIDER" ? "VALIDEE" : "REFUSEE" }
+            ? {
+                ...d,
+                statut:
+                  type === "VALIDER" ? "VALIDEE" : "REFUSEE",
+              }
             : d
         )
       );
@@ -94,23 +95,38 @@ export default function AdminBoosts() {
 
   return (
     <div className="pb-20">
-      <h2 className="text-xl font-bold mb-4">Demandes de boost</h2>
+      <h2 className="text-xl font-bold mb-4">
+        Demandes de boost
+      </h2>
 
-      {/* ====== STATS ====== */}
+      {/* ===================== STATS ===================== */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-        <StatCard label="Demandes" value={stats.total} />
-        <StatCard label="Validées" value={stats.validees} />
-        <StatCard label="Refusées" value={stats.refusees} />
-        <StatCard label="En attente" value={stats.attente} />
+        <StatCard
+          label="Total demandes"
+          value={stats.total}
+          sub={`${stats.montantTotal.toLocaleString()} FCFA`}
+          color="bg-gray-800"
+        />
+        <StatCard
+          label="Validées"
+          value={stats.validees}
+          sub={`${stats.montantValide.toLocaleString()} FCFA`}
+          color="bg-green-600"
+        />
+        <StatCard
+          label="Refusées"
+          value={stats.refusees}
+          sub={`${stats.montantRefuse.toLocaleString()} FCFA`}
+          color="bg-red-600"
+        />
+        <StatCard
+          label="En attente"
+          value={stats.attente}
+          color="bg-orange-500"
+        />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-        <StatCard label="Montant total" value={`${stats.montantTotal} FCFA`} />
-        <StatCard label="Boost validé" value={`${stats.montantValide} FCFA`} />
-        <StatCard label="Boost refusé" value={`${stats.montantRefuse} FCFA`} />
-      </div>
-
-      {/* ====== SEARCH ====== */}
+      {/* ===================== SEARCH ===================== */}
       <input
         className="w-full mb-4 px-4 py-3 border rounded-xl text-sm"
         placeholder="Email, produit ou Wave..."
@@ -118,96 +134,97 @@ export default function AdminBoosts() {
         onChange={(e) => setSearch(e.target.value)}
       />
 
-      {demandesFiltrees.length === 0 ? (
-        <p className="text-red-600 font-semibold">
-          Aucune demande trouvée
-        </p>
-      ) : (
-        <div className="flex flex-col gap-4">
-          {demandesFiltrees.map((d) => (
-            <div
-              key={d._id}
-              className="bg-white rounded-xl shadow p-4 flex flex-col gap-3"
-            >
-              {/* PRODUIT */}
-              <div className="flex items-center gap-3">
-                <img
-                  src={d.produit?.images?.[0] || "/placeholder.jpg"}
-                  className="h-14 w-14 rounded-lg object-cover"
-                />
-                <div className="flex-1">
-                  <p className="font-bold text-sm">
-                    {d.produit?.nom}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {d.utilisateur?.email}
-                  </p>
-                </div>
+      {/* ===================== LIST ===================== */}
+      <div className="flex flex-col gap-4">
+        {demandesFiltrees.map((d) => (
+          <div
+            key={d._id}
+            className="bg-white rounded-xl shadow p-4 flex flex-col gap-3"
+          >
+            {/* PRODUIT */}
+            <div className="flex items-center gap-3">
+              <img
+                src={d.produit?.images?.[0] || "/placeholder.jpg"}
+                className="h-14 w-14 rounded-lg object-cover"
+              />
+              <div className="flex-1">
+                <p className="font-bold text-sm">
+                  {d.produit?.nom}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {d.utilisateur?.email}
+                </p>
               </div>
-
-              {/* TAGS */}
-              <div className="flex flex-wrap gap-2 text-xs">
-                <Tag label={`${d.duree} jours`} />
-                <Tag label={`${d.montant} FCFA`} />
-                <Tag label={`Wave ${d.waveNumber}`} />
-              </div>
-
-              {/* STATUT */}
-              <p className="text-sm">
-                Statut :{" "}
-                <span
-                  className={
-                    d.statut === "VALIDEE"
-                      ? "text-green-600 font-bold"
-                      : d.statut === "REFUSEE"
-                      ? "text-red-600 font-bold"
-                      : "text-orange-600 font-bold"
-                  }
-                >
-                  {d.statut}
-                </span>
-              </p>
-
-              {/* ACTIONS */}
-              {d.statut === "EN_ATTENTE" && (
-                <div className="flex gap-2">
-                  <button
-                    disabled={actionLoading === d._id}
-                    onClick={() =>
-                      setModal({
-                        open: true,
-                        id: d._id,
-                        type: "VALIDER",
-                        produit: d.produit?.nom,
-                      })
-                    }
-                    className="flex-1 bg-green-500 text-white py-1.5 rounded-md text-xs"
-                  >
-                    Valider
-                  </button>
-
-                  <button
-                    disabled={actionLoading === d._id}
-                    onClick={() =>
-                      setModal({
-                        open: true,
-                        id: d._id,
-                        type: "REFUSER",
-                        produit: d.produit?.nom,
-                      })
-                    }
-                    className="flex-1 bg-red-500 text-white py-1.5 rounded-md text-xs"
-                  >
-                    Refuser
-                  </button>
-                </div>
-              )}
             </div>
-          ))}
-        </div>
-      )}
 
-      {/* ====== MODAL ====== */}
+            {/* TAGS */}
+            <div className="flex flex-wrap gap-2 text-xs">
+              <Tag label={`${d.duree} jours`} />
+              <Tag label={`${d.montant} FCFA`} />
+              <Tag label={`Wave ${d.waveNumber}`} />
+            </div>
+
+            {/* STATUT */}
+            <p className="text-sm">
+              Statut :{" "}
+              <span
+                className={
+                  d.statut === "VALIDEE"
+                    ? "text-green-600 font-bold"
+                    : d.statut === "REFUSEE"
+                    ? "text-red-600 font-bold"
+                    : "text-orange-600 font-bold"
+                }
+              >
+                {d.statut}
+              </span>
+            </p>
+
+            {/* ACTIONS */}
+            <div className="flex gap-2">
+              <button
+                disabled={d.statut === "VALIDEE"}
+                onClick={() =>
+                  setModal({
+                    open: true,
+                    id: d._id,
+                    type: "VALIDER",
+                    produit: d.produit?.nom,
+                  })
+                }
+                className={`flex-1 py-1.5 rounded-lg text-xs border ${
+                  d.statut === "VALIDEE"
+                    ? "border-green-300 text-green-300 cursor-not-allowed"
+                    : "border-green-600 text-green-600 hover:bg-green-50"
+                }`}
+              >
+                Valider
+              </button>
+
+              <button
+                disabled={d.statut === "REFUSEE"}
+                onClick={() =>
+                  setModal({
+                    open: true,
+                    id: d._id,
+                    type: "REFUSER",
+                    produit: d.produit?.nom,
+                  })
+                }
+                className={`flex-1 py-1.5 rounded-lg text-xs border ${
+                  d.statut === "REFUSEE"
+                    ? "border-red-300 text-red-300 cursor-not-allowed"
+                    : "border-red-600 text-red-600 hover:bg-red-50"
+                }`}
+              >
+                Refuser
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ===================== MODAL ===================== */}
       {modal.open && (
         <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center">
           <div className="bg-white w-full sm:w-1/3 rounded-t-2xl sm:rounded-xl p-5">
@@ -229,7 +246,9 @@ export default function AdminBoosts() {
                 Annuler
               </button>
               <button
-                onClick={() => handleAction(modal.id, modal.type)}
+                onClick={() =>
+                  handleAction(modal.id, modal.type)
+                }
                 className={`flex-1 py-3 rounded-lg text-white ${
                   modal.type === "VALIDER"
                     ? "bg-green-600"
@@ -246,7 +265,7 @@ export default function AdminBoosts() {
   );
 }
 
-/* ===== COMPONENTS ===== */
+/* ===================== COMPONENTS ===================== */
 
 function Tag({ label }) {
   return (
@@ -256,11 +275,14 @@ function Tag({ label }) {
   );
 }
 
-function StatCard({ label, value }) {
+function StatCard({ label, value, sub, color }) {
   return (
-    <div className="bg-gray-900 text-white p-4 rounded-xl">
-      <p className="text-xs opacity-70">{label}</p>
-      <p className="text-lg font-bold">{value}</p>
+    <div className={`${color} text-white p-4 rounded-xl`}>
+      <p className="text-xs opacity-80">{label}</p>
+      <p className="text-xl font-bold">{value}</p>
+      {sub && (
+        <p className="text-xs opacity-90 mt-1">{sub}</p>
+      )}
     </div>
   );
 }
