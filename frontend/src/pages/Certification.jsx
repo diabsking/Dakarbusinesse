@@ -57,6 +57,7 @@ export default function Certification({ vendeurId }) {
   const isPending = certification?.statut === "pending";
   const isActive = certification?.statut === "active";
   const isRejected = certification?.statut === "rejected";
+  const isSuspended = certification?.statut === "suspended"; // ✅ nouveau statut
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
@@ -172,6 +173,26 @@ export default function Certification({ vendeurId }) {
             </button>
           </div>
         )}
+
+        {isSuspended && (
+          <div className="space-y-3 text-center">
+            <p className="text-red-500 font-semibold">
+              ⚠️ Certification suspendue
+            </p>
+            <p className="text-gray-600 text-sm">
+              Votre certification a expiré. Veuillez soumettre une nouvelle demande et effectuer le paiement pour réactiver votre badge.
+            </p>
+
+            <button
+              onClick={envoyerDemandeCertification}
+              disabled={actionLoading}
+              className="w-full bg-orange-600 text-black py-2 rounded-lg font-semibold disabled:opacity-50"
+            >
+              Demander une nouvelle certification
+            </button>
+          </div>
+        )}
+
       </div>
     </div>
   );

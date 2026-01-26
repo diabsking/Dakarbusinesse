@@ -79,18 +79,35 @@ export default function AdminCertification() {
   );
 
   /* =====================
+     DIFFÉRENCIER NOUVEAU / RENOUVELLEMENT
+  ===================== */
+  const demandesAvecType = useMemo(() => {
+    return demandesFiltrees.map((d) => {
+      const isRenewal =
+        d.statut === "pending" && d.vendeur?.historiqueCertifications?.length > 0;
+      return { ...d, typeDemande: isRenewal ? "Renouvellement" : "Nouveau" };
+    });
+  }, [demandesFiltrees]);
+
+  /* =====================
      STATS
   ===================== */
   const stats = useMemo(() => {
     let total = 0,
       totalValide = 0,
-      totalRefuse = 0;
+      totalRefuse = 0,
+      totalSuspended = 0,
+      totalNouveau = 0,
+      totalRenouvellement = 0;
 
     demandes.forEach((d) => {
       const montant = d.montantInitial || DEFAULT_PRICE;
       total += montant;
       if (d.statut === "active") totalValide += montant;
       if (d.statut === "rejected") totalRefuse += montant;
+      if (d.statut === "suspended") totalSuspended += montant;
+      if (d.vendeur?.historiqueCertifications?.length > 0) totalRenouvellement += montant;
+      else totalNouveau += montant;
     });
 
     return {
@@ -98,6 +115,9 @@ export default function AdminCertification() {
       total,
       totalValide,
       totalRefuse,
+      totalSuspended,
+      totalNouveau,
+      totalRenouvellement,
     };
   }, [demandes]);
 
@@ -108,7 +128,7 @@ export default function AdminCertification() {
       <h2 className="text-2xl font-bold">Demandes de Certification</h2>
 
       {/* ===================== STATS ===================== */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
         <StatCard title="Demandes" value={stats.nbDemandes} />
         <StatCard
           title="Montant total"
@@ -124,6 +144,21 @@ export default function AdminCertification() {
           value={`${stats.totalRefuse.toLocaleString()} FCFA`}
           color="red"
         />
+        <StatCard
+          title="Suspendu"
+          value={`${stats.totalSuspended.toLocaleString()} FCFA`}
+          color="orange"
+        />
+        <StatCard
+          title="Nouveaux"
+          value={`${stats.totalNouveau.toLocaleString()} FCFA`}
+          color="blue"
+        />
+        <StatCard
+          title="Renouvellement"
+          value={`${stats.totalRenouvellement.toLocaleString()} FCFA`}
+          color="purple"
+        />
       </div>
 
       {/* ===================== RECHERCHE ===================== */}
@@ -138,7 +173,7 @@ export default function AdminCertification() {
       </div>
 
       {/* ===================== TABLE ===================== */}
-      {demandesFiltrees.length === 0 ? (
+      {demandesAvecType.length === 0 ? (
         <p className="text-gray-500">Aucune demande trouvée.</p>
       ) : (
         <div className="overflow-x-auto">
@@ -151,11 +186,12 @@ export default function AdminCertification() {
                 <th className="px-4 py-2">Date</th>
                 <th className="px-4 py-2">Montant</th>
                 <th className="px-4 py-2">Statut</th>
+                <th className="px-4 py-2">Type Demande</th>
                 <th className="px-4 py-2">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {demandesFiltrees.map((d) => (
+              {demandesAvecType.map((d) => (
                 <tr key={d._id} className="border-t">
                   <td className="px-4 py-2">{d.vendeur?.nomVendeur}</td>
                   <td className="px-4 py-2">{d.vendeur?.email}</td>
@@ -175,11 +211,16 @@ export default function AdminCertification() {
                           ? "bg-green-600"
                           : d.statut === "rejected"
                           ? "bg-red-600"
+                          : d.statut === "suspended"
+                          ? "bg-orange-500"
                           : "bg-yellow-500"
                       }`}
                     >
                       {d.statut}
                     </span>
+                  </td>
+                  <td className="px-4 py-2">
+                    {d.typeDemande}
                   </td>
                   <td className="px-4 py-2 space-x-2">
                     <button
@@ -215,6 +256,8 @@ function StatCard({ title, value, color = "blue" }) {
     blue: "text-blue-600",
     green: "text-green-600",
     red: "text-red-600",
+    orange: "text-orange-500",
+    purple: "text-purple-600",
   };
 
   return (
