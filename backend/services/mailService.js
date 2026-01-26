@@ -55,7 +55,7 @@ export const verifierOTP = (email, otp) => {
 };
 
 /* =====================================================
-   ENVOI OTP PAR EMAIL (Sendinblue API)
+   ENVOI OTP PAR EMAIL
 ==================================================== */
 export const envoyerOTPMail = async ({
   email,
@@ -64,11 +64,6 @@ export const envoyerOTPMail = async ({
   type = "INSCRIPTION",
 }) => {
   try {
-    console.log("📨 Tentative envoi OTP");
-    console.log("➡️ Destinataire :", email);
-    console.log("➡️ Type :", type);
-    console.log("➡️ OTP :", otp);
-
     const subject =
       type === "RESET_PASSWORD"
         ? "Code de réinitialisation du mot de passe"
@@ -90,8 +85,7 @@ export const envoyerOTPMail = async ({
 
     const response = await apiInstance.sendTransacEmail(sendSmtpEmail);
 
-    console.log("📤 MAIL SENT INFO :", response);
-    console.log(`✅ Email OTP envoyé à ${email}`);
+    console.log(`✅ Email OTP envoyé à ${email}`, response);
   } catch (error) {
     console.error("❌ ERREUR ENVOI EMAIL OTP :", error);
     throw new Error("Impossible d'envoyer l'OTP par email");
@@ -99,7 +93,7 @@ export const envoyerOTPMail = async ({
 };
 
 /* =====================================================
-   TEMPLATES EMAIL BOOST
+   TEMPLATES BOOST
 ==================================================== */
 const templateBoostValide = ({ nomProduit }) => `
   <div style="font-family:Arial;padding:20px">
@@ -107,7 +101,6 @@ const templateBoostValide = ({ nomProduit }) => `
     <p>Bonjour,</p>
     <p>Votre demande de boost pour le produit <strong>${nomProduit}</strong> a été <strong>VALIDÉE</strong>.</p>
     <p>Le boost est désormais actif sur votre produit.</p>
-    <p>Merci pour votre confiance.</p>
   </div>
 `;
 
@@ -116,18 +109,11 @@ const templateBoostRefuse = ({ nomProduit }) => `
     <h2>Boost refusé ❌</h2>
     <p>Bonjour,</p>
     <p>Votre demande de boost pour le produit <strong>${nomProduit}</strong> a été <strong>REFUSÉE</strong>.</p>
-    <p>Si vous souhaitez plus d'informations, contactez le support.</p>
+    <p>Pour plus d'informations, contactez le support.</p>
   </div>
 `;
 
-/* =====================================================
-   ENVOI MAIL BOOST (Sendinblue API)
-==================================================== */
-export const envoyerMailBoost = async ({
-  email,
-  type = "VALIDEE",
-  produitNom,
-}) => {
+export const envoyerMailBoost = async ({ email, type = "VALIDEE", produitNom }) => {
   try {
     const subject =
       type === "REFUSEE"
@@ -150,8 +136,7 @@ export const envoyerMailBoost = async ({
 
     const response = await apiInstance.sendTransacEmail(sendSmtpEmail);
 
-    console.log("📤 MAIL BOOST SENT INFO :", response);
-    console.log(`✅ Email boost envoyé à ${email}`);
+    console.log(`✅ Email boost envoyé à ${email}`, response);
   } catch (error) {
     console.error("❌ ERREUR ENVOI EMAIL BOOST :", error);
     throw new Error("Impossible d'envoyer l'email de boost");
@@ -159,7 +144,7 @@ export const envoyerMailBoost = async ({
 };
 
 /* =====================================================
-   TEMPLATES EMAIL CERTIFICATION
+   TEMPLATES CERTIFICATION
 ==================================================== */
 const templateCertificationValidee = ({ nomVendeur }) => `
   <div style="font-family:Arial;padding:20px">
@@ -167,7 +152,6 @@ const templateCertificationValidee = ({ nomVendeur }) => `
     <p>Bonjour <strong>${nomVendeur}</strong>,</p>
     <p>Votre demande de certification a été <strong>VALIDÉE</strong>.</p>
     <p>Vous êtes désormais un vendeur certifié sur notre plateforme.</p>
-    <p>Merci pour votre confiance !</p>
   </div>
 `;
 
@@ -176,73 +160,25 @@ const templateCertificationRefusee = ({ nomVendeur, commentaire }) => `
     <h2>Certification refusée ❌</h2>
     <p>Bonjour <strong>${nomVendeur}</strong>,</p>
     <p>Votre demande de certification a été <strong>REFUSÉE</strong>.</p>
-    ${
-      commentaire
-        ? `<p>Commentaire du support : <em>${commentaire}</em></p>`
-        : ""
-    }
-    <p>Si vous souhaitez plus d'informations, contactez notre support.</p>
+    ${commentaire ? `<p>Commentaire du support : <em>${commentaire}</em></p>` : ""}
   </div>
 `;
 
-/* =====================================================
-   ENVOI MAIL CERTIFICATION
-==================================================== */
-export const envoyerMailCertification = async ({
-  email,
-  type = "VALIDEE",
-  nomVendeur,
-  commentaire = "",
-}) => {
-  try {
-    const subject =
-      type === "REFUSEE"
-        ? "Votre certification a été refusée ❌"
-        : "Votre certification a été validée 🎉";
-
-    const html =
-      type === "REFUSEE"
-        ? templateCertificationRefusee({ nomVendeur, commentaire })
-        : templateCertificationValidee({ nomVendeur });
-
-    const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
-    sendSmtpEmail.to = [{ email }];
-    sendSmtpEmail.sender = {
-      email: process.env.MAIL_FROM,
-      name: process.env.MAIL_FROM_NAME || "Kolwaz",
-    };
-    sendSmtpEmail.subject = subject;
-    sendSmtpEmail.htmlContent = html;
-
-    const response = await apiInstance.sendTransacEmail(sendSmtpEmail);
-
-    console.log("📤 MAIL CERTIFICATION SENT INFO :", response);
-    console.log(`✅ Email certification ${type} envoyé à ${email}`);
-  } catch (error) {
-    console.error("❌ ERREUR ENVOI EMAIL CERTIFICATION :", error);
-    throw new Error("Impossible d'envoyer l'email de certification");
-  }
-};
-
-/* =====================================================
-   TEMPLATE CERTIFICATION SUSPENDED (NOUVEAU)
-==================================================== */
 const templateCertificationSuspended = ({ nomVendeur }) => `
   <div style="font-family:Arial;padding:20px">
     <h2>Certification suspendue ⚠️</h2>
     <p>Bonjour <strong>${nomVendeur}</strong>,</p>
     <p>Votre certification a été <strong>suspendue</strong> car sa validité est expirée.</p>
-    <p>Pour réactiver votre badge de vendeur certifié, vous devez soumettre une nouvelle demande et effectuer le paiement.</p>
-    <p>Merci de votre compréhension.</p>
+    <p>Pour réactiver votre badge, soumettez une nouvelle demande et effectuez le paiement.</p>
   </div>
 `;
 
 /* =====================================================
-   ENVOI MAIL CERTIFICATION
+   ENVOI MAIL CERTIFICATION (UNIQUE FONCTION)
 ==================================================== */
 export const envoyerMailCertification = async ({
   email,
-  type = "VALIDEE",
+  type = "VALIDEE", // VALIDEE | REFUSEE | SUSPENDED
   nomVendeur,
   commentaire = "",
 }) => {
@@ -274,8 +210,7 @@ export const envoyerMailCertification = async ({
 
     const response = await apiInstance.sendTransacEmail(sendSmtpEmail);
 
-    console.log("📤 MAIL CERTIFICATION SENT INFO :", response);
-    console.log(`✅ Email certification ${type} envoyé à ${email}`);
+    console.log(`✅ Email certification ${type} envoyé à ${email}`, response);
   } catch (error) {
     console.error("❌ ERREUR ENVOI EMAIL CERTIFICATION :", error);
     throw new Error("Impossible d'envoyer l'email de certification");
