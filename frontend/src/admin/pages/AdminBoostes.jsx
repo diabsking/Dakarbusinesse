@@ -36,12 +36,24 @@ export default function AdminBoosts() {
     }
   };
 
+  /* ================= STATS ================= */
+
+  const sumMontant = (statut = null) =>
+    demandes
+      .filter(d => !statut || d.statut === statut)
+      .reduce((acc, d) => acc + (d.montant || 0), 0);
+
   const stats = {
     total: demandes.length,
-    validees: demandes.filter((d) => d.statut === "VALIDEE").length,
-    refusees: demandes.filter((d) => d.statut === "REFUSEE").length,
-    attente: demandes.filter((d) => d.statut === "EN_ATTENTE").length,
+    validees: demandes.filter(d => d.statut === "VALIDEE").length,
+    refusees: demandes.filter(d => d.statut === "REFUSEE").length,
+    attente: demandes.filter(d => d.statut === "EN_ATTENTE").length,
+    montantTotal: sumMontant(),
+    montantValide: sumMontant("VALIDEE"),
+    montantRefuse: sumMontant("REFUSEE"),
   };
+
+  /* ================= FILTER ================= */
 
   const demandesFiltrees = demandes.filter((d) => {
     const q = search.toLowerCase();
@@ -52,6 +64,8 @@ export default function AdminBoosts() {
       d.waveNumber?.toString().includes(q)
     );
   });
+
+  /* ================= ACTION ================= */
 
   const handleAction = async (id, type) => {
     if (actionLoading) return;
@@ -80,19 +94,23 @@ export default function AdminBoosts() {
 
   return (
     <div className="pb-20">
-      <h2 className="text-xl font-bold mb-4">
-        Demandes de boost
-      </h2>
+      <h2 className="text-xl font-bold mb-4">Demandes de boost</h2>
 
-      {/* STATS */}
+      {/* ====== STATS ====== */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-        <StatCard label="Total" value={stats.total} color="bg-gray-800" />
-        <StatCard label="Validées" value={stats.validees} color="bg-green-600" />
-        <StatCard label="Refusées" value={stats.refusees} color="bg-red-600" />
-        <StatCard label="En attente" value={stats.attente} color="bg-orange-500" />
+        <StatCard label="Demandes" value={stats.total} />
+        <StatCard label="Validées" value={stats.validees} />
+        <StatCard label="Refusées" value={stats.refusees} />
+        <StatCard label="En attente" value={stats.attente} />
       </div>
 
-      {/* SEARCH */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+        <StatCard label="Montant total" value={`${stats.montantTotal} FCFA`} />
+        <StatCard label="Boost validé" value={`${stats.montantValide} FCFA`} />
+        <StatCard label="Boost refusé" value={`${stats.montantRefuse} FCFA`} />
+      </div>
+
+      {/* ====== SEARCH ====== */}
       <input
         className="w-full mb-4 px-4 py-3 border rounded-xl text-sm"
         placeholder="Email, produit ou Wave..."
@@ -151,30 +169,45 @@ export default function AdminBoosts() {
               </p>
 
               {/* ACTIONS */}
-              <div className="flex gap-2">
-                <button
-                  onClick={() =>
-                    setModal({ open: true, id: d._id, type: "VALIDER", produit: d.produit?.nom })
-                  }
-                  className="flex-1 bg-green-600 text-white py-2 rounded-lg text-sm"
-                >
-                  Valider
-                </button>
-                <button
-                  onClick={() =>
-                    setModal({ open: true, id: d._id, type: "REFUSER", produit: d.produit?.nom })
-                  }
-                  className="flex-1 bg-red-600 text-white py-2 rounded-lg text-sm"
-                >
-                  Refuser
-                </button>
-              </div>
+              {d.statut === "EN_ATTENTE" && (
+                <div className="flex gap-2">
+                  <button
+                    disabled={actionLoading === d._id}
+                    onClick={() =>
+                      setModal({
+                        open: true,
+                        id: d._id,
+                        type: "VALIDER",
+                        produit: d.produit?.nom,
+                      })
+                    }
+                    className="flex-1 bg-green-500 text-white py-1.5 rounded-md text-xs"
+                  >
+                    Valider
+                  </button>
+
+                  <button
+                    disabled={actionLoading === d._id}
+                    onClick={() =>
+                      setModal({
+                        open: true,
+                        id: d._id,
+                        type: "REFUSER",
+                        produit: d.produit?.nom,
+                      })
+                    }
+                    className="flex-1 bg-red-500 text-white py-1.5 rounded-md text-xs"
+                  >
+                    Refuser
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>
       )}
 
-      {/* MODAL MOBILE */}
+      {/* ====== MODAL ====== */}
       {modal.open && (
         <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center">
           <div className="bg-white w-full sm:w-1/3 rounded-t-2xl sm:rounded-xl p-5">
@@ -213,7 +246,7 @@ export default function AdminBoosts() {
   );
 }
 
-/* COMPONENTS */
+/* ===== COMPONENTS ===== */
 
 function Tag({ label }) {
   return (
@@ -223,11 +256,11 @@ function Tag({ label }) {
   );
 }
 
-function StatCard({ label, value, color }) {
+function StatCard({ label, value }) {
   return (
-    <div className={`${color} text-white p-4 rounded-xl`}>
-      <p className="text-xs opacity-80">{label}</p>
-      <p className="text-xl font-bold">{value}</p>
+    <div className="bg-gray-900 text-white p-4 rounded-xl">
+      <p className="text-xs opacity-70">{label}</p>
+      <p className="text-lg font-bold">{value}</p>
     </div>
   );
 }
