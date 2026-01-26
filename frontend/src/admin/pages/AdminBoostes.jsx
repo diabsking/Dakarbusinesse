@@ -75,11 +75,7 @@ export default function AdminBoosts() {
       setDemandes((prev) =>
         prev.map((d) =>
           d._id === id
-            ? {
-                ...d,
-                statut:
-                  type === "VALIDER" ? "VALIDEE" : "REFUSEE",
-              }
+            ? { ...d, statut: type === "VALIDER" ? "VALIDEE" : "REFUSEE" }
             : d
         )
       );
@@ -95,35 +91,14 @@ export default function AdminBoosts() {
 
   return (
     <div className="pb-20">
-      <h2 className="text-xl font-bold mb-4">
-        Demandes de boost
-      </h2>
+      <h2 className="text-xl font-bold mb-4">Demandes de boost</h2>
 
-      {/* ===================== STATS ===================== */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-        <StatCard
-          label="Total demandes"
-          value={stats.total}
-          sub={`${stats.montantTotal.toLocaleString()} FCFA`}
-          color="bg-gray-800"
-        />
-        <StatCard
-          label="Validées"
-          value={stats.validees}
-          sub={`${stats.montantValide.toLocaleString()} FCFA`}
-          color="bg-green-600"
-        />
-        <StatCard
-          label="Refusées"
-          value={stats.refusees}
-          sub={`${stats.montantRefuse.toLocaleString()} FCFA`}
-          color="bg-red-600"
-        />
-        <StatCard
-          label="En attente"
-          value={stats.attente}
-          color="bg-orange-500"
-        />
+      {/* ===================== STATS DISCRETS ===================== */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        <StatBadge label="Total" value={stats.total} color="gray" sub={`${stats.montantTotal.toLocaleString()} FCFA`} />
+        <StatBadge label="Validées" value={stats.validees} color="green" sub={`${stats.montantValide.toLocaleString()} FCFA`} />
+        <StatBadge label="Refusées" value={stats.refusees} color="red" sub={`${stats.montantRefuse.toLocaleString()} FCFA`} />
+        <StatBadge label="En attente" value={stats.attente} color="orange" />
       </div>
 
       {/* ===================== SEARCH ===================== */}
@@ -148,12 +123,8 @@ export default function AdminBoosts() {
                 className="h-14 w-14 rounded-lg object-cover"
               />
               <div className="flex-1">
-                <p className="font-bold text-sm">
-                  {d.produit?.nom}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {d.utilisateur?.email}
-                </p>
+                <p className="font-bold text-sm">{d.produit?.nom}</p>
+                <p className="text-xs text-gray-500">{d.utilisateur?.email}</p>
               </div>
             </div>
 
@@ -229,9 +200,7 @@ export default function AdminBoosts() {
         <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center">
           <div className="bg-white w-full sm:w-1/3 rounded-t-2xl sm:rounded-xl p-5">
             <h3 className="font-bold text-lg mb-3">
-              {modal.type === "VALIDER"
-                ? "Valider la demande ?"
-                : "Refuser la demande ?"}
+              {modal.type === "VALIDER" ? "Valider la demande ?" : "Refuser la demande ?"}
             </h3>
 
             <p className="text-sm mb-4">
@@ -246,13 +215,9 @@ export default function AdminBoosts() {
                 Annuler
               </button>
               <button
-                onClick={() =>
-                  handleAction(modal.id, modal.type)
-                }
+                onClick={() => handleAction(modal.id, modal.type)}
                 className={`flex-1 py-3 rounded-lg text-white ${
-                  modal.type === "VALIDER"
-                    ? "bg-green-600"
-                    : "bg-red-600"
+                  modal.type === "VALIDER" ? "bg-green-600" : "bg-red-600"
                 }`}
               >
                 Confirmer
@@ -268,21 +233,23 @@ export default function AdminBoosts() {
 /* ===================== COMPONENTS ===================== */
 
 function Tag({ label }) {
-  return (
-    <span className="bg-gray-100 px-3 py-1 rounded-full">
-      {label}
-    </span>
-  );
+  return <span className="bg-gray-100 px-3 py-1 rounded-full text-xs">{label}</span>;
 }
 
-function StatCard({ label, value, sub, color }) {
+/* StatBadge = version compacte et discrète des stats */
+function StatBadge({ label, value, sub, color = "gray" }) {
+  const colors = {
+    gray: "bg-gray-100 text-gray-800",
+    green: "bg-green-100 text-green-800",
+    red: "bg-red-100 text-red-800",
+    orange: "bg-orange-100 text-orange-800",
+  };
+
   return (
-    <div className={`${color} text-white p-4 rounded-xl`}>
-      <p className="text-xs opacity-80">{label}</p>
-      <p className="text-xl font-bold">{value}</p>
-      {sub && (
-        <p className="text-xs opacity-90 mt-1">{sub}</p>
-      )}
+    <div className={`px-3 py-1 rounded-full text-sm font-semibold ${colors[color]} flex flex-col items-center`}>
+      <span>{label}</span>
+      <span>{value}</span>
+      {sub && <span className="text-xs opacity-80">{sub}</span>}
     </div>
   );
 }
