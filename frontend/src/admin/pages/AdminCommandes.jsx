@@ -83,54 +83,19 @@ export default function AdminCommandes() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-6">
-        Commandes ({stats.total})
-      </h2>
+      <h2 className="text-2xl font-bold mb-4">Commandes</h2>
 
       {/* =====================
-         STATS + SEARCH
+         STATS DISCRETS + SEARCH
       ===================== */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 w-full">
-          <div className="bg-gray-100 p-4 rounded-xl">
-            <p className="text-sm text-gray-500">Total</p>
-            <p className="text-2xl font-bold">{stats.total}</p>
-          </div>
-
-          <div className="bg-yellow-100 p-4 rounded-xl">
-            <p className="text-sm">En cours</p>
-            <p className="text-2xl font-bold text-yellow-700">
-              {stats.enCours}
-            </p>
-          </div>
-
-          <div className="bg-blue-100 p-4 rounded-xl">
-            <p className="text-sm">Préparation</p>
-            <p className="text-2xl font-bold text-blue-700">
-              {stats.preparation}
-            </p>
-          </div>
-
-          <div className="bg-green-100 p-4 rounded-xl">
-            <p className="text-sm">Livrées</p>
-            <p className="text-2xl font-bold text-green-700">
-              {stats.livre}
-            </p>
-          </div>
-
-          <div className="bg-red-100 p-4 rounded-xl">
-            <p className="text-sm">Annulées</p>
-            <p className="text-2xl font-bold text-red-700">
-              {stats.annule}
-            </p>
-          </div>
-
-          <div className="bg-purple-100 p-4 rounded-xl">
-            <p className="text-sm">Chiffre d'affaires</p>
-            <p className="text-2xl font-bold text-purple-700">
-              {stats.chiffreAffaire} FCFA
-            </p>
-          </div>
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
+        <div className="flex flex-wrap gap-2">
+          <StatBadge title="Total" value={stats.total} />
+          <StatBadge title="En cours" value={stats.enCours} color="yellow" />
+          <StatBadge title="Préparation" value={stats.preparation} color="blue" />
+          <StatBadge title="Livrées" value={stats.livre} color="green" />
+          <StatBadge title="Annulées" value={stats.annule} color="red" />
+          <StatBadge title="Chiffre d'affaires" value={`${stats.chiffreAffaire} FCFA`} color="purple" />
         </div>
 
         <input
@@ -161,53 +126,34 @@ export default function AdminCommandes() {
               <div className="flex flex-col md:flex-row md:justify-between gap-4 mb-4">
                 <div>
                   <p className="font-semibold">
-                    Client :{" "}
-                    <span className="font-normal">
-                      {client.nom || "—"}
-                    </span>
+                    Client : <span className="font-normal">{client.nom || "—"}</span>
                   </p>
                   <p className="text-sm">📞 {client.telephone || "—"}</p>
                   <p className="text-sm">📍 {client.adresse || "—"}</p>
-                  {client.email && (
-                    <p className="text-sm">📧 {client.email}</p>
-                  )}
+                  {client.email && <p className="text-sm">📧 {client.email}</p>}
                 </div>
 
                 <div className="md:text-right">
-                  <p className={`font-bold ${statutColor}`}>
-                    {c.status}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    📅 {formatDate(c.createdAt)}
-                  </p>
+                  <p className={`font-bold ${statutColor}`}>{c.status}</p>
+                  <p className="text-sm text-gray-500">📅 {formatDate(c.createdAt)}</p>
                   <p className="text-sm">
-                    Total :{" "}
-                    <span className="font-semibold">
-                      {c.total} FCFA
-                    </span>
+                    Total : <span className="font-semibold">{c.total} FCFA</span>
                   </p>
                 </div>
               </div>
 
-              {/* =====================
-                 PRODUITS MOBILE
-              ===================== */}
+              {/* PRODUITS MOBILE */}
               <div className="md:hidden space-y-3">
                 {c.produits?.map((p, index) => {
-                  const totalProduit =
-                    (p.prix || 0) * (p.quantite || 1);
+                  const totalProduit = (p.prix || 0) * (p.quantite || 1);
 
                   return (
-                    <div
-                      key={index}
-                      className="border rounded-lg p-3 flex gap-3"
-                    >
+                    <div key={index} className="border rounded-lg p-3 flex gap-3">
                       <img
                         src={p.image || PLACEHOLDER}
                         alt={p.nom}
                         className="w-16 h-16 object-cover rounded"
                       />
-
                       <div className="flex-1 text-sm">
                         <p className="font-semibold">{p.nom}</p>
                         <p>🏪 {p.vendeur?.nomBoutique || "Vendeur"}</p>
@@ -215,18 +161,14 @@ export default function AdminCommandes() {
                         <p>
                           {p.prix} FCFA × {p.quantite}
                         </p>
-                        <p className="font-semibold">
-                          Total : {totalProduit} FCFA
-                        </p>
+                        <p className="font-semibold">Total : {totalProduit} FCFA</p>
                       </div>
                     </div>
                   );
                 })}
               </div>
 
-              {/* =====================
-                 PRODUITS DESKTOP
-              ===================== */}
+              {/* PRODUITS DESKTOP */}
               <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-sm border">
                   <thead className="bg-gray-100">
@@ -239,11 +181,9 @@ export default function AdminCommandes() {
                       <th className="p-2">Total</th>
                     </tr>
                   </thead>
-
                   <tbody>
                     {c.produits?.map((p, index) => {
-                      const totalProduit =
-                        (p.prix || 0) * (p.quantite || 1);
+                      const totalProduit = (p.prix || 0) * (p.quantite || 1);
 
                       return (
                         <tr key={index} className="border-t">
@@ -255,21 +195,11 @@ export default function AdminCommandes() {
                             />
                             {p.nom}
                           </td>
-                          <td className="p-2">
-                            {p.vendeur?.nomBoutique || "Vendeur"}
-                          </td>
-                          <td className="p-2">
-                            {p.vendeur?.telephone || "—"}
-                          </td>
-                          <td className="p-2 text-center">
-                            {p.prix} FCFA
-                          </td>
-                          <td className="p-2 text-center">
-                            {p.quantite}
-                          </td>
-                          <td className="p-2 text-center font-semibold">
-                            {totalProduit} FCFA
-                          </td>
+                          <td className="p-2">{p.vendeur?.nomBoutique || "Vendeur"}</td>
+                          <td className="p-2">{p.vendeur?.telephone || "—"}</td>
+                          <td className="p-2 text-center">{p.prix} FCFA</td>
+                          <td className="p-2 text-center">{p.quantite}</td>
+                          <td className="p-2 text-center font-semibold">{totalProduit} FCFA</td>
                         </tr>
                       );
                     })}
@@ -281,15 +211,11 @@ export default function AdminCommandes() {
               <div className="mt-4 flex justify-end">
                 <select
                   value={c.status}
-                  onChange={(e) =>
-                    changerStatut(c._id, e.target.value)
-                  }
+                  onChange={(e) => changerStatut(c._id, e.target.value)}
                   className="border rounded px-3 py-1"
                 >
                   <option value="en cours">En cours</option>
-                  <option value="en préparation">
-                    En préparation
-                  </option>
+                  <option value="en préparation">En préparation</option>
                   <option value="livré">Livré</option>
                   <option value="annulé">Annulé</option>
                 </select>
@@ -299,11 +225,28 @@ export default function AdminCommandes() {
         })}
 
         {filteredCommandes.length === 0 && (
-          <p className="text-center text-gray-500">
-            Aucune commande trouvée
-          </p>
+          <p className="text-center text-gray-500">Aucune commande trouvée</p>
         )}
       </div>
+    </div>
+  );
+}
+
+/* =====================
+   COMPONENT STAT BADGE
+===================== */
+function StatBadge({ title, value, color = "blue" }) {
+  const colors = {
+    blue: "bg-blue-100 text-blue-800",
+    green: "bg-green-100 text-green-800",
+    red: "bg-red-100 text-red-800",
+    yellow: "bg-yellow-100 text-yellow-800",
+    purple: "bg-purple-100 text-purple-800",
+  };
+
+  return (
+    <div className={`px-3 py-1 rounded-full text-sm font-semibold ${colors[color]}`}>
+      {title}: {value}
     </div>
   );
 }

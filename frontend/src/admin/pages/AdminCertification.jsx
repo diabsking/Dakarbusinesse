@@ -127,38 +127,15 @@ export default function AdminCertification() {
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Demandes de Certification</h2>
 
-      {/* ===================== STATS ===================== */}
-      <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
-        <StatCard title="Demandes" value={stats.nbDemandes} />
-        <StatCard
-          title="Montant total"
-          value={`${stats.total.toLocaleString()} FCFA`}
-        />
-        <StatCard
-          title="Validé"
-          value={`${stats.totalValide.toLocaleString()} FCFA`}
-          color="green"
-        />
-        <StatCard
-          title="Refusé"
-          value={`${stats.totalRefuse.toLocaleString()} FCFA`}
-          color="red"
-        />
-        <StatCard
-          title="Suspendu"
-          value={`${stats.totalSuspended.toLocaleString()} FCFA`}
-          color="orange"
-        />
-        <StatCard
-          title="Nouveaux"
-          value={`${stats.totalNouveau.toLocaleString()} FCFA`}
-          color="blue"
-        />
-        <StatCard
-          title="Renouvellement"
-          value={`${stats.totalRenouvellement.toLocaleString()} FCFA`}
-          color="purple"
-        />
+      {/* ===================== STATS COMPACT ===================== */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        <StatBadge title="Demandes" value={stats.nbDemandes} />
+        <StatBadge title="Montant total" value={`${stats.total.toLocaleString()} FCFA`} />
+        <StatBadge title="Validé" value={`${stats.totalValide.toLocaleString()} FCFA`} color="green" />
+        <StatBadge title="Refusé" value={`${stats.totalRefuse.toLocaleString()} FCFA`} color="red" />
+        <StatBadge title="Suspendu" value={`${stats.totalSuspended.toLocaleString()} FCFA`} color="orange" />
+        <StatBadge title="Nouveaux" value={`${stats.totalNouveau.toLocaleString()} FCFA`} color="blue" />
+        <StatBadge title="Renouvellement" value={`${stats.totalRenouvellement.toLocaleString()} FCFA`} color="purple" />
       </div>
 
       {/* ===================== RECHERCHE ===================== */}
@@ -219,9 +196,7 @@ export default function AdminCertification() {
                       {d.statut}
                     </span>
                   </td>
-                  <td className="px-4 py-2">
-                    {d.typeDemande}
-                  </td>
+                  <td className="px-4 py-2">{d.typeDemande}</td>
                   <td className="px-4 py-2 space-x-2">
                     <button
                       onClick={() => handleValider(d._id)}
@@ -249,21 +224,20 @@ export default function AdminCertification() {
 }
 
 /* =====================
-   COMPONENT STAT CARD
+   COMPONENT STAT BADGE
 ===================== */
-function StatCard({ title, value, color = "blue" }) {
+function StatBadge({ title, value, color = "blue" }) {
   const colors = {
-    blue: "text-blue-600",
-    green: "text-green-600",
-    red: "text-red-600",
-    orange: "text-orange-500",
-    purple: "text-purple-600",
+    blue: "bg-blue-100 text-blue-800",
+    green: "bg-green-100 text-green-800",
+    red: "bg-red-100 text-red-800",
+    orange: "bg-orange-100 text-orange-800",
+    purple: "bg-purple-100 text-purple-800",
   };
 
   return (
-    <div className="bg-white p-4 rounded-xl shadow">
-      <p className="text-gray-500 text-sm">{title}</p>
-      <p className={`text-xl font-bold ${colors[color]}`}>{value}</p>
+    <div className={`px-3 py-1 rounded-full text-sm font-semibold ${colors[color]}`}>
+      {title}: {value}
     </div>
   );
 }
