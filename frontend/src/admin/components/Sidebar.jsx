@@ -63,7 +63,7 @@ export default function Sidebar({ active, setActive }) {
       <aside className="hidden md:flex w-64 min-h-screen bg-gray-900 text-white p-4 flex-col">
         {/* Logo */}
         <h1 className="text-xl font-bold mb-8 tracking-wide">
-          KOLWAZ <span className="text-orange-400">ADMIN</span>
+          Dakarbusinesse <span className="text-orange-400">ADMIN</span>
         </h1>
 
         {/* Navigation */}
@@ -75,7 +75,7 @@ export default function Sidebar({ active, setActive }) {
 
         {/* Footer */}
         <div className="mt-auto pt-10 text-xs text-gray-400">
-          © {new Date().getFullYear()} Kolwaz
+          © {new Date().getFullYear()} Dakarbusinesse
         </div>
       </aside>
 
