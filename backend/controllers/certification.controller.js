@@ -185,3 +185,46 @@ export const refuserDemandeCertification = async (req, res) => {
     res.status(500).json({ message: "Erreur lors du refus de la demande" });
   }
 };
+
+/* =======================
+   5️⃣ VERIFICATION EXPIRATION (ADMIN ou CRON)
+======================= */
+export const verifierExpirationCertifications = async () => {
+  try {
+    const now = new Date();
+
+    // Trouve toutes les certifications actives expirées
+    const certificationsExpirees = await Certification.find({
+      statut: "active",
+      dateExpiration: { $lte: now },
+    }).populate("vendeur");
+
+    for (const cert of certificationsExpirees) {
+      // Passe le statut à suspended
+      cert.statut = "suspended";
+      await cert.save();
+
+      // Met à jour le vendeur
+      if (cert.vendeur) {
+        cert.vendeur.certifie = false;
+        await cert.vendeur.save();
+
+        // Envoi mail de suspension
+        try {
+          await envoyerMailCertification({
+            email: cert.vendeur.email,
+            type: "SUSPENDED",
+            nomVendeur: cert.vendeur.nomVendeur,
+          });
+          console.log(`📨 Email de suspension envoyé à ${cert.vendeur.email}`);
+        } catch (mailErr) {
+          console.warn(`⚠️ Email suspension non envoyé pour ${cert.vendeur.email}`);
+        }
+      }
+
+      console.log(`✅ Certification suspendue pour vendeur ${cert.vendeur?.nomVendeur || cert.vendeur}`);
+    }
+  } catch (err) {
+    console.error("🔥 verifierExpirationCertifications :", err);
+  }
+};

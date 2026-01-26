@@ -17,6 +17,7 @@ import certificationRoutes from "./routes/certification.routes.js";
 import vendeurPublicRoutes from "./routes/vendeur.public.routes.js";
 import adminRoutes from "./src/admin/routes/index.js";
 import { startBoostScheduler } from "./utils/boostScheduler.js";
+import { verifierExpirationCertifications } from "./controllers/certification.controller.js";
 
 
 const app = express();
@@ -205,6 +206,14 @@ app.use((err, req, res, next) => {
   res.status(500).json({
     message: "Erreur interne du serveur",
   });
+});
+
+// ======================
+// CRON JOB : Vérifier les certifications expirées tous les jours à minuit
+// ======================
+cron.schedule("0 0 * * *", async () => {
+  console.log("⏱ Vérification des certifications expirées...");
+  await verifierExpirationCertifications();
 });
 
 /* =====================================================

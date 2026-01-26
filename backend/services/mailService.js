@@ -224,3 +224,60 @@ export const envoyerMailCertification = async ({
   }
 };
 
+/* =====================================================
+   TEMPLATE CERTIFICATION SUSPENDED (NOUVEAU)
+==================================================== */
+const templateCertificationSuspended = ({ nomVendeur }) => `
+  <div style="font-family:Arial;padding:20px">
+    <h2>Certification suspendue ⚠️</h2>
+    <p>Bonjour <strong>${nomVendeur}</strong>,</p>
+    <p>Votre certification a été <strong>suspendue</strong> car sa validité est expirée.</p>
+    <p>Pour réactiver votre badge de vendeur certifié, vous devez soumettre une nouvelle demande et effectuer le paiement.</p>
+    <p>Merci de votre compréhension.</p>
+  </div>
+`;
+
+/* =====================================================
+   ENVOI MAIL CERTIFICATION
+==================================================== */
+export const envoyerMailCertification = async ({
+  email,
+  type = "VALIDEE",
+  nomVendeur,
+  commentaire = "",
+}) => {
+  try {
+    let subject, html;
+
+    switch (type) {
+      case "REFUSEE":
+        subject = "Votre certification a été refusée ❌";
+        html = templateCertificationRefusee({ nomVendeur, commentaire });
+        break;
+      case "SUSPENDED":
+        subject = "Votre certification a été suspendue ⚠️";
+        html = templateCertificationSuspended({ nomVendeur });
+        break;
+      default:
+        subject = "Votre certification a été validée 🎉";
+        html = templateCertificationValidee({ nomVendeur });
+    }
+
+    const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+    sendSmtpEmail.to = [{ email }];
+    sendSmtpEmail.sender = {
+      email: process.env.MAIL_FROM,
+      name: process.env.MAIL_FROM_NAME || "Kolwaz",
+    };
+    sendSmtpEmail.subject = subject;
+    sendSmtpEmail.htmlContent = html;
+
+    const response = await apiInstance.sendTransacEmail(sendSmtpEmail);
+
+    console.log("📤 MAIL CERTIFICATION SENT INFO :", response);
+    console.log(`✅ Email certification ${type} envoyé à ${email}`);
+  } catch (error) {
+    console.error("❌ ERREUR ENVOI EMAIL CERTIFICATION :", error);
+    throw new Error("Impossible d'envoyer l'email de certification");
+  }
+};
