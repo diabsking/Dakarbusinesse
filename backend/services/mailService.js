@@ -129,7 +129,7 @@ export const envoyerMailBoost = async ({ email, type = "VALIDEE", produitNom }) 
     sendSmtpEmail.to = [{ email }];
     sendSmtpEmail.sender = {
       email: process.env.MAIL_FROM,
-      name: process.env.MAIL_FROM_NAME || "Kolwaz",
+      name: process.env.MAIL_FROM_NAME || "Dakarbusinesse",
     };
     sendSmtpEmail.subject = subject;
     sendSmtpEmail.htmlContent = html;
