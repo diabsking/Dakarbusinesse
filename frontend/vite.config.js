@@ -8,7 +8,11 @@ export default defineConfig({
     host: true, // écoute tous les hôtes pour dev
   },
   preview: {
-    allowedHosts: ['dakarbusinesse-1-54rq.onrender.com'], // autorise Render
+    allowedHosts: [
+      'dakarbusinesse-1-54rq.onrender.com', // Render
+      'dakarbusiness.shop',                 // domaine racine
+      'www.dakarbusiness.shop'              // sous-domaine www
+    ],
   },
   build: {
     rollupOptions: {
