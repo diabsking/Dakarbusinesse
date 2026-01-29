@@ -36,10 +36,14 @@ app.use(express.json({ limit: "10mb" }));
 
 // ✅ CORS compatible Render
 
+// ✅ CORS compatible Render + domaine personnalisé
 const allowedOrigins = [
   "https://dakarbusinesse-1-54rq.onrender.com",
   "https://dakarbusinesse-g24r.onrender.com",
+  "https://dakarbusiness.shop",        // ← ajoute ton domaine racine
+  "https://www.dakarbusiness.shop",    // ← ajoute le sous-domaine www
 ];
+
 
 app.use(
   cors({
