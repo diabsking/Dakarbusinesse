@@ -1,17 +1,20 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import App from "./App";
 import "./index.css";
 import { PanierProvider } from "./context/PanierContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <PanierProvider>
-        <App />
-      </PanierProvider>
-    </BrowserRouter>
+    <HelmetProvider>
+      <BrowserRouter>
+        <PanierProvider>
+          <App />
+        </PanierProvider>
+      </BrowserRouter>
+    </HelmetProvider>
   </React.StrictMode>
 );
 
@@ -24,12 +27,12 @@ if ("serviceWorker" in navigator) {
       .register("/sw.js", { scope: "/" })
       .then((registration) => {
         console.log(
-          "Service Worker Dakarbusinesse actif",
+          "Service Worker DakarBusiness actif",
           registration.scope
         );
       })
       .catch((err) =>
-        console.error("Erreur Service Worker Dakarbusinesse :", err)
+        console.error("Erreur Service Worker DakarBusiness :", err)
       );
   });
 }
