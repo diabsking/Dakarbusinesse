@@ -1,5 +1,4 @@
 import { useState } from "react";
-import axios from "axios";
 import api from "../services/api";
 
 function PublierProduit() {
@@ -42,10 +41,61 @@ function PublierProduit() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // ================= VALIDATION =================
+    const requiredFields = [
+      "nom",
+      "description",
+      "categorie",
+      "prixInitial",
+      "prixActuel",
+      "enPromotion",
+      "etat",
+      "origine",
+      "paysOrigine",
+      "stock",
+      "delaiLivraison",
+    ];
+
+    const emptyFields = requiredFields.filter((field) => !form[field]);
+    if (emptyFields.length > 0) {
+      const fieldNames = emptyFields
+        .map((f) => {
+          switch (f) {
+            case "nom":
+              return "Nom du produit";
+            case "description":
+              return "Description";
+            case "categorie":
+              return "Catégorie";
+            case "prixInitial":
+              return "Prix initial";
+            case "prixActuel":
+              return "Prix actuel";
+            case "enPromotion":
+              return "En promotion";
+            case "etat":
+              return "État";
+            case "origine":
+              return "Origine";
+            case "paysOrigine":
+              return "Pays d’origine";
+            case "stock":
+              return "Stock";
+            case "delaiLivraison":
+              return "Délai de livraison";
+            default:
+              return f;
+          }
+        })
+        .join(", ");
+      return alert(`Veuillez remplir les champs suivants : ${fieldNames}`);
+    }
+
     if (images.length < 4 || images.length > 6) {
       return alert("4 à 6 images obligatoires");
     }
 
+    // ================= SUBMIT =================
     try {
       setLoading(true);
       const formData = new FormData();
@@ -53,8 +103,8 @@ function PublierProduit() {
       images.forEach((img) => formData.append("images", img));
 
       await api.post("/api/produits", formData, {
-  headers: { "Content-Type": "multipart/form-data" },
-});
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       alert("Produit publié avec succès");
       setForm({
