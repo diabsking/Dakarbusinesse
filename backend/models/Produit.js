@@ -6,8 +6,8 @@ const produitSchema = new mongoose.Schema(
     vendeur: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Vendeur",
+      required: true,
     },
-
     /* ================= INFOS PRODUIT ================= */
     nom: {
       type: String,
@@ -17,10 +17,12 @@ const produitSchema = new mongoose.Schema(
 
     description: {
       type: String,
+      required: true,
     },
 
     categorie: {
       type: String,
+      required: true,
       enum: [
         "Électronique",
         "Mode & Vêtements",
@@ -34,11 +36,13 @@ const produitSchema = new mongoose.Schema(
     etat: {
       type: String,
       enum: ["Neuf", "Occasion"],
+      required: true,
     },
 
     origine: {
       type: String,
       enum: ["Local", "Vient de l’étranger"],
+      required: true,
     },
 
     paysOrigine: {
@@ -49,10 +53,12 @@ const produitSchema = new mongoose.Schema(
     /* ================= PRIX ================= */
     prixInitial: {
       type: Number,
+      required: true,
     },
 
     prixActuel: {
       type: Number,
+      required: true,
     },
 
     enPromotion: {
@@ -73,11 +79,13 @@ const produitSchema = new mongoose.Schema(
     /* ================= STOCK & LIVRAISON ================= */
     stock: {
       type: Number,
+      required: true,
       min: 0,
     },
 
     delaiLivraison: {
       type: String,
+      required: true,
     },
 
     /* ================= IMAGES ================= */
@@ -85,9 +93,9 @@ const produitSchema = new mongoose.Schema(
       type: [String],
       validate: {
         validator: function (val) {
-          return Array.isArray(val) && val.length >= 1 && val.length <= 6;
+          return val.length >= 4 && val.length <= 6;
         },
-        message: "Le produit doit avoir entre 1 et 6 images",
+        message: "Le produit doit avoir entre 4 et 6 images",
       },
       required: true,
     },
@@ -121,7 +129,7 @@ const produitSchema = new mongoose.Schema(
 
     scorePopularite: {
       type: Number,
-      default: 0,
+      default: 0, // calculé (commandes + vues + boost)
     },
 
     /* ================= STATUT ================= */
@@ -133,7 +141,7 @@ const produitSchema = new mongoose.Schema(
     /* ================= MODÉRATION ================= */
     publie: {
       type: Boolean,
-      default: false,
+      default: false, // true après paiement Wave
     },
 
     fraisPublicationPayes: {
