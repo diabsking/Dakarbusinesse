@@ -113,13 +113,29 @@ export const connexionVendeur = async (req, res) => {
   try {
     const { telephone, password } = req.body;
 
-    const vendeur = await Vendeur.findOne({ telephone });
-    if (!vendeur)
+    // Nettoyage basique
+    const cleaned = telephone.replace(/[\s-()]/g, "");
+
+    // Variantes possibles (anciens comptes inclus)
+    const telephones = [
+      cleaned,
+      `+221${cleaned}`,
+      `00221${cleaned}`,
+      `221${cleaned}`,
+    ];
+
+    const vendeur = await Vendeur.findOne({
+      telephone: { $in: telephones },
+    });
+
+    if (!vendeur) {
       return res.status(400).json({ message: "Vendeur introuvable" });
+    }
 
     const match = await bcrypt.compare(password, vendeur.password);
-    if (!match)
+    if (!match) {
       return res.status(400).json({ message: "Mot de passe incorrect" });
+    }
 
     const token = genererToken(vendeur._id);
 
@@ -140,7 +156,6 @@ export const connexionVendeur = async (req, res) => {
     res.status(500).json({ message: "Erreur serveur" });
   }
 };
-
 /* =====================================================
    VENDEUR CONNECTÉ
 ===================================================== */
