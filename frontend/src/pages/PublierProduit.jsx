@@ -1,11 +1,12 @@
 import { useState } from "react";
+import axios from "axios";
 import api from "../services/api";
 
 function PublierProduit() {
   const [form, setForm] = useState({
     nom: "",
     description: "",
-    categorie: "", // pourra être rempli par défaut
+    categorie: "",
     prixInitial: "",
     prixActuel: "",
     enPromotion: "",
@@ -41,21 +42,21 @@ function PublierProduit() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // ✅ Nom obligatoire
     if (!form.nom) {
       return alert("Le nom du produit est obligatoire");
     }
 
-    // ✅ Images : 1 à 6 minimum
+    // ✅ Images : 1 à 6
     if (images.length < 1 || images.length > 6) {
       return alert("Le produit doit contenir entre 1 et 6 images");
     }
 
     try {
       setLoading(true);
-
       const formData = new FormData();
 
-      // ✅ Si catégorie vide, mettre "Autres" par défaut
+      // ✅ Catégorie par défaut si vide
       const categorieFinale = form.categorie || "Autres";
 
       Object.keys(form).forEach((key) => {
@@ -103,6 +104,7 @@ function PublierProduit() {
       <h1 className="text-3xl font-bold text-center">Publier une annonce</h1>
 
       <form onSubmit={handleSubmit} className="space-y-12">
+
         {/* ================= PRODUIT ================= */}
         <section className="space-y-6 border p-6 rounded-lg shadow-sm">
           <h2 className="text-xl font-semibold">Informations du produit</h2>
@@ -145,12 +147,115 @@ function PublierProduit() {
               <option>Beauté</option>
               <option>Alimentation</option>
               <option>Autres</option>
+              <option>Électroménager</option>
+              <option>Téléphones & Accessoires</option>
+              <option>Informatique</option>
+              <option>Sport & Loisirs</option>
+              <option>Bébé & Enfants</option>
+              <option>Santé</option>
+              <option>Automobile</option>
+              <option>Services</option>
             </select>
           </div>
 
-          {/* ================= AUTRES CHAMPS ================= */}
-          {/* Reste inchangé, tout facultatif */}
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <label className="block font-medium mb-1">Prix initial (FCFA)</label>
+              <input
+                type="number"
+                name="prixInitial"
+                value={form.prixInitial}
+                onChange={handleChange}
+                className="w-full p-3 border rounded"
+              />
+            </div>
+            <div>
+              <label className="block font-medium mb-1">Prix actuel (FCFA)</label>
+              <input
+                type="number"
+                name="prixActuel"
+                value={form.prixActuel}
+                onChange={handleChange}
+                className="w-full p-3 border rounded"
+              />
+            </div>
+          </div>
 
+          <div className="grid md:grid-cols-3 gap-6">
+            <div>
+              <label className="block font-medium mb-1">En promotion ?</label>
+              <select
+                name="enPromotion"
+                value={form.enPromotion}
+                onChange={handleChange}
+                className="w-full p-3 border rounded"
+              >
+                <option value="">Choisir</option>
+                <option>Oui</option>
+                <option>Non</option>
+              </select>
+            </div>
+            <div>
+              <label className="block font-medium mb-1">État</label>
+              <select
+                name="etat"
+                value={form.etat}
+                onChange={handleChange}
+                className="w-full p-3 border rounded"
+              >
+                <option value="">Sélectionner</option>
+                <option>Neuf</option>
+                <option>Occasion</option>
+              </select>
+            </div>
+            <div>
+              <label className="block font-medium mb-1">Origine</label>
+              <select
+                name="origine"
+                value={form.origine}
+                onChange={handleChange}
+                className="w-full p-3 border rounded"
+              >
+                <option value="">Sélectionner</option>
+                <option>Local</option>
+                <option>Vient de l’étranger</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-medium mb-1">Pays d’origine</label>
+            <input
+              name="paysOrigine"
+              value={form.paysOrigine}
+              onChange={handleChange}
+              placeholder="Pays d’origine"
+              className="w-full p-3 border rounded"
+            />
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <label className="block font-medium mb-1">Stock disponible</label>
+              <input
+                type="number"
+                name="stock"
+                value={form.stock}
+                onChange={handleChange}
+                className="w-full p-3 border rounded"
+              />
+            </div>
+            <div>
+              <label className="block font-medium mb-1">Délai de livraison</label>
+              <input
+                name="delaiLivraison"
+                value={form.delaiLivraison}
+                onChange={handleChange}
+                placeholder="Temps de livraison"
+                className="w-full p-3 border rounded"
+              />
+            </div>
+          </div>
         </section>
 
         {/* ================= IMAGES ================= */}
@@ -184,17 +289,11 @@ function PublierProduit() {
                         className="w-20 h-20 md:w-24 md:h-24 object-cover rounded-lg border cursor-pointer"
                         onClick={() => {
                           const newPreviews = [...previews];
-                          [newPreviews[0], newPreviews[index]] = [
-                            newPreviews[index],
-                            newPreviews[0],
-                          ];
+                          [newPreviews[0], newPreviews[index]] = [newPreviews[index], newPreviews[0]];
                           setPreviews(newPreviews);
 
                           const newImages = [...images];
-                          [newImages[0], newImages[index]] = [
-                            newImages[index],
-                            newImages[0],
-                          ];
+                          [newImages[0], newImages[index]] = [newImages[index], newImages[0]];
                           setImages(newImages);
                         }}
                       />
@@ -226,7 +325,11 @@ function PublierProduit() {
             type="submit"
             className="px-14 py-3 rounded-full ring-2 w-full sm:w-auto"
           >
-            {loading ? <span className="animate-pulse">Publication...</span> : "Publier une annonce"}
+            {loading ? (
+              <span className="animate-pulse">Publication...</span>
+            ) : (
+              "Publier une annonce"
+            )}
           </button>
         </div>
       </form>
