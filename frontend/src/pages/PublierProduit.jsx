@@ -42,39 +42,21 @@ function PublierProduit() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // ✅ Nom obligatoire
-    if (!form.nom) {
-      return alert("Le nom du produit est obligatoire");
-    }
-
-    // ✅ Images : 1 à 6
-    if (images.length < 1 || images.length > 6) {
-      return alert("Le produit doit contenir entre 1 et 6 images");
+    if (images.length < 4 || images.length > 6) {
+      return alert("4 à 6 images obligatoires");
     }
 
     try {
       setLoading(true);
       const formData = new FormData();
-
-      // ✅ Catégorie par défaut si vide
-      const categorieFinale = form.categorie || "Autres";
-
-      Object.keys(form).forEach((key) => {
-        if (key === "categorie") {
-          formData.append("categorie", categorieFinale);
-        } else {
-          formData.append(key, form[key]);
-        }
-      });
-
+      Object.keys(form).forEach((key) => formData.append(key, form[key]));
       images.forEach((img) => formData.append("images", img));
 
       await api.post("/api/produits", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+  headers: { "Content-Type": "multipart/form-data" },
+});
 
       alert("Produit publié avec succès");
-
       setForm({
         nom: "",
         description: "",
@@ -260,7 +242,7 @@ function PublierProduit() {
 
         {/* ================= IMAGES ================= */}
         <section className="space-y-4 border p-6 rounded-lg shadow-sm">
-          <h2 className="text-xl font-semibold">Photos du produit (1 à 6)</h2>
+          <h2 className="text-xl font-semibold">Photos du produit (4 à 6)</h2>
           <input
             type="file"
             multiple
@@ -311,7 +293,7 @@ function PublierProduit() {
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {[...Array(1)].map((_, i) => (
+              {[...Array(4)].map((_, i) => (
                 <div key={i} className="h-24 md:h-32 bg-gray-200 animate-pulse rounded-lg" />
               ))}
             </div>
