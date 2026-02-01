@@ -2,12 +2,12 @@ import mongoose from "mongoose";
 
 const produitSchema = new mongoose.Schema(
   {
-    /* ================= LIENS ================= */
     vendeur: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Vendeur",
       required: true,
     },
+
     /* ================= INFOS PRODUIT ================= */
     nom: {
       type: String,
@@ -17,12 +17,11 @@ const produitSchema = new mongoose.Schema(
 
     description: {
       type: String,
-      required: true,
+      default: "",
     },
 
     categorie: {
       type: String,
-      required: true,
       enum: [
         "Électronique",
         "Mode & Vêtements",
@@ -31,18 +30,19 @@ const produitSchema = new mongoose.Schema(
         "Alimentation",
         "Autres",
       ],
+      default: null,
     },
 
     etat: {
       type: String,
       enum: ["Neuf", "Occasion"],
-      required: true,
+      default: null,
     },
 
     origine: {
       type: String,
       enum: ["Local", "Vient de l’étranger"],
-      required: true,
+      default: null,
     },
 
     paysOrigine: {
@@ -53,12 +53,14 @@ const produitSchema = new mongoose.Schema(
     /* ================= PRIX ================= */
     prixInitial: {
       type: Number,
-      required: true,
+      min: 0,
+      default: null,
     },
 
     prixActuel: {
       type: Number,
-      required: true,
+      min: 0,
+      default: null,
     },
 
     enPromotion: {
@@ -66,88 +68,57 @@ const produitSchema = new mongoose.Schema(
       default: false,
     },
 
-    dateDebutPromotion: {
-      type: Date,
-      default: null,
-    },
-
-    dateFinPromotion: {
-      type: Date,
-      default: null,
+    /* 🔒 Au moins un prix obligatoire */
+    _prixValidator: {
+      type: Boolean,
+      select: false,
+      default: true,
+      validate: {
+        validator: function () {
+          return this.prixInitial != null || this.prixActuel != null;
+        },
+        message: "Au moins un prix est obligatoire",
+      },
     },
 
     /* ================= STOCK & LIVRAISON ================= */
     stock: {
       type: Number,
-      required: true,
       min: 0,
+      default: null,
     },
 
     delaiLivraison: {
       type: String,
-      required: true,
+      default: null,
     },
 
     /* ================= IMAGES ================= */
     images: {
       type: [String],
+      required: true,
       validate: {
         validator: function (val) {
-          return val.length >= 4 && val.length <= 6;
+          return val.length >= 1 && val.length <= 6;
         },
-        message: "Le produit doit avoir entre 4 et 6 images",
+        message: "Le produit doit avoir entre 1 et 6 images",
       },
-      required: true,
     },
 
     /* ================= VISIBILITÉ & BOOST ================= */
-    estBooster: {
-      type: Boolean,
-      default: false,
-    },
-
-    dateDebutBoost: {
-      type: Date,
-      default: null,
-    },
-
-    dateFinBoost: {
-      type: Date,
-      default: null,
-    },
+    estBooster: { type: Boolean, default: false },
+    dateDebutBoost: { type: Date, default: null },
+    dateFinBoost: { type: Date, default: null },
 
     /* ================= STATISTIQUES ================= */
-    nombreVues: {
-      type: Number,
-      default: 0,
-    },
-
-    nombreCommandes: {
-      type: Number,
-      default: 0,
-    },
-
-    scorePopularite: {
-      type: Number,
-      default: 0, // calculé (commandes + vues + boost)
-    },
+    nombreVues: { type: Number, default: 0 },
+    nombreCommandes: { type: Number, default: 0 },
+    scorePopularite: { type: Number, default: 0 },
 
     /* ================= STATUT ================= */
-    actif: {
-      type: Boolean,
-      default: true,
-    },
-
-    /* ================= MODÉRATION ================= */
-    publie: {
-      type: Boolean,
-      default: false, // true après paiement Wave
-    },
-
-    fraisPublicationPayes: {
-      type: Boolean,
-      default: false,
-    },
+    actif: { type: Boolean, default: true },
+    publie: { type: Boolean, default: false },
+    fraisPublicationPayes: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
