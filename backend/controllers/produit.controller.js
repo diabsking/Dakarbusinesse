@@ -5,6 +5,7 @@ import StatProduit from "../models/StatProduit.js";
 import StatProduitDaily from "../models/StatProduitDaily.js";
 import StatProduitEvent from "../models/StatProduitEvent.js";
 
+
 /* =====================================================
    ➕ AJOUTER PRODUIT
 ===================================================== */
@@ -26,25 +27,17 @@ export const ajouterProduit = async (req, res) => {
 
     /* ================= VALIDATIONS ================= */
 
-    if (
-      !nom ||
-      !description ||
-      !categorie ||
-      !prixInitial ||
-      !prixActuel ||
-      !etat ||
-      !origine ||
-      !stock ||
-      !delaiLivraison
-    ) {
+    // ✅ SEUL champ obligatoire
+    if (!nom) {
       return res.status(400).json({
-        message: "Tous les champs produit sont obligatoires",
+        message: "Le nom du produit est obligatoire",
       });
     }
 
-    if (!req.files || req.files.length < 4 || req.files.length > 6) {
+    // ✅ Images : 1 à 6
+    if (!req.files || req.files.length < 1 || req.files.length > 6) {
       return res.status(400).json({
-        message: "Le produit doit contenir entre 4 et 6 images",
+        message: "Le produit doit contenir entre 1 et 6 images",
       });
     }
 
@@ -87,27 +80,27 @@ export const ajouterProduit = async (req, res) => {
       produit,
     });
 
-    // ================= INIT STATS PRODUIT (GRATUIT) =================
+    /* ================= INIT STATS PRODUIT ================= */
 
-const today = () => new Date().toISOString().slice(0, 10);
+    const today = () => new Date().toISOString().slice(0, 10);
 
-await StatProduit.create({
-  produit: produit._id,
-  vendeur: produit.vendeur,
-  boostActif: false,
-  boostUtilisations: 0,
-});
+    await StatProduit.create({
+      produit: produit._id,
+      vendeur: produit.vendeur,
+      boostActif: false,
+      boostUtilisations: 0,
+    });
 
-await StatProduitDaily.create({
-  produit: produit._id,
-  date: today(),
-});
+    await StatProduitDaily.create({
+      produit: produit._id,
+      date: today(),
+    });
 
-await StatProduitEvent.create({
-  produit: produit._id,
-  type: "CREATION_PRODUIT",
-  user: req.vendeur.id,
-});
+    await StatProduitEvent.create({
+      produit: produit._id,
+      type: "CREATION_PRODUIT",
+      user: req.vendeur.id,
+    });
 
   } catch (erreur) {
     console.error("❌ Erreur ajout produit :", erreur);
