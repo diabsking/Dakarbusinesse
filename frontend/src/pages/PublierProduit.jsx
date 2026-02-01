@@ -1,5 +1,4 @@
 import { useState } from "react";
-import axios from "axios";
 import api from "../services/api";
 
 function PublierProduit() {
@@ -28,6 +27,12 @@ function PublierProduit() {
 
   const handleImages = (e) => {
     const files = Array.from(e.target.files);
+
+    if (images.length + files.length > 6) {
+      alert("Maximum 6 photos autorisées");
+      return;
+    }
+
     setImages((prev) => [...prev, ...files]);
     const previewUrls = files.map((file) => URL.createObjectURL(file));
     setPreviews((prev) => [...prev, ...previewUrls]);
@@ -42,8 +47,9 @@ function PublierProduit() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (images.length < 4 || images.length > 6) {
-      return alert("4 à 6 images obligatoires");
+    // ✅ 1 à 6 photos obligatoires
+    if (images.length < 1 || images.length > 6) {
+      return alert("Veuillez ajouter entre 1 et 6 photos");
     }
 
     try {
@@ -53,10 +59,11 @@ function PublierProduit() {
       images.forEach((img) => formData.append("images", img));
 
       await api.post("/api/produits", formData, {
-  headers: { "Content-Type": "multipart/form-data" },
-});
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       alert("Produit publié avec succès");
+
       setForm({
         nom: "",
         description: "",
@@ -70,6 +77,7 @@ function PublierProduit() {
         stock: "",
         delaiLivraison: "",
       });
+
       setImages([]);
       setPreviews([]);
     } catch (err) {
@@ -86,215 +94,166 @@ function PublierProduit() {
       <h1 className="text-3xl font-bold text-center">Publier une annonce</h1>
 
       <form onSubmit={handleSubmit} className="space-y-12">
-
         {/* ================= PRODUIT ================= */}
         <section className="space-y-6 border p-6 rounded-lg shadow-sm">
           <h2 className="text-xl font-semibold">Informations du produit</h2>
 
-          <div>
-            <label className="block font-medium mb-1">Nom du produit</label>
-            <input
-              name="nom"
-              value={form.nom}
-              onChange={handleChange}
-              placeholder="Nom du produit"
-              className="w-full p-3 border rounded"
-            />
-          </div>
+          <input
+            name="nom"
+            value={form.nom}
+            onChange={handleChange}
+            placeholder="Nom du produit"
+            className="w-full p-3 border rounded"
+          />
 
-          <div>
-            <label className="block font-medium mb-1">Description détaillée</label>
-            <textarea
-              name="description"
-              value={form.description}
-              onChange={handleChange}
-              rows={4}
-              placeholder="Description du produit"
-              className="w-full p-3 border rounded"
-            />
-          </div>
+          <textarea
+            name="description"
+            value={form.description}
+            onChange={handleChange}
+            rows={4}
+            placeholder="Description du produit"
+            className="w-full p-3 border rounded"
+          />
 
-          <div>
-            <label className="block font-medium mb-1">Catégorie</label>
-            <select
-              name="categorie"
-              value={form.categorie}
-              onChange={handleChange}
-              className="w-full p-3 border rounded"
-            >
-              <option value="">Sélectionner la catégorie</option>
-              <option>Électronique</option>
-              <option>Mode & Vêtements</option>
-              <option>Maison</option>
-              <option>Beauté</option>
-              <option>Alimentation</option>
-              <option>Autres</option>
-              <option>Électroménager</option>
-              <option>Téléphones & Accessoires</option>
-              <option>Informatique</option>
-              <option>Sport & Loisirs</option>
-              <option>Bébé & Enfants</option>
-              <option>Santé</option>
-              <option>Automobile</option>
-              <option>Services</option>
-            </select>
-          </div>
+          <select
+            name="categorie"
+            value={form.categorie}
+            onChange={handleChange}
+            className="w-full p-3 border rounded"
+          >
+            <option value="">Sélectionner la catégorie</option>
+            <option>Électronique</option>
+            <option>Mode & Vêtements</option>
+            <option>Maison</option>
+            <option>Beauté</option>
+            <option>Alimentation</option>
+            <option>Autres</option>
+            <option>Électroménager</option>
+            <option>Téléphones & Accessoires</option>
+            <option>Informatique</option>
+            <option>Sport & Loisirs</option>
+            <option>Bébé & Enfants</option>
+            <option>Santé</option>
+            <option>Automobile</option>
+            <option>Services</option>
+          </select>
 
           <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <label className="block font-medium mb-1">Prix initial (FCFA)</label>
-              <input
-                type="number"
-                name="prixInitial"
-                value={form.prixInitial}
-                onChange={handleChange}
-                className="w-full p-3 border rounded"
-              />
-            </div>
-            <div>
-              <label className="block font-medium mb-1">Prix actuel (FCFA)</label>
-              <input
-                type="number"
-                name="prixActuel"
-                value={form.prixActuel}
-                onChange={handleChange}
-                className="w-full p-3 border rounded"
-              />
-            </div>
+            <input
+              type="number"
+              name="prixInitial"
+              value={form.prixInitial}
+              onChange={handleChange}
+              placeholder="Prix initial (FCFA)"
+              className="w-full p-3 border rounded"
+            />
+            <input
+              type="number"
+              name="prixActuel"
+              value={form.prixActuel}
+              onChange={handleChange}
+              placeholder="Prix actuel (FCFA)"
+              className="w-full p-3 border rounded"
+            />
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
-            <div>
-              <label className="block font-medium mb-1">En promotion ?</label>
-              <select
-                name="enPromotion"
-                value={form.enPromotion}
-                onChange={handleChange}
-                className="w-full p-3 border rounded"
-              >
-                <option value="">Choisir</option>
-                <option>Oui</option>
-                <option>Non</option>
-              </select>
-            </div>
-            <div>
-              <label className="block font-medium mb-1">État</label>
-              <select
-                name="etat"
-                value={form.etat}
-                onChange={handleChange}
-                className="w-full p-3 border rounded"
-              >
-                <option value="">Sélectionner</option>
-                <option>Neuf</option>
-                <option>Occasion</option>
-              </select>
-            </div>
-            <div>
-              <label className="block font-medium mb-1">Origine</label>
-              <select
-                name="origine"
-                value={form.origine}
-                onChange={handleChange}
-                className="w-full p-3 border rounded"
-              >
-                <option value="">Sélectionner</option>
-                <option>Local</option>
-                <option>Vient de l’étranger</option>
-              </select>
-            </div>
+            <select
+              name="enPromotion"
+              value={form.enPromotion}
+              onChange={handleChange}
+              className="w-full p-3 border rounded"
+            >
+              <option value="">En promotion ?</option>
+              <option>Oui</option>
+              <option>Non</option>
+            </select>
+
+            <select
+              name="etat"
+              value={form.etat}
+              onChange={handleChange}
+              className="w-full p-3 border rounded"
+            >
+              <option value="">État</option>
+              <option>Neuf</option>
+              <option>Occasion</option>
+            </select>
+
+            <select
+              name="origine"
+              value={form.origine}
+              onChange={handleChange}
+              className="w-full p-3 border rounded"
+            >
+              <option value="">Origine</option>
+              <option>Local</option>
+              <option>Vient de l’étranger</option>
+            </select>
           </div>
 
-          <div>
-            <label className="block font-medium mb-1">Pays d’origine</label>
-            <input
-              name="paysOrigine"
-              value={form.paysOrigine}
-              onChange={handleChange}
-              placeholder="Pays d’origine"
-              className="w-full p-3 border rounded"
-            />
-          </div>
+          <input
+            name="paysOrigine"
+            value={form.paysOrigine}
+            onChange={handleChange}
+            placeholder="Pays d’origine"
+            className="w-full p-3 border rounded"
+          />
 
           <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <label className="block font-medium mb-1">Stock disponible</label>
-              <input
-                type="number"
-                name="stock"
-                value={form.stock}
-                onChange={handleChange}
-                className="w-full p-3 border rounded"
-              />
-            </div>
-            <div>
-              <label className="block font-medium mb-1">Délai de livraison</label>
-              <input
-                name="delaiLivraison"
-                value={form.delaiLivraison}
-                onChange={handleChange}
-                placeholder="Temps de livraison"
-                className="w-full p-3 border rounded"
-              />
-            </div>
+            <input
+              type="number"
+              name="stock"
+              value={form.stock}
+              onChange={handleChange}
+              placeholder="Stock disponible"
+              className="w-full p-3 border rounded"
+            />
+            <input
+              name="delaiLivraison"
+              value={form.delaiLivraison}
+              onChange={handleChange}
+              placeholder="Délai de livraison"
+              className="w-full p-3 border rounded"
+            />
           </div>
         </section>
 
         {/* ================= IMAGES ================= */}
         <section className="space-y-4 border p-6 rounded-lg shadow-sm">
-          <h2 className="text-xl font-semibold">Photos du produit (4 à 6)</h2>
+          <h2 className="text-xl font-semibold">
+            Photos du produit (1 à 6)
+          </h2>
+
           <input
             type="file"
             multiple
             accept="image/*"
             onChange={handleImages}
-            className="mb-4 w-full"
+            className="w-full"
           />
 
-          {previews.length > 0 ? (
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-shrink-0 w-full md:w-2/3">
-                <img
-                  src={previews[0]}
-                  alt="Image principale"
-                  className="w-full h-64 md:h-80 object-cover rounded-lg border"
-                />
-              </div>
-              <div className="flex md:flex-col gap-2 overflow-x-auto md:overflow-x-visible md:w-1/3">
-                {previews.map((src, index) => {
-                  if (index === 0) return null;
-                  return (
-                    <div key={index} className="relative flex-shrink-0">
-                      <img
-                        src={src}
-                        alt={`preview-${index}`}
-                        className="w-20 h-20 md:w-24 md:h-24 object-cover rounded-lg border cursor-pointer"
-                        onClick={() => {
-                          const newPreviews = [...previews];
-                          [newPreviews[0], newPreviews[index]] = [newPreviews[index], newPreviews[0]];
-                          setPreviews(newPreviews);
+          <p className="text-sm text-gray-500">
+            {images.length} / 6 photos sélectionnées
+          </p>
 
-                          const newImages = [...images];
-                          [newImages[0], newImages[index]] = [newImages[index], newImages[0]];
-                          setImages(newImages);
-                        }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeImage(index)}
-                        className="absolute top-0 right-0 bg-red-600 text-white text-xs px-1.5 py-0.5 rounded-full"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-24 md:h-32 bg-gray-200 animate-pulse rounded-lg" />
+          {previews.length > 0 && (
+            <div className="flex gap-3 flex-wrap">
+              {previews.map((src, index) => (
+                <div key={index} className="relative">
+                  <img
+                    src={src}
+                    alt={`preview-${index}`}
+                    className="w-24 h-24 object-cover rounded border"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeImage(index)}
+                    className="absolute top-0 right-0 bg-red-600 text-white text-xs px-1.5 py-0.5 rounded-full"
+                  >
+                    ✕
+                  </button>
+                </div>
               ))}
             </div>
           )}
@@ -307,11 +266,7 @@ function PublierProduit() {
             type="submit"
             className="px-14 py-3 rounded-full ring-2 w-full sm:w-auto"
           >
-            {loading ? (
-              <span className="animate-pulse">Publication...</span>
-            ) : (
-              "Publier une annonce"
-            )}
+            {loading ? "Publication..." : "Publier une annonce"}
           </button>
         </div>
       </form>
