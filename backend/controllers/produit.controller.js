@@ -24,35 +24,35 @@ export const ajouterProduit = async (req, res) => {
       delaiLivraison,
     } = req.body;
 
-   /* ================= VALIDATIONS ================= */
+    /* ================= VALIDATIONS ================= */
 
-// 🔹 Nom obligatoire
-if (!nom || nom.trim() === "") {
-  return res.status(400).json({
-    message: "Le nom du produit est obligatoire",
-  });
-}
+    if (
+      !nom ||
+      !description ||
+      !categorie ||
+      !prixInitial ||
+      !prixActuel ||
+      !etat ||
+      !origine ||
+      !stock ||
+      !delaiLivraison
+    ) {
+      return res.status(400).json({
+        message: "Tous les champs produit sont obligatoires",
+      });
+    }
 
-// 🔹 Au moins un prix obligatoire
-if (!prixInitial && !prixActuel) {
-  return res.status(400).json({
-    message: "Veuillez renseigner au moins un prix (initial ou actuel)",
-  });
-}
+    if (!req.files || req.files.length < 4 || req.files.length > 6) {
+      return res.status(400).json({
+        message: "Le produit doit contenir entre 4 et 6 images",
+      });
+    }
 
-// 🔹 Images : 1 à 6 obligatoires
-if (!req.files || req.files.length < 1 || req.files.length > 6) {
-  return res.status(400).json({
-    message: "Le produit doit contenir entre 1 et 6 images",
-  });
-}
-
-// 🔹 Vendeur authentifié
-if (!req.vendeur || !req.vendeur.id) {
-  return res.status(401).json({
-    message: "Vendeur non authentifié",
-  });
-}
+    if (!req.vendeur || !req.vendeur.id) {
+      return res.status(401).json({
+        message: "Vendeur non authentifié",
+      });
+    }
 
     /* ================= IMAGES (CLOUDINARY) ================= */
 
