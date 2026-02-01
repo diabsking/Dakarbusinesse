@@ -5,6 +5,23 @@ import VerificationEmail from "./VerificationEmail";
 import api from "../services/api";
 
 /* =============================
+   UTILITAIRE TELEPHONE (UNIQUE)
+============================= */
+const cleanTelephone = (tel) => {
+  let cleaned = tel.trim();
+
+  // Supprimer espaces, tirets, parenthèses
+  cleaned = cleaned.replace(/[\s-()]/g, "");
+
+  // Supprimer indicatifs Sénégal
+  if (cleaned.startsWith("+221")) cleaned = cleaned.slice(4);
+  if (cleaned.startsWith("00221")) cleaned = cleaned.slice(5);
+  if (cleaned.startsWith("221")) cleaned = cleaned.slice(3);
+
+  return cleaned;
+};
+
+/* =============================
    PAGE PRINCIPALE
 ============================= */
 export default function SpaceVendeur() {
@@ -123,19 +140,6 @@ function LoginForm() {
     }
     // eslint-disable-next-line
   }, []);
-
-  const cleanTelephone = (tel) => {
-    let cleaned = tel.trim();
-
-    // Supprimer espaces, tirets, parenthèses
-    cleaned = cleaned.replace(/[\s-()]/g, "");
-
-    // Supprimer +221 ou 00221
-    if (cleaned.startsWith("+221")) cleaned = cleaned.slice(4);
-    if (cleaned.startsWith("00221")) cleaned = cleaned.slice(5);
-
-    return cleaned;
-  };
 
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
@@ -258,7 +262,10 @@ function RegisterForm({ setEmail, setVerificationPending }) {
     try {
       setLoading(true);
 
-      await api.post("/api/vendeur/auth/register", data);
+      await api.post("/api/vendeur/auth/register", {
+        ...data,
+        telephone: cleanTelephone(data.telephone),
+      });
 
       setEmail(data.email);
       setVerificationPending(true);
