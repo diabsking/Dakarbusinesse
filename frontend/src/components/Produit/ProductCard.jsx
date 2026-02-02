@@ -33,9 +33,6 @@ export default function ProductCard({ produit }) {
   const prixActuel = Number(produit.prixActuel ?? produit.prix) || 0;
   const prixAncien = Number(produit.prixInitial) || 0;
   const hasReduction = prixAncien > prixActuel && prixActuel > 0;
-  const reductionPercent = hasReduction
-    ? Math.round(((prixAncien - prixActuel) / prixAncien) * 100)
-    : 0;
 
   const getShortDescription = (text = "") => {
     const phrases = text.split(".").filter(Boolean);
@@ -50,20 +47,11 @@ export default function ProductCard({ produit }) {
     ? Date.now() - new Date(produit.createdAt).getTime() < 24 * 60 * 60 * 1000
     : false;
 
-  const isAvailable = produit.stock === undefined || produit.stock > 0;
-
   const vendeur =
     produit.vendeur && typeof produit.vendeur === "object"
       ? produit.vendeur
       : null;
 
-  const vendeurId = vendeur?._id;
-  const nomVendeur = vendeur?.nomBoutique || vendeur?.nomVendeur || "Vendeur";
-  const avatarVendeur = vendeur?.avatar || SHOP_PLACEHOLDER;
-  const adresseVendeur =
-    typeof vendeur?.adresseBoutique === "string"
-      ? vendeur.adresseBoutique.trim()
-      : "";
   const vendeurCertifie = vendeur?.certifie === true;
 
   const Wrapper = ({ children }) =>
@@ -73,13 +61,6 @@ export default function ProductCard({ produit }) {
 
   return (
     <div className="w-full bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition relative group">
-      {/* BADGE PROMO */}
-      {hasReduction && (
-        <span className="absolute top-3 left-3 z-10 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">
-          -{reductionPercent}%
-        </span>
-      )}
-
       {/* BADGE DEMO */}
       {isMock && (
         <span className="absolute top-3 right-3 z-10 bg-gray-800 text-white text-xs font-semibold px-2 py-1 rounded">
@@ -103,9 +84,20 @@ export default function ProductCard({ produit }) {
       <div className="px-4 py-3 flex flex-col justify-between min-h-[220px]">
         <div>
           <Wrapper>
-            <h2 className="text-base sm:text-lg font-semibold text-black line-clamp-1">
-              {produit.nom}
-            </h2>
+            {/* NOM PRODUIT + BADGE CERTIFIE */}
+            <div className="flex items-center gap-2">
+              <h2 className="text-base sm:text-lg font-semibold text-black line-clamp-1">
+                {produit.nom}
+              </h2>
+              {vendeurCertifie && (
+                <BsPatchCheckFill
+                  className="text-blue-600"
+                  title="Vendeur certifié"
+                />
+              )}
+            </div>
+
+            {/* DESCRIPTION */}
             <p className="text-xs sm:text-sm text-gray-700 mt-1 line-clamp-2">
               {getShortDescription(produit.description)}
             </p>
@@ -125,17 +117,12 @@ export default function ProductCard({ produit }) {
 
           {/* BADGES */}
           <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
-            {hasReduction && (
-              <span className="text-red-700 bg-red-100 border border-red-200 px-2 py-0.5 rounded">
-                Promo
-              </span>
-            )}
             {isNewProduct && (
               <span className="text-yellow-600">Nouveauté</span>
             )}
-            <span className={isLocal ? "text-green-600" : "text-blue-600"}>
-              {isLocal ? "Produit local 🇸🇳" : "Produit étranger 🌍"}
-            </span>
+            {isLocal && (
+              <span className="text-green-600">Produit local 🇸🇳</span>
+            )}
           </div>
 
           {/* MESSAGE INCITATIF */}
@@ -145,53 +132,20 @@ export default function ProductCard({ produit }) {
             </div>
           )}
 
-          {/* VENDEUR */}
-          {vendeur && vendeurId && !isMock && (
+          {/* VENDEUR (nom boutique supprimé) */}
+          {vendeur && !isMock && (
             <Link
-              to={`/vendeur/${vendeurId}`}
+              to={`/vendeur/${vendeur._id}`}
               className="mt-3 block rounded p-1 hover:bg-gray-50 transition"
             >
               <div className="flex items-center gap-2">
                 <img
-                  src={avatarVendeur}
-                  alt={nomVendeur}
+                  src={vendeur.avatar || SHOP_PLACEHOLDER}
+                  alt="Vendeur"
                   className="w-8 h-8 rounded-full object-cover border"
                 />
-                <div className="flex items-center gap-1 truncate">
-                  <span className="text-xs font-semibold truncate">
-                    {nomVendeur}
-                  </span>
-                  {vendeurCertifie && (
-                    <BsPatchCheckFill
-                      className="text-blue-600"
-                      title="Vendeur certifié"
-                    />
-                  )}
-                </div>
               </div>
-
-              {adresseVendeur !== "" && (
-                <div className="flex items-center gap-1 text-[11px] text-gray-500 truncate mt-0.5">
-                  <FiMapPin className="text-gray-400" />
-                  <span>{adresseVendeur}</span>
-                </div>
-              )}
             </Link>
-          )}
-        </div>
-
-        {/* DISPONIBILITÉ */}
-        <div className="pt-2 border-t text-xs sm:text-sm font-semibold flex items-center gap-2 flex-wrap">
-          <span className={isAvailable ? "text-green-600" : "text-red-600"}>
-            {isAvailable ? "Disponible" : "Indisponible"}
-          </span>
-          {produit.delaiLivraison && (
-            <>
-              <span className="text-gray-400">•</span>
-              <span className="text-gray-600 font-normal">
-                Livré en {produit.delaiLivraison}j
-              </span>
-            </>
           )}
         </div>
       </div>
