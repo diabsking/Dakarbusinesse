@@ -246,7 +246,7 @@ function UserProfile() {
               <div className="mt-4 bg-blue-50 border-l-4 border-blue-600 p-4 rounded-lg text-sm shadow-sm">
                 <p className="font-semibold text-blue-700">🚀 Boostez votre visibilité</p>
                 <p className="text-gray-700 mt-1">
-                  Les vendeurs <strong>certifiés</strong> sont priorisés sur Kolwaz.
+                  Les vendeurs <strong>certifiés</strong> sont priorisés sur dakar-business.
                 </p>
                 <button
                   onClick={() =>
