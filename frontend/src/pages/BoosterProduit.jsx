@@ -28,7 +28,7 @@ export default function BoosterProduit() {
   /* ================= VALIDATION ID ================= */
   useEffect(() => {
     if (!id || id.length !== 24) {
-      navigate("/dashboard");
+      navigate("/tableau-de-bord");
     }
   }, [id, navigate]);
 
