@@ -5,6 +5,27 @@ import useProduitFilter from "../components/Produit/useProduitFilter";
 import api from "../services/api";
 
 const ITEMS_PER_BATCH = 10;
+const MIN_PRODUITS = 40;
+
+/* ======================
+   Générateur produits fictifs
+====================== */
+const generateMockProduits = (count) => {
+  return Array.from({ length: count }).map((_, i) => ({
+    _id: `mock-${i}`,
+    nom: `Produit en démonstration ${i + 1}`,
+    prix: Math.floor(Math.random() * 50000) + 5000,
+    description:
+      "Produit de démonstration. Publiez vos articles pour apparaître ici.",
+    images: ["/placeholder.png"],
+    categorie: "Démonstration",
+    actif: true,
+    estBooster: false,
+    isMock: true,
+    stock: 10,
+    vendeur: null,
+  }));
+};
 
 export default function Produit() {
   const { nom } = useParams();
@@ -24,7 +45,7 @@ export default function Produit() {
   const [filtreSpecial] = useState(null);
 
   /* =====================================================
-     📥 FETCH + TRI FRONTEND (UNE SEULE FOIS)
+     📥 FETCH + AJOUT MOCK SI < 40 (UNE SEULE FOIS)
   ===================================================== */
   useEffect(() => {
     const fetchProduits = async () => {
@@ -35,7 +56,19 @@ export default function Produit() {
           (p) => p.actif === true
         );
 
-        const produitsTries = [...produitsActifs].sort((a, b) => {
+        let produitsFinaux = [...produitsActifs];
+
+        // 👉 compléter avec des produits fictifs UNIQUEMENT si < 40 vrais
+        if (produitsActifs.length < MIN_PRODUITS) {
+          const manque = MIN_PRODUITS - produitsActifs.length;
+          produitsFinaux = [
+            ...produitsActifs,
+            ...generateMockProduits(manque),
+          ];
+        }
+
+        // 👉 TRI EXISTANT (inchangé)
+        const produitsTries = [...produitsFinaux].sort((a, b) => {
           if (a.estBooster && !b.estBooster) return -1;
           if (!a.estBooster && b.estBooster) return 1;
 
