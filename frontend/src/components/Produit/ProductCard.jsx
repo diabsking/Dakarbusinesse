@@ -1,178 +1,216 @@
-import { Link } from "react-router-dom";
-import { FiMapPin } from "react-icons/fi";
-import { BsPatchCheckFill } from "react-icons/bs";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
+import ProductCard from "../components/Produit/ProductCard";
+import useProduitFilter from "../components/Produit/useProduitFilter";
+import api from "../services/api";
 
-const PLACEHOLDER = "/placeholder.png";
-const SHOP_PLACEHOLDER = "/shop-placeholder.png";
+const ITEMS_PER_BATCH = 10;
+const MIN_PRODUITS = 40;
 
 /* ======================
-   Skeleton Loader
+   Générateur produits démo
 ====================== */
-export function ProductCardSkeleton() {
-  return (
-    <div className="w-full bg-white border border-gray-200 rounded-xl overflow-hidden animate-pulse">
-      <div className="w-full aspect-[4/3] bg-gray-200" />
-      <div className="p-4 space-y-3">
-        <div className="h-5 bg-gray-200 rounded w-3/4" />
-        <div className="h-4 bg-gray-200 rounded w-full" />
-        <div className="h-4 bg-gray-200 rounded w-5/6" />
-        <div className="h-4 bg-gray-200 rounded w-2/3 mt-2" />
-      </div>
-    </div>
+const generateMockProduits = (count) => {
+  return Array.from({ length: count }).map((_, i) => ({
+    _id: `mock-${i}`,
+    nom: `Produit en démonstration ${i + 1}`,
+    prix: Math.floor(Math.random() * 50000) + 5000,
+    description:
+      "Produit de démonstration. Publiez vos articles pour apparaître ici.",
+    images: ["/placeholder.png"],
+    categorie: "Démonstration",
+    actif: true,
+    estBooster: false,
+    isMock: true,
+    stock: 10,
+    vendeur: null,
+  }));
+};
+
+export default function Produit() {
+  const { nom } = useParams();
+  const categorieActive = nom ? decodeURIComponent(nom) : "Tous";
+
+  const [searchParams] = useSearchParams();
+  const recherche = searchParams.get("q") || "";
+
+  const [loading, setLoading] = useState(true);
+  const [produits, setProduits] = useState([]);
+
+  /* infinite scroll */
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_BATCH);
+  const observerRef = useRef(null);
+
+  const [prixMax] = useState(1000000);
+  const [filtreSpecial] = useState(null);
+
+  /* =====================================================
+     📥 FETCH + MOCK AUTO (UNE SEULE FOIS)
+  ===================================================== */
+  useEffect(() => {
+    const fetchProduits = async () => {
+      try {
+        const res = await api.get("/api/produits");
+
+        const produitsActifs = (res.data.produits || []).filter(
+          (p) => p.actif === true
+        );
+
+        let produitsFinaux = [...produitsActifs];
+
+        // 👉 ajouter des produits démo UNIQUEMENT si < 40 vrais produits
+        if (produitsActifs.length < MIN_PRODUITS) {
+          const manque = MIN_PRODUITS - produitsActifs.length;
+          produitsFinaux = [
+            ...produitsActifs,
+            ...generateMockProduits(manque),
+          ];
+        }
+
+        // 👉 tri (boost > certifié > normal)
+        const produitsTries = [...produitsFinaux].sort((a, b) => {
+          if (a.estBooster && !b.estBooster) return -1;
+          if (!a.estBooster && b.estBooster) return 1;
+
+          const certA = a.vendeur?.certifie ? 1 : 0;
+          const certB = b.vendeur?.certifie ? 1 : 0;
+          if (certA !== certB) return certB - certA;
+
+          return 0;
+        });
+
+        setProduits(produitsTries);
+      } catch (err) {
+        console.error("❌ Erreur récupération produits :", err);
+        setProduits([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduits();
+  }, []);
+
+  /* =====================================================
+     🔍 FILTRES
+  ===================================================== */
+  const produitsFiltres = useProduitFilter({
+    produits,
+    categorieActive,
+    recherche,
+    prixMax,
+    filtreSpecial,
+  });
+
+  /* reset infinite scroll quand filtre change */
+  useEffect(() => {
+    setVisibleCount(ITEMS_PER_BATCH);
+  }, [categorieActive, recherche]);
+
+  const produitsVisibles = produitsFiltres.slice(0, visibleCount);
+
+  /* =====================================================
+     ♾️ INTERSECTION OBSERVER
+  ===================================================== */
+  const lastProductRef = useCallback(
+    (node) => {
+      if (loading) return;
+      if (observerRef.current) observerRef.current.disconnect();
+
+      observerRef.current = new IntersectionObserver((entries) => {
+        if (
+          entries[0].isIntersecting &&
+          visibleCount < produitsFiltres.length
+        ) {
+          setVisibleCount((prev) => prev + ITEMS_PER_BATCH);
+        }
+      });
+
+      if (node) observerRef.current.observe(node);
+    },
+    [loading, visibleCount, produitsFiltres.length]
   );
-}
 
-/* ======================
-   ProductCard principal
-====================== */
-export default function ProductCard({ produit }) {
-  if (!produit) return <ProductCardSkeleton />;
+  /* =====================================================
+     ⏳ SKELETON
+  ===================================================== */
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 p-4 sm:p-6 lg:p-10">
+        <div className="max-w-[1600px] mx-auto space-y-4">
+          <div className="h-8 w-1/3 bg-gray-300 rounded animate-pulse" />
+          <div className="flex flex-col gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                className="h-64 bg-gray-300 rounded-md animate-pulse"
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  const prixActuel = Number(produit.prixActuel ?? produit.prix) || 0;
-  const prixAncien = Number(produit.prixInitial) || 0;
-  const hasReduction = prixAncien > prixActuel && prixActuel > 0;
-  const reductionPercent = hasReduction
-    ? Math.round(((prixAncien - prixActuel) / prixAncien) * 100)
-    : 0;
-
-  const getShortDescription = (text = "") => {
-    const phrases = text.split(".").filter(Boolean);
-    return phrases.slice(0, 2).join(". ") + (phrases.length > 2 ? "..." : "");
-  };
-
-  const isLocal =
-    produit.origine?.toLowerCase() === "local" ||
-    produit.paysOrigine?.toLowerCase() === "senegal";
-
-  const isNewProduct = produit.createdAt
-    ? Date.now() - new Date(produit.createdAt).getTime() < 24 * 60 * 60 * 1000
-    : false;
-
-  const isAvailable = produit.stock === undefined || produit.stock > 0;
-
-  const vendeur =
-    produit.vendeur && typeof produit.vendeur === "object"
-      ? produit.vendeur
-      : null;
-
-  const vendeurId = vendeur?._id;
-  const nomVendeur = vendeur?.nomBoutique || vendeur?.nomVendeur || "Vendeur";
-  const avatarVendeur = vendeur?.avatar || SHOP_PLACEHOLDER;
-  const adresseVendeur =
-    typeof vendeur?.adresseBoutique === "string"
-      ? vendeur.adresseBoutique.trim()
-      : "";
-  const vendeurCertifie = vendeur?.certifie === true;
-
+  /* =====================================================
+     🧠 RENDER
+  ===================================================== */
   return (
-    <div className="w-full bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition relative group">
-      {/* BADGE PROMO */}
-      {hasReduction && (
-        <span className="absolute top-3 left-3 z-10 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">
-          -{reductionPercent}%
-        </span>
-      )}
+    <div className="min-h-screen bg-gray-100">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-6 space-y-4">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+          {categorieActive === "Tous"
+            ? "Tous les produits"
+            : categorieActive}
+        </h1>
 
-      {/* IMAGE PRODUIT */}
-      <Link to={`/produit/${produit._id}`}>
-        <div className="w-full aspect-[4/3] bg-gray-100 overflow-hidden border-b">
-          <img
-            src={produit.images?.[0] || PLACEHOLDER}
-            alt={produit.nom}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-            loading="lazy"
-          />
-        </div>
-      </Link>
+        {recherche && (
+          <p className="text-gray-600">
+            Résultat pour :{" "}
+            <span className="font-medium">{recherche}</span>
+          </p>
+        )}
 
-      {/* CONTENU */}
-      <div className="px-4 py-3 flex flex-col justify-between min-h-[220px]">
-        <div>
-          <Link to={`/produit/${produit._id}`}>
-            <h2 className="text-base sm:text-lg font-semibold text-black line-clamp-1">
-              {produit.nom}
-            </h2>
-            <p className="text-xs sm:text-sm text-gray-700 mt-1 line-clamp-2">
-              {getShortDescription(produit.description)}
-            </p>
-          </Link>
-
-          {/* PRIX */}
-          <div className="mt-2 flex items-center gap-2 flex-wrap">
-            <span className="text-orange-500 font-bold text-base sm:text-lg">
-              {prixActuel.toLocaleString()} FCFA
-            </span>
-            {hasReduction && (
-              <span className="text-gray-400 line-through text-xs sm:text-sm">
-                {prixAncien.toLocaleString()} FCFA
-              </span>
-            )}
+        {produitsFiltres.length === 0 ? (
+          <div className="text-center text-gray-600 mt-20">
+            Aucun produit trouvé.
           </div>
-
-          {/* BADGES */}
-          <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
-            {hasReduction && (
-              <span className="text-red-700 bg-red-100 border border-red-200 px-2 py-0.5 rounded">
-                Promo
-              </span>
-            )}
-            {isNewProduct && (
-              <span className="text-yellow-600">Nouveauté</span>
-            )}
-            <span className={isLocal ? "text-green-600" : "text-blue-600"}>
-              {isLocal ? "Produit local 🇸🇳" : "Produit étranger 🌍"}
-            </span>
-          </div>
-
-          {/* VENDEUR */}
-          {vendeur && vendeurId && (
-            <Link
-              to={`/vendeur/${vendeurId}`}
-              className="mt-3 block rounded p-1 hover:bg-gray-50 transition"
+        ) : (
+          <div className="overflow-y-auto">
+            <div
+              className="
+                flex flex-col gap-4
+                sm:grid sm:grid-cols-2
+                md:grid-cols-3
+                lg:grid-cols-5
+                sm:gap-3
+              "
             >
-              <div className="flex items-center gap-2">
-                <img
-                  src={avatarVendeur}
-                  alt={nomVendeur}
-                  className="w-8 h-8 rounded-full object-cover border"
-                />
-                <div className="flex items-center gap-1 truncate">
-                  <span className="text-xs font-semibold truncate">
-                    {nomVendeur}
-                  </span>
-                  {vendeurCertifie && (
-                    <BsPatchCheckFill
-                      className="text-blue-600"
-                      title="Vendeur certifié"
-                    />
-                  )}
-                </div>
+              {produitsVisibles.map((produit, index) => {
+                if (index === produitsVisibles.length - 1) {
+                  return (
+                    <div ref={lastProductRef} key={produit._id}>
+                      <ProductCard produit={produit} />
+                    </div>
+                  );
+                }
+
+                return (
+                  <ProductCard
+                    key={produit._id}
+                    produit={produit}
+                  />
+                );
+              })}
+            </div>
+
+            {visibleCount < produitsFiltres.length && (
+              <div className="text-center text-gray-500 py-6">
+                Chargement…
               </div>
-
-              {adresseVendeur !== "" && (
-                <div className="flex items-center gap-1 text-[11px] text-gray-500 truncate mt-0.5">
-                  <FiMapPin className="text-gray-400" />
-                  <span>{adresseVendeur}</span>
-                </div>
-              )}
-            </Link>
-          )}
-        </div>
-
-        {/* DISPONIBILITÉ */}
-        <div className="pt-2 border-t text-xs sm:text-sm font-semibold flex items-center gap-2 flex-wrap">
-          <span className={isAvailable ? "text-green-600" : "text-red-600"}>
-            {isAvailable ? "Disponible" : "Indisponible"}
-          </span>
-          {produit.delaiLivraison && (
-            <>
-              <span className="text-gray-400">•</span>
-              <span className="text-gray-600 font-normal">
-                Livré en {produit.delaiLivraison}j
-              </span>
-            </>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
