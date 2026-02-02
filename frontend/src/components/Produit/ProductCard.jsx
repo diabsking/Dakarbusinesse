@@ -3,7 +3,7 @@ import { BsPatchCheckFill } from "react-icons/bs";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/pagination";
-import { Pagination } from "swiper";
+import { Pagination } from "swiper/modules"; // <-- correction ici
 
 const PLACEHOLDER = "/placeholder.png";
 const SHOP_PLACEHOLDER = "/shop-placeholder.png";
@@ -82,7 +82,7 @@ export default function ProductCard({ produit }) {
       {/* CARROUSEL IMAGES */}
       <Wrapper>
         <Swiper
-          modules={[Pagination]}
+          modules={[Pagination]} // <-- obligatoire
           pagination={{ clickable: true }}
           className="w-full"
           style={{ maxHeight: "100%" }}
