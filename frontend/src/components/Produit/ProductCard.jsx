@@ -2,13 +2,16 @@ import { Link } from "react-router-dom";
 import { FiMapPin } from "react-icons/fi";
 import { BsPatchCheckFill } from "react-icons/bs";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Pagination } from "swiper";
+import { Pagination } from "swiper/modules"; // <-- import correct
 import "swiper/css";
 import "swiper/css/pagination";
 
 const PLACEHOLDER = "/placeholder.png";
 const SHOP_PLACEHOLDER = "/shop-placeholder.png";
 
+/* ======================
+   Skeleton Loader
+====================== */
 export function ProductCardSkeleton() {
   return (
     <div className="w-full bg-white border border-gray-200 rounded-xl overflow-hidden animate-pulse">
@@ -22,6 +25,9 @@ export function ProductCardSkeleton() {
   );
 }
 
+/* ======================
+   ProductCard principal
+====================== */
 export default function ProductCard({ produit }) {
   if (!produit) return <ProductCardSkeleton />;
 
