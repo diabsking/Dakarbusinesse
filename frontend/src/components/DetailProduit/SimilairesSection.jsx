@@ -55,15 +55,13 @@ export default function SimilairesSection({ produits }) {
             </div>
           </div>
 
-          {/* AFFICHAGE DESKTOP (inchangé) */}
-          <div className="hidden md:block overflow-x-auto">
-            <div className="flex gap-4 w-max">
-              {displayedProduits.map((p) => (
-                <div key={p._id} className="min-w-[240px]">
-                  <ProductCard produit={p} />
-                </div>
-              ))}
-            </div>
+          {/* AFFICHAGE DESKTOP (5 produits par ligne) */}
+          <div className="hidden md:grid md:grid-cols-5 md:gap-4">
+            {displayedProduits.map((p) => (
+              <div key={p._id}>
+                <ProductCard produit={p} />
+              </div>
+            ))}
           </div>
         </>
       )}

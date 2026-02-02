@@ -143,7 +143,7 @@ export default function ProfilVendeurPublicComp({
       {/* ================= PRODUITS DU VENDEUR ================= */}
       <section>
         <h2 className="text-xl font-bold mb-4">
-          Produits du vendeur
+          Des produits à perte de vue.
         </h2>
 
         {loadingProduits ? (
