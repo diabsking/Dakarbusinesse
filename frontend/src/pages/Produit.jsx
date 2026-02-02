@@ -188,8 +188,8 @@ export default function Produit() {
   ===================================================== */
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 p-4 sm:p-6 lg:p-10">
-        <div className="max-w-[1600px] mx-auto space-y-4">
+      <div className="min-h-screen bg-white p-4 sm:p-6 lg:p-10">
+        <div className="max-w-[1600px] mx-auto space-y-4 bg-white">
           <div className="h-8 w-1/3 bg-gray-300 rounded animate-pulse" />
           <div className="flex flex-col gap-4">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -205,8 +205,8 @@ export default function Produit() {
      🧠 RENDER
   ===================================================== */
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-6 space-y-4">
+    <div className="min-h-screen bg-white">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-6 space-y-4 bg-white">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
           {categorieActive === "Tous" ? "Tous les produits" : categorieActive}
         </h1>
@@ -236,12 +236,12 @@ export default function Produit() {
                 if (index === produitsVisibles.length - 1) {
                   return (
                     <div ref={lastProductRef} key={produit._id}>
-                      <ProductCard produit={produit} />
+                      <ProductCard produit={produit} fullWidthMobile />
                     </div>
                   );
                 }
 
-                return <ProductCard key={produit._id} produit={produit} />;
+                return <ProductCard key={produit._id} produit={produit} fullWidthMobile />;
               })}
             </div>
 
