@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import ProductCard from "../components/Produit/ProductCard";
+import ProductStory from "../components/Produit/ProductStory";
 import useProduitFilter from "../components/Produit/useProduitFilter";
 import api from "../services/api";
 
@@ -160,6 +161,19 @@ export default function Produit() {
   }, [categorieActive, recherche]);
 
   const produitsVisibles = produitsFiltres.slice(0, visibleCount);
+
+  /* =====================================================
+   🆕 NOUVEAUX PRODUITS (STORIES)
+===================================================== */
+const nouveauxProduits = produits.filter((p) => {
+  if (p.isMock) return true;
+  if (!p.createdAt) return false;
+
+  return (
+    Date.now() - new Date(p.createdAt).getTime() <
+    7 * 24 * 60 * 60 * 1000 // 7 jours
+  );
+});
 
   /* =====================================================
      ♾️ INTERSECTION OBSERVER
