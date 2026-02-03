@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { FiMapPin, FiPhone } from "react-icons/fi";
+import { FiPhone } from "react-icons/fi";
 import { BsPatchCheckFill } from "react-icons/bs";
 import { FaWhatsapp } from "react-icons/fa";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -16,7 +16,7 @@ const SHOP_PLACEHOLDER = "/shop-placeholder.png";
 export function ProductCardSkeleton() {
   return (
     <div className="w-full bg-white border border-gray-200 rounded-xl overflow-hidden animate-pulse">
-      <div className="w-full h-[7cm] bg-gray-200" />
+      <div className="w-full h-[8.5cm] sm:h-[7cm] bg-gray-200" />
       <div className="p-4 space-y-3">
         <div className="h-5 bg-gray-200 rounded w-3/4" />
         <div className="h-4 bg-gray-200 rounded w-full" />
@@ -79,7 +79,7 @@ export default function ProductCard({ produit }) {
 
       {/* IMAGE PRODUIT */}
       <Wrapper>
-        <div className="w-full h-[7cm] bg-gray-100 overflow-hidden border-b">
+        <div className="w-full h-[8.5cm] sm:h-[7cm] bg-gray-100 overflow-hidden border-b">
           <Swiper
             modules={[Pagination]}
             pagination={{ clickable: true }}
@@ -92,7 +92,7 @@ export default function ProductCard({ produit }) {
                   <img
                     src={img}
                     alt={produit.nom}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 rounded-none"
                     loading="lazy"
                   />
                 </SwiperSlide>
@@ -132,7 +132,7 @@ export default function ProductCard({ produit }) {
             </Link>
           )}
 
-          {/* NOM ET DESCRIPTION */}
+          {/* NOM & DESCRIPTION */}
           <Wrapper>
             <h2 className="text-base sm:text-lg font-semibold text-black line-clamp-1">
               {produit.nom}
@@ -161,27 +161,22 @@ export default function ProductCard({ produit }) {
             )}
           </div>
 
-          {/* CONTACT VENDEUR */}
+          {/* CONTACT */}
           {numeroVendeur && !isMock && (
             <div className="mt-2 flex items-center gap-3 text-gray-500 text-sm">
               <a
                 href={`https://wa.me/${numeroVendeur}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1 hover:text-green-600 transition"
-                title="Contacter sur WhatsApp"
+                className="hover:text-green-600 transition"
               >
-                <FaWhatsapp className="text-base" />
-                <span className="sr-only">WhatsApp</span>
+                <FaWhatsapp />
               </a>
-
               <a
                 href={`tel:${numeroVendeur}`}
-                className="flex items-center gap-1 hover:text-blue-600 transition"
-                title="Appeler le vendeur"
+                className="hover:text-blue-600 transition"
               >
-                <FiPhone className="text-base" />
-                <span className="sr-only">Téléphone</span>
+                <FiPhone />
               </a>
             </div>
           )}
