@@ -165,15 +165,15 @@ export default function Produit() {
   /* =====================================================
    🆕 NOUVEAUX PRODUITS (STORIES)
 ===================================================== */
-const nouveauxProduits = produits.filter((p) => {
-  if (p.isMock) return true;
-  if (!p.createdAt) return false;
+  const nouveauxProduits = produits.filter((p) => {
+    if (p.isMock) return true;
+    if (!p.createdAt) return false;
 
-  return (
-    Date.now() - new Date(p.createdAt).getTime() <
-    7 * 24 * 60 * 60 * 1000 // 7 jours
-  );
-});
+    return (
+      Date.now() - new Date(p.createdAt).getTime() <
+      7 * 24 * 60 * 60 * 1000 // 7 jours
+    );
+  });
 
   /* =====================================================
      ♾️ INTERSECTION OBSERVER
@@ -229,6 +229,11 @@ const nouveauxProduits = produits.filter((p) => {
           <p className="text-gray-600">
             Résultat pour : <span className="font-medium">{recherche}</span>
           </p>
+        )}
+
+        {/* ✅ ProductStory au-dessus de tout */}
+        {nouveauxProduits.length > 0 && (
+          <ProductStory produits={nouveauxProduits} />
         )}
 
         {produitsFiltres.length === 0 ? (
