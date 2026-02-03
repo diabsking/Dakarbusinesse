@@ -161,25 +161,25 @@ export default function ProductCard({ produit }) {
             )}
           </div>
 
-          {/* CONTACT */}
-          {numeroVendeur && !isMock && (
-            <div className="mt-2 flex items-center gap-3 text-gray-500 text-sm">
-              <a
-                href={`https://wa.me/${numeroVendeur}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-green-600 transition"
-              >
-                <FaWhatsapp />
-              </a>
-              <a
-                href={`tel:${numeroVendeur}`}
-                className="hover:text-blue-600 transition"
-              >
-                <FiPhone />
-              </a>
-            </div>
-          )}
+{/* CONTACT */}
+{numeroVendeur && !isMock && (
+  <div className="mt-2 flex items-center gap-4 text-green-600">
+    <a
+      href={`https://wa.me/${numeroVendeur}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="hover:text-green-700 transition text-xl"
+    >
+      <FaWhatsapp />
+    </a>
+    <a
+      href={`tel:${numeroVendeur}`}
+      className="hover:text-green-700 transition text-xl"
+    >
+      <FiPhone />
+    </a>
+  </div>
+)}
         </div>
       </div>
     </div>
