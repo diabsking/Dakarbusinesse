@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
-import { FiMapPin } from "react-icons/fi";
+import { FiMapPin, FiPhone } from "react-icons/fi";
 import { BsPatchCheckFill } from "react-icons/bs";
+import { FaWhatsapp } from "react-icons/fa";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Pagination } from "swiper/modules"; // <-- import correct
+import { Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 
@@ -59,6 +60,9 @@ export default function ProductCard({ produit }) {
   const avatarVendeur = vendeur?.avatar || SHOP_PLACEHOLDER;
   const vendeurCertifie = vendeur?.certifie === true;
 
+  const numeroVendeur =
+    vendeur?.telephone || vendeur?.phone || vendeur?.numero || "";
+
   const Wrapper = ({ children }) =>
     isMock ? <div>{children}</div> : (
       <Link to={`/produit/${produit._id}`}>{children}</Link>
@@ -73,14 +77,7 @@ export default function ProductCard({ produit }) {
         </span>
       )}
 
-      {/* BADGE DEMO */}
-      {isMock && (
-        <span className="absolute top-3 right-3 z-10 bg-gray-800 text-white text-xs font-semibold px-2 py-1 rounded">
-          Démo
-        </span>
-      )}
-
-      {/* IMAGE PRODUIT AVEC SWIPER */}
+      {/* IMAGE PRODUIT */}
       <Wrapper>
         <div className="w-full h-[7cm] bg-gray-100 overflow-hidden border-b">
           <Swiper
@@ -135,7 +132,7 @@ export default function ProductCard({ produit }) {
             </Link>
           )}
 
-          {/* NOM ET DESCRIPTION PRODUIT */}
+          {/* NOM ET DESCRIPTION */}
           <Wrapper>
             <h2 className="text-base sm:text-lg font-semibold text-black line-clamp-1">
               {produit.nom}
@@ -145,7 +142,7 @@ export default function ProductCard({ produit }) {
             </p>
           </Wrapper>
 
-          {/* BADGE NOUVEAUTÉ */}
+          {/* NOUVEAUTÉ */}
           {isNewProduct && (
             <span className="inline-block mt-2 text-yellow-600 text-xs font-semibold">
               Nouveauté
@@ -163,6 +160,31 @@ export default function ProductCard({ produit }) {
               </span>
             )}
           </div>
+
+          {/* CONTACT VENDEUR */}
+          {numeroVendeur && !isMock && (
+            <div className="mt-2 flex items-center gap-3 text-gray-500 text-sm">
+              <a
+                href={`https://wa.me/${numeroVendeur}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 hover:text-green-600 transition"
+                title="Contacter sur WhatsApp"
+              >
+                <FaWhatsapp className="text-base" />
+                <span className="sr-only">WhatsApp</span>
+              </a>
+
+              <a
+                href={`tel:${numeroVendeur}`}
+                className="flex items-center gap-1 hover:text-blue-600 transition"
+                title="Appeler le vendeur"
+              >
+                <FiPhone className="text-base" />
+                <span className="sr-only">Téléphone</span>
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </div>
