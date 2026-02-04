@@ -196,25 +196,62 @@ export default function Produit() {
     },
     [loading, visibleCount, produitsFiltres.length]
   );
-
   /* =====================================================
-     ⏳ SKELETON LOADER
-  ===================================================== */
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-white p-4 sm:p-6 lg:p-10">
-        <div className="max-w-[1600px] mx-auto space-y-4 bg-white">
-          <div className="h-8 w-1/3 bg-gray-300 rounded animate-pulse" />
-          <div className="flex flex-col gap-4">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-64 bg-gray-300 rounded-md animate-pulse" />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
+   ⏳ SKELETON LOADER – PAGE PRODUITS
+===================================================== */
+if (loading) {
+  return (
+    <div className="min-h-screen bg-white">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-6 space-y-6">
 
+        {/* TITRE */}
+        <div className="h-8 w-1/2 sm:w-1/3 bg-gray-200 rounded animate-pulse" />
+
+        {/* STORIES */}
+        <div className="flex gap-3 overflow-x-hidden">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="flex flex-col items-center w-20 shrink-0">
+              <div className="w-16 h-16 rounded-full bg-gray-200 animate-pulse" />
+              <div className="h-3 w-14 mt-2 bg-gray-200 rounded animate-pulse" />
+            </div>
+          ))}
+        </div>
+
+        {/* GRILLE PRODUITS */}
+        <div
+          className="
+            grid grid-cols-1
+            sm:grid-cols-2
+            md:grid-cols-3
+            lg:grid-cols-5
+            gap-4
+          "
+        >
+          {Array.from({ length: 10 }).map((_, i) => (
+            <div
+              key={i}
+              className="border rounded-lg p-3 space-y-3 animate-pulse"
+            >
+              {/* IMAGE */}
+              <div className="w-full h-40 bg-gray-200 rounded-md" />
+
+              {/* TEXTE */}
+              <div className="h-4 w-3/4 bg-gray-200 rounded" />
+              <div className="h-4 w-1/2 bg-gray-200 rounded" />
+
+              {/* PRIX / ACTION */}
+              <div className="flex justify-between items-center mt-2">
+                <div className="h-4 w-20 bg-gray-200 rounded" />
+                <div className="h-8 w-8 bg-gray-200 rounded-full" />
+              </div>
+            </div>
+          ))}
+        </div>
+
+      </div>
+    </div>
+  );
+}
   /* =====================================================
      🧠 RENDER
   ===================================================== */
@@ -222,7 +259,7 @@ export default function Produit() {
     <div className="min-h-screen bg-white">
       <div className="max-w-[1600px] mx-auto px-0 sm:px-6 lg:px-10 py-6 space-y-4 bg-white">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-          {categorieActive === "Tous" ? "Tous les produits" : categorieActive}
+          {categorieActive === "Tous" ? "" : categorieActive}
         </h1>
 
         {recherche && (
