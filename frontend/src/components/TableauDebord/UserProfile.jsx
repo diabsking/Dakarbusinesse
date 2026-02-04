@@ -6,13 +6,13 @@ import api from "../../services/api";
 
 function ProfileSkeleton() {
   return (
-    <div className="flex flex-col md:flex-row gap-6 p-6 bg-white rounded-2xl border shadow-sm animate-pulse">
+    <div className="flex flex-col md:flex-row gap-6 p-6 bg-white rounded-2xl border shadow-sm animate-pulse w-full max-w-full overflow-hidden">
       <div className="flex flex-col items-center gap-3">
         <div className="w-24 h-24 rounded-full bg-gray-200" />
         <div className="h-4 w-24 bg-gray-200 rounded" />
       </div>
 
-      <div className="flex-1 space-y-4">
+      <div className="flex-1 space-y-4 w-full">
         <div className="h-6 w-1/3 bg-gray-200 rounded" />
         <div className="h-4 w-1/2 bg-gray-200 rounded" />
         <div className="h-4 w-full bg-gray-200 rounded" />
@@ -167,7 +167,7 @@ function UserProfile() {
   if (!user) return <ProfileSkeleton />;
 
   return (
-    <div className="relative bg-white rounded-2xl border shadow-sm p-4 md:p-6 flex flex-col md:flex-row gap-6">
+    <div className="relative bg-white rounded-2xl border shadow-sm p-4 w-full max-w-full flex flex-col gap-4 md:flex-row md:p-6 overflow-hidden">
       {/* Avatar */}
       <div className="flex flex-col items-center gap-3 w-full md:w-auto">
         <img
@@ -180,7 +180,7 @@ function UserProfile() {
           <div className="flex flex-col sm:flex-row gap-2 w-full justify-center">
             <button
               onClick={() => fileInputRef.current.click()}
-              className="text-sm bg-blue-600 text-white px-3 py-1 rounded flex items-center justify-center"
+              className="text-sm bg-blue-600 text-white px-3 py-2 rounded flex items-center justify-center w-full sm:w-auto"
             >
               <FiEdit className="mr-1" /> Changer
             </button>
@@ -188,7 +188,7 @@ function UserProfile() {
             {user.avatar && (
               <button
                 onClick={handleDeleteAvatar}
-                className="text-sm bg-red-600 text-white px-3 py-1 rounded flex items-center justify-center"
+                className="text-sm bg-red-600 text-white px-3 py-2 rounded flex items-center justify-center w-full sm:w-auto"
               >
                 <FiTrash2 className="mr-1" /> Supprimer
               </button>
@@ -208,13 +208,11 @@ function UserProfile() {
       {/* Infos */}
       <div className="flex-1 w-full">
         {profilIncomplet && !editMode && (
-          <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded">
-            <span className="text-sm text-yellow-700">
-              ⚠️ Profil incomplet
-            </span>
+          <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded w-full">
+            <span className="text-sm text-yellow-700">⚠️ Profil incomplet</span>
             <button
               onClick={() => setEditMode(true)}
-              className="mt-2 sm:mt-0 bg-yellow-600 text-white px-4 py-1 rounded"
+              className="mt-2 sm:mt-0 bg-yellow-600 text-white px-4 py-2 rounded w-full sm:w-auto"
             >
               Compléter
             </button>
@@ -222,14 +220,14 @@ function UserProfile() {
         )}
 
         {successMsg && (
-          <div className="mb-3 bg-green-100 text-green-700 p-2 rounded">
+          <div className="mb-3 bg-green-100 text-green-700 p-2 rounded w-full">
             {successMsg}
           </div>
         )}
 
         {!editMode ? (
           <>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full">
               <h3 className="text-xl font-semibold">{user.nomVendeur}</h3>
               {user.certifie && (
                 <BsPatchCheckFill
@@ -243,7 +241,7 @@ function UserProfile() {
             <p className="text-gray-600 italic mt-2">{user.description}</p>
 
             {!user.certifie && (
-              <div className="mt-4 bg-blue-50 border-l-4 border-blue-600 p-4 rounded-lg text-sm shadow-sm">
+              <div className="mt-4 bg-blue-50 border-l-4 border-blue-600 p-4 rounded-lg text-sm shadow-sm w-full">
                 <p className="font-semibold text-blue-700">🚀 Boostez votre visibilité</p>
                 <p className="text-gray-700 mt-1">
                   Les vendeurs <strong>certifiés</strong> sont priorisés sur dakar-business.
@@ -252,14 +250,14 @@ function UserProfile() {
                   onClick={() =>
                     navigate("/certification", { state: { vendeurId: user._id } })
                   }
-                  className="mt-3 text-blue-600 font-semibold hover:underline"
+                  className="mt-3 text-blue-600 font-semibold hover:underline w-full sm:w-auto text-center"
                 >
                   Devenir vendeur certifié →
                 </button>
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm mt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm mt-4 w-full">
               <p>
                 <strong>Email :</strong> {user.email}
               </p>
@@ -275,7 +273,7 @@ function UserProfile() {
             </div>
           </>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2 w-full">
             {["nomVendeur", "nomBoutique", "adresseBoutique", "email"].map((f) => (
               <input
                 key={f}
@@ -293,18 +291,18 @@ function UserProfile() {
               onChange={(e) => setUser({ ...user, description: e.target.value })}
             />
 
-            <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex flex-col sm:flex-row gap-2 w-full">
               <button
                 onClick={saveProfile}
                 disabled={loading}
-                className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50 flex-1 text-center"
+                className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50 flex-1 text-center w-full sm:w-auto"
               >
                 {loading ? "..." : "Enregistrer"}
               </button>
 
               <button
                 onClick={() => setEditMode(false)}
-                className="bg-gray-200 px-4 py-2 rounded flex-1 text-center"
+                className="bg-gray-200 px-4 py-2 rounded flex-1 text-center w-full sm:w-auto"
               >
                 Annuler
               </button>
@@ -314,16 +312,16 @@ function UserProfile() {
       </div>
 
       {/* Menu */}
-      <div className="relative" ref={menuRef}>
+      <div className="relative w-full md:w-auto" ref={menuRef}>
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className="p-2 rounded hover:bg-gray-100"
+          className="p-2 rounded hover:bg-gray-100 w-full md:w-auto flex justify-center"
         >
           <FiSettings size={22} />
         </button>
 
         {menuOpen && (
-          <div className="absolute right-0 mt-2 w-56 bg-white border rounded shadow z-50">
+          <div className="absolute right-0 mt-2 w-full md:w-56 bg-white border rounded shadow z-50">
             <button
               onClick={() => {
                 setEditMode(true);
@@ -334,7 +332,6 @@ function UserProfile() {
               Modifier le profil
             </button>
 
-            {/* ✅ TOUJOURS AFFICHÉ */}
             <button
               onClick={() => navigate("/certification")}
               className="w-full px-4 py-2 text-left text-blue-600 hover:bg-gray-100"

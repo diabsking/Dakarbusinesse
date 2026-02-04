@@ -11,7 +11,7 @@ function TableauDebord() {
   const [notifCommandes, setNotifCommandes] = useState(0);
 
   /* =========================
-     RÉCUPÉRER COMMANDES
+      RÉCUPÉRER COMMANDES
   ========================== */
   const fetchCommandes = async () => {
     const token = localStorage.getItem("token");
@@ -37,7 +37,6 @@ function TableauDebord() {
 
   useEffect(() => {
     fetchCommandes();
-
     const timer = setTimeout(() => setLoading(false), 1500);
     return () => clearTimeout(timer);
   }, []);
@@ -51,17 +50,12 @@ function TableauDebord() {
   }
 
   return (
-    <div className="p-4 md:p-8 space-y-8">
+    <div className="w-full min-h-screen bg-white">
       {/* Profil vendeur */}
       <UserProfile />
 
       {/* Sections dashboard */}
-      <div
-        className="
-          flex gap-2 overflow-x-auto pb-2
-          md:grid md:grid-cols-3 md:gap-6
-        "
-      >
+      <div className="flex flex-col md:grid md:grid-cols-3 gap-2 md:gap-6 overflow-x-auto">
         <SectionDashboard
           icon={<FiBox />}
           title="Publier"

@@ -147,12 +147,13 @@ export default function Navbar() {
 
             {/* Vendeur */}
             <Link
-              to="/espace-vendeur"
-              className="flex items-center gap-1 px-3 py-2 rounded-xl bg-orange-500 text-black hover:bg-orange-600 text-sm sm:text-base"
-            >
-              <FiUser size={18} />
-              <span className="hidden sm:inline">Vendeur</span>
-            </Link>
+  to="/espace-vendeur"
+  className="flex items-center gap-1 px-3 py-2 rounded-xl text-gray-800 hover:text-orange-500 text-sm sm:text-base transition-colors duration-200"
+>
+  <FiUser size={18} />
+  <span className="hidden sm:inline">Vendeur</span>
+</Link>
+
           </div>
         </div>
       </nav>
