@@ -11,7 +11,12 @@ const ProductGrid = () => {
     const fetchProduits = async () => {
       try {
         const res = await api.get("/api/produits/mes-produits");
-        setProduits(res.data.data || []);
+
+        const produitsRecents = (res.data.data || []).sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+
+        setProduits(produitsRecents);
       } catch (err) {
         console.error(err);
         setError("Impossible de charger vos produits");

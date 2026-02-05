@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
 import api from "../services/api";
 import ProfilVendeurPublic from "../components/Vendeur/ProfilVendeurPublicComp";
 
@@ -18,9 +17,7 @@ export default function ProfilVendeurPublicPage() {
     const fetchVendeur = async () => {
       try {
         console.log(`🌍 GET http://localhost:5000/api/vendeur/${id}`);
-
         const res = await api.get(`/api/vendeur/${id}`);
-
         console.log("✅ Vendeur reçu :", res.data);
         setVendeur(res.data);
       } catch (err) {
@@ -44,22 +41,25 @@ export default function ProfilVendeurPublicPage() {
      SKELETON PROFIL
   ====================== */
   const renderSkeleton = () => (
-    <div className="p-4 md:p-6 max-w-4xl mx-auto animate-pulse space-y-4">
-      <div className="w-32 h-32 bg-gray-200 rounded-full mx-auto md:mx-0" />
-      <div className="space-y-2 mt-4 md:mt-0">
-        <div className="h-6 w-48 bg-gray-200 rounded mx-auto md:mx-0" />
-        <div className="h-4 w-64 bg-gray-200 rounded mx-auto md:mx-0" />
-        <div className="h-4 w-40 bg-gray-200 rounded mx-auto md:mx-0" />
+    <div className="w-full min-h-screen animate-pulse space-y-4 bg-white">
+      <div className="flex flex-col items-center gap-3 pt-6">
+        <div className="w-32 h-32 bg-gray-200 rounded-full" />
+        <div className="h-6 w-48 bg-gray-200 rounded" />
+        <div className="h-4 w-64 bg-gray-200 rounded" />
+        <div className="h-4 w-40 bg-gray-200 rounded" />
       </div>
-      <div className="h-6 w-32 bg-gray-200 rounded mt-6 mx-auto md:mx-0" />
-      <div className="h-4 w-full bg-gray-200 rounded mt-2" />
-      <div className="h-4 w-full bg-gray-200 rounded mt-2" />
-      <div className="h-4 w-3/4 bg-gray-200 rounded mt-2" />
+
+      <div className="px-4 space-y-3 mt-6">
+        <div className="h-6 w-32 bg-gray-200 rounded" />
+        <div className="h-4 w-full bg-gray-200 rounded" />
+        <div className="h-4 w-full bg-gray-200 rounded" />
+        <div className="h-4 w-3/4 bg-gray-200 rounded" />
+      </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+    <div className="w-full min-h-screen bg-white overflow-x-hidden">
       {loading ? (
         renderSkeleton()
       ) : error ? (
