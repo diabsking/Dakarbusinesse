@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import SectionDashboard from "../components/TableauDebord/SectionDashboard";
 import ProductGrid from "../components/TableauDebord/ProductGrid";
 import UserProfile from "../components/TableauDebord/UserProfile";
@@ -37,7 +36,6 @@ function TableauDebord() {
 
   useEffect(() => {
     fetchCommandes();
-
     const timer = setTimeout(() => setLoading(false), 1500);
     return () => clearTimeout(timer);
   }, []);
@@ -45,13 +43,15 @@ function TableauDebord() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
-        <h1 className="text-5xl font-extrabold animate-pulse">Dakarbusiness</h1>
+        <h1 className="text-5xl font-extrabold animate-pulse">
+          Dakarbusiness
+        </h1>
       </div>
     );
   }
 
   return (
-    <div className="p-4 md:p-8 space-y-8">
+    <div className="w-full min-h-screen px-0 md:px-8 py-0 md:py-8 space-y-8 bg-white overflow-x-hidden">
       {/* Profil vendeur */}
       <UserProfile />
 
