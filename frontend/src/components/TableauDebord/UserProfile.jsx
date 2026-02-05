@@ -6,7 +6,7 @@ import api from "../../services/api";
 
 function ProfileSkeleton() {
   return (
-    <div className="flex flex-col md:flex-row gap-6 p-6 bg-white rounded-2xl border shadow-sm animate-pulse">
+    <div className="flex flex-col md:flex-row gap-6 p-6 bg-white rounded-2xl shadow-sm animate-pulse">
       <div className="flex flex-col items-center gap-3">
         <div className="w-24 h-24 rounded-full bg-gray-200" />
         <div className="h-4 w-24 bg-gray-200 rounded" />
@@ -142,13 +142,13 @@ function UserProfile() {
   if (!user) return <ProfileSkeleton />;
 
   return (
-    <div className="relative bg-white rounded-2xl border shadow-sm p-6 max-w-4xl mx-auto flex flex-col md:flex-row gap-6">
+    <div className="relative bg-white rounded-2xl shadow-sm p-6 max-w-4xl mx-auto flex flex-col md:flex-row gap-6">
       {/* Avatar + Menu */}
       <div className="relative flex flex-col items-center gap-3 w-full md:w-auto">
         <img
           src={avatarPreview || user.avatar || "/avatar-default.png"}
           alt="Avatar"
-          className="w-24 h-24 rounded-full object-cover border-2 border-orange-600"
+          className="w-24 h-24 rounded-full object-cover"
         />
         {/* Menu bouton icône trois traits */}
         <div className="absolute top-0 right-0">
@@ -160,7 +160,7 @@ function UserProfile() {
           </button>
 
           {menuOpen && (
-            <div ref={menuRef} className="absolute right-0 mt-2 w-56 bg-white border rounded shadow z-50">
+            <div ref={menuRef} className="absolute right-0 mt-2 w-56 bg-white rounded shadow z-50">
               <button
                 onClick={() => { setEditMode(true); setMenuOpen(false); }}
                 className="w-full px-4 py-2 text-left hover:bg-gray-100"
@@ -220,7 +220,7 @@ function UserProfile() {
       {/* Infos */}
       <div className="flex-1 w-full flex flex-col">
         {profilIncomplet && !editMode && (
-          <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded">
+          <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-yellow-50 p-4 rounded">
             <span className="text-sm text-yellow-700">⚠️ Profil incomplet</span>
             <button
               onClick={() => setEditMode(true)}
@@ -251,7 +251,7 @@ function UserProfile() {
 
             {/* Boost pour non-certifié */}
             {!user.certifie && (
-              <div className="mt-4 bg-blue-50 border-l-4 border-blue-600 p-4 rounded-lg text-sm shadow-sm text-center md:text-left">
+              <div className="mt-4 bg-blue-50 p-4 rounded-lg text-sm shadow-sm text-center md:text-left">
                 <p className="font-semibold text-blue-700">🚀 Boostez votre visibilité</p>
                 <p className="text-gray-700 mt-1">
                   Les vendeurs <strong>certifiés</strong> sont priorisés sur dakar-business.
