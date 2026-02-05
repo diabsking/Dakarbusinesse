@@ -89,7 +89,7 @@ export default function ProfilVendeurPublicComp({
               {vendeur.certifie && (
                 <span className="flex items-center gap-1 text-blue-600 text-sm font-semibold">
                   <BsPatchCheckFill className="text-blue-500" />
-                  Certifié
+                
                 </span>
               )}
             </div>
